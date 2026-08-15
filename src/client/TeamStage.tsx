@@ -24,7 +24,7 @@ import {
   IconTeamSend16, IconTeamTask16, IconTeamWorkspace16,
 } from './icons.tsx'
 import type { TeamKey } from './locales.ts'
-import { ZONES, ZONE_ORDER, slotOf, zoneFor, type Point, type Touch, type ZoneId } from './room.ts'
+import { ZONES, ZONE_ORDER, scaleOf, slotOf, zoneFor, type Point, type Slot, type Touch, type ZoneId } from './room.ts'
 import { Whale, accentOf, kindOf } from './whales.tsx'
 import css from './TeamStage.module.css'
 
@@ -101,9 +101,14 @@ function stagger(index: number): CSSProperties {
   return { animationDelay: `${Math.min(index, 10) * 30}ms` }
 }
 
-/** Place one point on the floor. */
-function at(point: Point): CSSProperties {
-  return { left: `${point.x}%`, top: `${point.y}%` }
+/** Place one occupant on the floor: where it stands, how it packs, who is in front. */
+function at(slot: Slot): CSSProperties {
+  return {
+    left: `${slot.x}%`,
+    top: `${slot.y}%`,
+    zIndex: slot.row + 1,
+    '--team-tile-scale': scaleOf(slot.rows),
+  } as CSSProperties
 }
 
 /**
@@ -167,7 +172,7 @@ export function TeamStage(props: TeamStageProps) {
       zoneFor(running.has(member.memberId), touched.get(member.memberId), openOf(member.memberId)),
     )
   }
-  const points = new Map<string, Point>()
+  const points = new Map<string, Slot>()
   for (const zone of ZONE_ORDER) {
     filling[zone].forEach((id, index) => { points.set(id, slotOf(zone, index, filling[zone].length)) })
   }
@@ -230,7 +235,7 @@ export function TeamStage(props: TeamStageProps) {
             name={t('member.leader')}
             seat={-1}
             zone="work"
-            point={points.get(leaderId) ?? { x: 50, y: 50 }}
+            slot={points.get(leaderId) ?? { x: 50, y: 50, row: 0, rows: 1 }}
             relation="lead"
             role={undefined}
             current={currentId === leaderId}
@@ -253,7 +258,7 @@ export function TeamStage(props: TeamStageProps) {
               name={member.name}
               seat={index}
               zone={zoneById.get(member.memberId) ?? 'pool'}
-              point={points.get(member.memberId) ?? { x: 50, y: 50 }}
+              slot={points.get(member.memberId) ?? { x: 50, y: 50, row: 0, rows: 1 }}
               relation={member.relation}
               role={member.role}
               current={currentId === member.memberId}
@@ -442,7 +447,7 @@ function MemberTile(props: {
   readonly name: string
   readonly seat: number
   readonly zone: ZoneId
-  readonly point: Point
+  readonly slot: Slot
   readonly relation: 'peer' | 'managed' | 'lead'
   readonly role: string | undefined
   readonly current: boolean
@@ -458,7 +463,7 @@ function MemberTile(props: {
   readonly t: Translate
 }) {
   const {
-    id, name, seat, zone, point, relation, role, current, running, focused, talking,
+    id, name, seat, zone, slot, relation, role, current, running, focused, talking,
     screenLine, tasks, label, title, onOpen, onFocus, t,
   } = props
   const kind = kindOf(seat)
@@ -470,7 +475,7 @@ function MemberTile(props: {
     <button
       type="button"
       className={css.tile}
-      style={{ ...at(point), ...accentOf(seat), ...stagger(seat + 1) }}
+      style={{ ...at(slot), ...accentOf(seat), ...stagger(seat + 1) }}
       onClick={onOpen}
       onMouseEnter={() => { onFocus(id) }}
       onMouseLeave={() => { onFocus(undefined) }}

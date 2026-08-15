@@ -122,8 +122,8 @@
 .floor {
   position: relative;
   width: 100%;
-  aspect-ratio: 20 / 9;
-  min-height: 300px;
+  aspect-ratio: 16 / 9;
+  min-height: 320px;
   border-radius: 12px;
   overflow: hidden;
   background:
@@ -229,15 +229,16 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  transform: translate(-50%, -50%);
+  /* A crowded area packs its whales: the row's own scale rides the tile. */
+  transform: translate(-50%, -50%) scale(var(--team-tile-scale, 1));
   transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
   animation: team-tile-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .tile:hover,
 .tile[data-focus='true'] {
-  transform: translate(-50%, -50%) scale(1.07);
-  z-index: 3;
+  transform: translate(-50%, -50%) scale(calc(var(--team-tile-scale, 1) * 1.08));
+  z-index: 9;
 }
 
 .tile:focus-visible {
@@ -507,7 +508,8 @@
   width: clamp(52px, 9cqw, 76px);
   margin: -26px 0 0 -26px;
   pointer-events: none;
-  z-index: 4;
+  /* Above every row of tiles: the courier is the thing in motion. */
+  z-index: 20;
   animation: team-swim 4.6s cubic-bezier(0.45, 0, 0.35, 1) infinite;
 }
 
@@ -874,8 +876,8 @@
 }
 
 @keyframes team-tile-in {
-  from { opacity: 0; transform: translate(-50%, -40%) scale(0.7); }
-  to { opacity: 1; transform: translate(-50%, -50%); }
+  from { opacity: 0; transform: translate(-50%, -40%) scale(calc(var(--team-tile-scale, 1) * 0.7)); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(var(--team-tile-scale, 1)); }
 }
 
 @keyframes team-bubble-in {

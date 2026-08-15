@@ -25,6 +25,14 @@ export interface Point {
   readonly y: number
 }
 
+/** Where one occupant stands, and how crowded its row of the area is. */
+export interface Slot extends Point {
+  /** Row inside the area, front row last: a later row draws in front. */
+  readonly row: number
+  /** How many rows the area was laid out in. */
+  readonly rows: number
+}
+
 /** Where each area sits on the floor. */
 export const ZONES: Record<ZoneId, Rect> = {
   work: { x: 1.5, y: 13, w: 62, h: 47 },
@@ -45,16 +53,30 @@ const SLOT_WIDTH = 17
  * @param zone - the area.
  * @param index - the occupant's position among the area's occupants.
  * @param count - how many occupants the area holds.
- * @returns the point, in the room's own 0–100 space.
+ * @returns the slot, in the room's own 0–100 space.
  */
-export function slotOf(zone: ZoneId, index: number, count: number): Point {
+export function slotOf(zone: ZoneId, index: number, count: number): Slot {
   const rect = ZONES[zone]
   const columns = Math.max(1, Math.min(count, Math.round(rect.w / SLOT_WIDTH)))
   const rows = Math.max(1, Math.ceil(count / columns))
+  const row = Math.floor(index / columns)
   return {
     x: rect.x + rect.w * (((index % columns) + 0.5) / columns),
-    y: rect.y + rect.h * ((Math.floor(index / columns) + 0.5) / rows),
+    y: rect.y + rect.h * ((row + 0.5) / rows),
+    row,
+    rows,
   }
+}
+
+/**
+ * How far one occupant shrinks so its row still fits the area it stands in. A
+ * crowded area packs its whales rather than spilling them over the floor.
+ * @param rows - how many rows the area was laid out in.
+ * @returns the scale factor for one tile.
+ */
+export function scaleOf(rows: number): number {
+  if (rows <= 1) return 1
+  return rows === 2 ? 0.78 : 0.62
 }
 
 /** The last thing that happened to one member in the visible mailbox tail. */
