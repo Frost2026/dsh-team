@@ -9,7 +9,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { SessionListState } from '@deepseek-ai/dsh-client-runtime/client'
-import type { TeamMemberView, TeamMessageView, TeamTaskView } from '../src/contract.ts'
+import type { TeamBoardEntryView, TeamMemberView, TeamMessageView, TeamTaskView } from '../src/contract.ts'
 import { TeamStage, type TeamStageProps, type TeamPanelState } from '../src/client/TeamStage.tsx'
 import { en, type TeamKey } from '../src/client/locales.ts'
 
@@ -42,7 +42,7 @@ function mount(state: Partial<TeamPanelState>, options: {
   readonly openMember?: (leaderId: string, memberId: string) => void
   readonly openLeader?: (leaderId: string) => void
 } = {}) {
-  const panel: TeamPanelState = { members: [], tasks: [], messages: [], ...state }
+  const panel: TeamPanelState = { members: [], tasks: [], messages: [], board: [], ...state } as TeamPanelState
   const props = {
     useTeam: (select: (snapshot: TeamPanelState) => unknown) => select(panel),
     useSessions: (select: (snapshot: SessionListState) => unknown) => select(sessions(options.running)),
@@ -247,5 +247,46 @@ describe('task board', () => {
   it('says so when there is no task yet', () => {
     stage()
     expect(screen.getByText(en['stage.noTasks'])).toBeTruthy()
+  })
+})
+
+describe('shared workspace', () => {
+  const board: readonly TeamBoardEntryView[] = [
+    {
+      key: 'api decision', authorId: 'child-1', authorName: 'Alice',
+      updatedAt: 1_700_000_000_000, preview: 'we keep v1 of the route',
+    },
+    {
+      key: 'migration list', authorId: 'child-2', authorName: 'Bob',
+      updatedAt: 1_700_000_060_000, preview: 'four call sites left',
+    },
+  ]
+
+  it('shows every note with its author', () => {
+    const { container } = stage({ board })
+    const note = container.querySelector('[data-note-key="api decision"]')
+    expect(note?.textContent).toContain('we keep v1 of the route')
+    expect(note?.textContent).toContain('Alice')
+    expect(container.querySelector('[data-note-key="migration list"]')?.textContent).toContain('Bob')
+  })
+
+  it('says when the snapshot was taken, because a teammate write does not reach it', () => {
+    const { container } = stage({ board, boardAt: 1_700_000_120_000 })
+    const note = container.querySelector('[data-note-key]')
+    expect(note).toBeTruthy()
+    expect(screen.getByTitle(en['stage.boardStale'])).toBeTruthy()
+  })
+
+  it('links a note to its author: hovering one focuses the member', () => {
+    const { container } = stage({ board })
+    const note = container.querySelector('[data-note-key="api decision"]')
+    fireEvent.mouseEnter(note as HTMLElement)
+    expect(container.querySelector('line[data-relation="peer"]')?.getAttribute('data-focus')).toBe('true')
+  })
+
+  it('says so, and why it matters, when nothing is written yet', () => {
+    stage()
+    expect(screen.getByText(en['stage.noNotes'])).toBeTruthy()
+    expect(screen.getByText(en['stage.noNotesHint'])).toBeTruthy()
   })
 })

@@ -17,6 +17,7 @@ import { defineTool } from '@deepseek-ai/dsh-tools'
 import type { ToolCallView, ToolDefinition, ToolResultView } from '@deepseek-ai/dsh-tools'
 import type { TeamMemberFact } from './fold.ts'
 import type { TeamService } from './service.ts'
+import { SHARED_AREA, type NoteAuthor, type TeamWorkspace } from './workspace.ts'
 
 /** The acting agent; a team tool without one is a composition mistake. */
 function actor(agent: Agent | undefined): Agent {
@@ -416,6 +417,195 @@ export function listTool(ctx: Context): ToolDefinition {
           ...message.hop !== undefined ? { hop: message.hop } : {},
         })),
       })
+    },
+  })
+}
+
+/** The notes one `team_board` read returns for a named key. */
+function pickNote<T extends { readonly key: string }>(held: readonly T[], key: string): readonly T[] {
+  const wanted = key.trim()
+  return held.filter(entry => entry.key === wanted)
+}
+
+/** Board entry facts as one output value and one durable fact share them. */
+const BOARD_PROPERTIES = {
+  key: { type: 'string', required: true },
+  authorId: { type: 'string', required: true },
+  authorName: { type: 'string', required: true },
+  updatedAt: { type: 'number', required: true },
+  preview: { type: 'string', required: true },
+} as const
+
+/**
+ * Resolve the acting agent's workspace coordinates: which team's workspace,
+ * which area, and who the note records as its author.
+ */
+function place(ctx: Context, agent: Agent, priv: boolean): {
+  readonly leaderId: string
+  readonly area: string
+  readonly author: NoteAuthor
+} {
+  const seat = ctx.team.seatOf(agent)
+  return {
+    leaderId: seat.leaderId,
+    area: priv ? seat.memberId : SHARED_AREA,
+    author: { id: seat.memberId, name: seat.name },
+  }
+}
+
+/**
+ * `team_note` — write or drop one note in a virtual workspace.
+ * @param ctx - context carrying the team service.
+ * @param workspace - the open workspace domain.
+ * @param audience - whose description this registration serves.
+ * @returns the tool definition.
+ */
+export function noteTool(ctx: Context, workspace: TeamWorkspace, audience: 'leader' | 'member'): ToolDefinition {
+  const shared = audience === 'leader'
+    ? 'Every teammate reads and writes the shared board, so it is where a decision belongs once you have made '
+      + 'it — leaving a note costs no turn, while messaging someone costs one of theirs.'
+    : 'Every member reads and writes the shared board. Put a conclusion there instead of messaging it around: '
+      + 'a note costs nobody a turn, and it is still there after you have finished and gone idle.'
+  return defineTool({
+    name: 'team_note',
+    description:
+      'Write one note into a team workspace. These workspaces are the team\'s own — they are NOT files and '
+      + 'they are not in the user\'s working tree. ' + shared + ' With private=true the note goes to your own '
+      + 'pad instead, which nobody else can read: use it to keep your own state across turns. Writing a key '
+      + 'that already exists replaces it whole; omit text to drop the note.',
+    parameters: {
+      key: { type: 'string', required: true, description: 'Short name of the note, e.g. "api decision". Writing the same key again replaces it.' },
+      text: { type: 'string', description: 'The whole note. Omit to delete the note instead.' },
+      private: { type: 'boolean', description: 'true writes your own private pad; default false writes the shared board.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          key: { type: 'string', required: true },
+          area: { type: 'string', required: true, enum: ['shared', 'private'] },
+          removed: { type: 'boolean', required: true },
+          board: { type: 'array', required: true, items: { type: 'object', additionalProperties: false, properties: BOARD_PROPERTIES } },
+          at: { type: 'number', required: true },
+        },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: value.removed
+          ? `dropped "${value.key}" from the ${value.area} workspace`
+          : `wrote "${value.key}" to the ${value.area} workspace`,
+      }],
+      // The whole shared index, from whichever session made the call: the
+      // durable workspace lives outside every log, so each session records the
+      // snapshot it actually saw.
+      presentationMeta: (_args, value) => ({ team: 'board', entries: value.board, at: value.at }),
+    },
+    presentCall: args => call(
+      args.text === undefined ? `Drop note ${args.key}` : `Note: ${args.key}`,
+      args.private === true ? { private: true } : undefined,
+    ),
+    presentResult: (args, result) => result.isError
+      ? done(`Note: ${args.key}`, `failed: ${failureText(result)}`)
+      : done(args.text === undefined ? `Dropped ${args.key}` : `Noted ${args.key}`, args.private === true ? 'private' : 'shared'),
+    isConcurrencySafe: () => false,
+    async execute(args, exec) {
+      const agent = actor(exec.agent)
+      const spot = place(ctx, agent, args.private === true)
+      const now = Date.now()
+      if (args.text === undefined) {
+        await workspace.remove(spot.leaderId, spot.area, args.key)
+      } else {
+        await workspace.write(spot.leaderId, spot.area, args.key, args.text, spot.author, now)
+      }
+      return {
+        key: args.key.trim(),
+        area: args.private === true ? 'private' as const : 'shared' as const,
+        removed: args.text === undefined,
+        board: [...await workspace.index(spot.leaderId)],
+        at: now,
+      }
+    },
+  })
+}
+
+/**
+ * `team_board` — read a virtual workspace.
+ * @param ctx - context carrying the team service.
+ * @param workspace - the open workspace domain.
+ * @param audience - whose description this registration serves.
+ * @returns the tool definition.
+ */
+export function boardTool(ctx: Context, workspace: TeamWorkspace, audience: 'leader' | 'member'): ToolDefinition {
+  return defineTool({
+    name: 'team_board',
+    description:
+      'Read a team workspace: the shared board every member writes to, or your own private pad. Without a key '
+      + 'you get the index — every note with who wrote it and when — and with a key you get that note in full. '
+      + (audience === 'leader'
+        ? 'Read the board before assigning work: a teammate that has already recorded its conclusion there '
+          + 'does not need to be asked for it again.'
+        : 'Read the board before messaging anyone: what you were about to ask for may already be written down, '
+          + 'and a note costs nobody a turn.'),
+    parameters: {
+      key: { type: 'string', description: 'Read one note in full; omit for the index of the whole area.' },
+      private: { type: 'boolean', description: 'true reads your own private pad; default false reads the shared board.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          area: { type: 'string', required: true, enum: ['shared', 'private'] },
+          entries: {
+            type: 'array',
+            required: true,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: { ...BOARD_PROPERTIES, text: { type: 'string' } },
+            },
+          },
+          board: { type: 'array', required: true, items: { type: 'object', additionalProperties: false, properties: BOARD_PROPERTIES } },
+          at: { type: 'number', required: true },
+        },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: value.entries.length === 0
+          ? `the ${value.area} workspace is empty`
+          : value.entries
+            .map(entry => `## ${entry.key} — ${entry.authorName}\n${entry.text ?? entry.preview}`)
+            .join('\n\n'),
+      }],
+      presentationMeta: (_args, value) => ({ team: 'board', entries: value.board, at: value.at }),
+    },
+    presentCall: args => ({
+      card: 'generic',
+      title: args.key === undefined ? 'Read the team workspace' : `Read note ${args.key}`,
+      kind: 'read',
+    }),
+    presentResult: (_args, result) => result.isError
+      ? done('Read the team workspace', 'failed')
+      : done('Team workspace'),
+    async execute(args, exec) {
+      const agent = actor(exec.agent)
+      const spot = place(ctx, agent, args.private === true)
+      const held = await workspace.read(spot.leaderId, spot.area)
+      const wanted = args.key === undefined ? held : pickNote(held, args.key)
+      return {
+        area: args.private === true ? 'private' as const : 'shared' as const,
+        entries: wanted.map(entry => ({
+          key: entry.key,
+          authorId: entry.authorId,
+          authorName: entry.authorName,
+          updatedAt: entry.updatedAt,
+          preview: entry.text.split('\n')[0] ?? '',
+          text: entry.text,
+        })),
+        board: [...await workspace.index(spot.leaderId)],
+        at: Date.now(),
+      }
     },
   })
 }

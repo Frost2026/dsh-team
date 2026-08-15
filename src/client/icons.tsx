@@ -110,3 +110,17 @@ export function IconTeamSend16({ size = 16, className, style }: TeamIconProps) {
   )
 }
 
+
+/** Team workspace: a shared board with two pinned notes. */
+export function IconTeamWorkspace16({ size = 16, className, style }: TeamIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style} aria-hidden>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M2.1 2.4 C 1.82 2.4 1.6 2.62 1.6 2.9 L 1.6 12.2 C 1.6 12.48 1.82 12.7 2.1 12.7 L 13.9 12.7 C 14.18 12.7 14.4 12.48 14.4 12.2 L 14.4 2.9 C 14.4 2.62 14.18 2.4 13.9 2.4 Z M2.6 3.4 L 13.4 3.4 L 13.4 11.7 L 2.6 11.7 Z M4.2 5 L 7.4 5 C 7.62 5 7.8 5.18 7.8 5.4 L 7.8 8 C 7.8 8.22 7.62 8.4 7.4 8.4 L 4.2 8.4 C 3.98 8.4 3.8 8.22 3.8 8 L 3.8 5.4 C 3.8 5.18 3.98 5 4.2 5 Z M9.1 5 L 11.8 5 C 12.02 5 12.2 5.18 12.2 5.4 C 12.2 5.62 12.02 5.8 11.8 5.8 L 9.1 5.8 C 8.88 5.8 8.7 5.62 8.7 5.4 C 8.7 5.18 8.88 5 9.1 5 Z M9.1 6.9 L 11.8 6.9 C 12.02 6.9 12.2 7.08 12.2 7.3 C 12.2 7.52 12.02 7.7 11.8 7.7 L 9.1 7.7 C 8.88 7.7 8.7 7.52 8.7 7.3 C 8.7 7.08 8.88 6.9 9.1 6.9 Z M4.2 9.5 L 11.8 9.5 C 12.02 9.5 12.2 9.68 12.2 9.9 C 12.2 10.12 12.02 10.3 11.8 10.3 L 4.2 10.3 C 3.98 10.3 3.8 10.12 3.8 9.9 C 3.8 9.68 3.98 9.5 4.2 9.5 Z M6.6 13.6 L 9.4 13.6 L 9.4 14.6 L 6.6 14.6 Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}

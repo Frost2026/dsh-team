@@ -44,7 +44,7 @@ const alice: TeamMemberView = { memberId: 'child-1', name: 'Alice', relation: 'p
 
 /** One team value as a leader session folds it. */
 function teamOf(members: readonly TeamMemberView[]): TeamView {
-  return { active: members.length > 0, members, tasks: [], messages: [] }
+  return { active: members.length > 0, members, tasks: [], messages: [], board: [] }
 }
 
 /** The session domain double: bindings, navigation, and the subagent catalog. */
@@ -176,7 +176,8 @@ describe('following the current session', () => {
   it('publishes the team of the session that comes into view', () => {
     sessions.seed('leader-1', teamOf([alice]))
     sessions.list.set({ current: 'leader-1' })
-    expect(panel()).toEqual({ leaderId: 'leader-1', currentId: 'leader-1', members: [alice], tasks: [], messages: [] })
+    expect(panel())
+      .toEqual({ leaderId: 'leader-1', currentId: 'leader-1', members: [alice], tasks: [], messages: [], board: [] })
   })
 
   it('follows later pushes for the session on screen', () => {

@@ -21,6 +21,10 @@ export type TeamErrorCode =
   | 'CHAIN_EXHAUSTED'
   | 'PING_PONG'
   | 'REPEATED_MESSAGE'
+  | 'INVALID_NOTE_KEY'
+  | 'NOTE_TOO_LONG'
+  | 'WORKSPACE_FULL'
+  | 'UNKNOWN_NOTE'
 
 /** Stable sentence per code; `detail` appends the caller-specific part. */
 const MESSAGES: Record<TeamErrorCode, string> = {
@@ -41,6 +45,10 @@ const MESSAGES: Record<TeamErrorCode, string> = {
     'you have already said your piece to this member in this conversation — decide with what you have, or '
     + 'raise it with the leader',
   REPEATED_MESSAGE: 'you already sent that exact message in this conversation; sending it again changes nothing',
+  INVALID_NOTE_KEY: 'that note name cannot be stored',
+  NOTE_TOO_LONG: 'that note is longer than this workspace accepts — keep the conclusion, drop the transcript',
+  WORKSPACE_FULL: 'this workspace area is full',
+  UNKNOWN_NOTE: 'no note with that name is in this workspace area',
 }
 
 /** One refused team operation. */

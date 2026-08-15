@@ -15,10 +15,12 @@ import { StateDot } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale, PropsRuntime, SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
 import type { SessionId, SessionListState } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
-import type { TeamMemberView, TeamMessageView, TeamTaskStatus, TeamTaskView } from '../contract.ts'
+import type {
+  TeamBoardEntryView, TeamMemberView, TeamMessageView, TeamTaskStatus, TeamTaskView,
+} from '../contract.ts'
 import {
   IconTeam16, IconTeamLeader16, IconTeamMailbox16, IconTeamMessage16, IconTeamPeer16,
-  IconTeamSend16, IconTeamTask16,
+  IconTeamSend16, IconTeamTask16, IconTeamWorkspace16,
 } from './icons.tsx'
 import type { TeamKey } from './locales.ts'
 import css from './TeamStage.module.css'
@@ -32,6 +34,10 @@ export interface TeamPanelState {
   readonly members: readonly TeamMemberView[]
   readonly tasks: readonly TeamTaskView[]
   readonly messages: readonly TeamMessageView[]
+  /** The shared workspace as the leader's log last recorded it. */
+  readonly board: readonly TeamBoardEntryView[]
+  /** When that snapshot was taken; absent while the leader has never looked. */
+  readonly boardAt?: number
 }
 
 /** Navigation the plugin body owns (it holds the session service). */
@@ -113,7 +119,7 @@ export function TeamStage(props: TeamStageProps) {
   /** The member the pointer is over, in the graph or in the feed. */
   const [focus, setFocus] = useState<string | undefined>(undefined)
 
-  const { leaderId, currentId, members, tasks, messages } = state
+  const { leaderId, currentId, members, tasks, messages, board, boardAt } = state
 
   const running = useMemo(
     () => new Set(members
@@ -252,6 +258,39 @@ export function TeamStage(props: TeamStageProps) {
           />
         </section>
       </div>
+
+      <section className={css.board} aria-label={t('stage.workspace')}>
+        <h3 className={css.paneTitle}>
+          <IconTeamWorkspace16 size={13} />
+          {t('stage.workspace')}
+          {boardAt !== undefined && (
+            <span className={css.paneNote} title={t('stage.boardStale')}>
+              {t('stage.boardAt', { time: clock(boardAt) })}
+            </span>
+          )}
+        </h3>
+        {board.length === 0
+          ? (
+            <>
+              <p className={css.empty}>{t('stage.noNotes')}</p>
+              <p className={css.emptyHint}>{t('stage.noNotesHint')}</p>
+            </>
+          )
+          : (
+            <div className={css.notes}>
+              {board.map((entry, index) => (
+                <NoteCard
+                  key={entry.key}
+                  entry={entry}
+                  index={index}
+                  focus={focus}
+                  onFocus={onFocus => { setFocus(onFocus) }}
+                  t={t}
+                />
+              ))}
+            </div>
+          )}
+      </section>
 
       <section className={css.board} aria-label={t('stage.board')}>
         <h3 className={css.paneTitle}>
@@ -415,6 +454,34 @@ function MessageBubble(props: {
       </div>
       <span className={css.bubbleTail} aria-hidden>
         {outbound ? <IconTeamSend16 size={12} /> : <IconTeamMessage16 size={12} />}
+      </span>
+    </div>
+  )
+}
+
+/** One note on the shared workspace, as the leader last saw it. */
+function NoteCard(props: {
+  readonly entry: TeamBoardEntryView
+  readonly index: number
+  readonly focus: string | undefined
+  readonly onFocus: (memberId: string | undefined) => void
+  readonly t: Translate
+}) {
+  const { entry, index, focus, onFocus, t } = props
+  return (
+    <div
+      className={css.note}
+      data-note-key={entry.key}
+      data-focus={focus === entry.authorId ? 'true' : undefined}
+      style={stagger(index)}
+      onMouseEnter={() => { onFocus(entry.authorId) }}
+      onMouseLeave={() => { onFocus(undefined) }}
+    >
+      <span className={css.noteKey} title={entry.key}>{entry.key}</span>
+      <span className={css.notePreview} title={entry.preview}>{entry.preview}</span>
+      <span className={css.noteFoot}>
+        <span className={css.noteAuthor}>{entry.authorName}</span>
+        <span className={css.noteTime}>{clock(entry.updatedAt)}</span>
       </span>
     </div>
   )

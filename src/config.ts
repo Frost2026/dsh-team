@@ -23,6 +23,10 @@ export interface TeamConfig {
   readonly maxChainHops: number
   /** Messages one ordered member pair may exchange within a single chain. */
   readonly maxChainRoundTrips: number
+  /** Notes one workspace area (the shared board, or one private pad) may hold. */
+  readonly maxWorkspaceEntries: number
+  /** Longest single note body. */
+  readonly maxNoteChars: number
 }
 
 /**
@@ -36,4 +40,6 @@ export const Config: z<Partial<TeamConfig>, TeamConfig> = z.object({
   maxRecentMessages: z.number().step(1).min(1).max(1000).default(50),
   maxChainHops: z.number().step(1).min(1).max(64).default(4),
   maxChainRoundTrips: z.number().step(1).min(1).max(64).default(2),
+  maxWorkspaceEntries: z.number().step(1).min(1).max(500).default(32),
+  maxNoteChars: z.number().step(1).min(200).max(200_000).default(4000),
 })

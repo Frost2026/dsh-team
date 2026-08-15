@@ -6,6 +6,10 @@
 # The row needs `@deepseek-ai/dsh-subagent` (with a continuable provider, e.g.
 # `subagent-spawn-in-process`), `dsh-session-projection`, and session
 # persistence — all present in `@deepseek-ai/dsh-base`.
+#
+# The virtual workspaces additionally need a mounted `storage-domain` form
+# (`@deepseek-ai/dsh-web-app` composes one). Without it the team keeps
+# everything else and `team_note` / `team_board` are simply never registered.
 
 - insert:
     - id: team
@@ -15,5 +19,14 @@
         provider: spawn
         # Live roster ceiling per leader session.
         maxTeammates: 8
-        # Mailbox rows kept in the durable fold and shown in the panel.
+        # Mailbox rows kept in the durable fold and shown on the stage.
         maxRecentMessages: 50
+        # How far one teammate-to-teammate conversation may relay; reaching
+        # the leader is never counted and never refused.
+        maxChainHops: 4
+        # Messages one ordered member pair may exchange inside one conversation.
+        maxChainRoundTrips: 2
+        # Notes one workspace area (the shared board, or one private pad) holds.
+        maxWorkspaceEntries: 32
+        # Longest single note body.
+        maxNoteChars: 4000

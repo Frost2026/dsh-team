@@ -16,6 +16,7 @@ import {
 
 const CONFIG: TeamConfig = {
   provider: 'spawn', maxTeammates: 2, maxRecentMessages: 20, maxChainHops: 4, maxChainRoundTrips: 2,
+  maxWorkspaceEntries: 8, maxNoteChars: 400,
 }
 
 /** One assembled world: the service plus the doubles it was built on. */

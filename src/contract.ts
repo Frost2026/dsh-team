@@ -67,6 +67,21 @@ export interface TeamMessageView {
   readonly hop?: number
 }
 
+/**
+ * One entry of the team's shared workspace, as the leader's log last recorded
+ * it. Only the shared area is ever projected: a member's private pad stays
+ * private, including from this panel.
+ */
+export interface TeamBoardEntryView {
+  readonly key: string
+  /** Session id of the member that wrote it last. */
+  readonly authorId: string
+  readonly authorName: string
+  readonly updatedAt: number
+  /** First non-empty line, bounded — the projection never carries note bodies. */
+  readonly preview: string
+}
+
 /** The durable team state folded from one leader session's log. */
 export interface TeamView {
   /** True once a spawn settled and the team was not ended afterwards. */
@@ -75,10 +90,18 @@ export interface TeamView {
   readonly tasks: readonly TeamTaskView[]
   /** Bounded newest-last mailbox feed of leader-visible traffic. */
   readonly messages: readonly TeamMessageView[]
+  /**
+   * The shared workspace as of the last time the leader read or wrote it.
+   * Teammates write straight to the durable workspace, which no session log
+   * records, so this index is a snapshot rather than a live view.
+   */
+  readonly board: readonly TeamBoardEntryView[]
+  /** When that snapshot was taken; absent while the leader has never looked. */
+  readonly boardAt?: number
 }
 
 /** The empty value every session without a team folds to. */
-export const EMPTY_TEAM_VIEW: TeamView = { active: false, members: [], tasks: [], messages: [] }
+export const EMPTY_TEAM_VIEW: TeamView = { active: false, members: [], tasks: [], messages: [], board: [] }
 
 /**
  * One delivery's place in a conversation chain. A chain begins whenever the

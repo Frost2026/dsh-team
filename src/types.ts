@@ -43,9 +43,16 @@ declare module '@deepseek-ai/cordis' {
      * durable value still travels through the `team` projection; this edge only
      * tells same-process observers to look again.
      * @param payload.leaderId - the leader session whose team changed.
+     * @param payload.ended - the whole team was disbanded, so everything scoped
+     *   to it (the virtual workspaces included) is now unowned.
+     * @param payload.removedMember - one teammate left; its private pad is unowned.
      * @mode emit
      */
-    'team/changed'(payload: { readonly leaderId: import('@deepseek-ai/dsh-session').SessionId }): void
+    'team/changed'(payload: {
+      readonly leaderId: import('@deepseek-ai/dsh-session').SessionId
+      readonly ended?: boolean
+      readonly removedMember?: string
+    }): void
   }
 }
 

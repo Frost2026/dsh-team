@@ -16,8 +16,8 @@
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import {
   EMPTY_TEAM_VIEW,
-  type TeamMemberView, type TeamMessageView, type TeamRelation, type TeamTaskStatus,
-  type TeamTaskView, type TeamView,
+  type TeamBoardEntryView, type TeamMemberView, type TeamMessageView, type TeamRelation,
+  type TeamTaskStatus, type TeamTaskView, type TeamView,
 } from './contract.ts'
 
 /** Identity and relation facts one settled team tool publishes about a member. */
@@ -49,6 +49,7 @@ export type TeamFact =
     readonly hop?: number
   }
   | { readonly team: 'task'; readonly task: TeamTaskView }
+  | { readonly team: 'board'; readonly entries: readonly TeamBoardEntryView[]; readonly at: number }
 
 type JsonRecord = Record<string, unknown>
 
@@ -114,6 +115,20 @@ function readTask(value: unknown): TeamTaskView | undefined {
   }
 }
 
+/** Narrow one logged board entry, or reject it whole. */
+function readBoardEntry(value: unknown): TeamBoardEntryView | undefined {
+  const record = asRecord(value)
+  if (record === undefined) return undefined
+  const key = asText(record['key'])
+  const authorId = asText(record['authorId'])
+  const authorName = asText(record['authorName'])
+  const updatedAt = asCount(record['updatedAt'])
+  if (key === undefined || authorId === undefined || authorName === undefined || updatedAt === undefined) {
+    return undefined
+  }
+  return { key, authorId, authorName, updatedAt, preview: asText(record['preview']) ?? '' }
+}
+
 /** Narrow one logged team fact off a `tool/result` event's `meta`. */
 export function readFact(meta: unknown): TeamFact | undefined {
   const record = asRecord(meta)
@@ -148,6 +163,13 @@ export function readFact(meta: unknown): TeamFact | undefined {
     case 'task': {
       const task = readTask(record['task'])
       return task === undefined ? undefined : { team: 'task', task }
+    }
+    case 'board': {
+      const rows = record['entries']
+      const at = asCount(record['at'])
+      if (!Array.isArray(rows) || at === undefined) return undefined
+      const entries = rows.map(readBoardEntry).filter((entry): entry is TeamBoardEntryView => entry !== undefined)
+      return { team: 'board', entries, at }
     }
     default:
       // Merge-extensible by construction: a fact written by a newer team
@@ -247,7 +269,7 @@ function applyFact(view: TeamView, fact: TeamFact, time: number, bound: number):
         members: view.members.filter(candidate => candidate.memberId !== fact.memberId),
       }
     case 'ended':
-      return { active: false, members: [], tasks: [], messages: view.messages }
+      return { active: false, members: [], tasks: [], messages: view.messages, board: [] }
     case 'message':
       return {
         ...view,
@@ -262,6 +284,11 @@ function applyFact(view: TeamView, fact: TeamFact, time: number, bound: number):
       }
     case 'task':
       return { ...view, tasks: upsertTask(view.tasks, fact.task) }
+    case 'board':
+      // The WHOLE shared area, as of the read or write that published it: the
+      // durable workspace lives outside every session log, so the fold records
+      // a snapshot rather than pretending to track it.
+      return { ...view, board: fact.entries, boardAt: fact.at }
   }
 }
 

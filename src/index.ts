@@ -20,8 +20,9 @@ import type {} from './types.ts'
 import { Config, type TeamConfig } from './config.ts'
 import { teamProjection } from './projection.ts'
 import { TeamService } from './service.ts'
-import { installTeammateWorld } from './teammate.ts'
-import { dismissTool, listTool, relationTool, sendTool, spawnTool, taskTool } from './tools.ts'
+import { installTeammateWorkspace, installTeammateWorld } from './teammate.ts'
+import { boardTool, dismissTool, listTool, noteTool, relationTool, sendTool, spawnTool, taskTool } from './tools.ts'
+import { TeamWorkspace } from './workspace.ts'
 
 export const name = 'team'
 /**
@@ -39,6 +40,8 @@ export type { TeamErrorCode } from './errors.ts'
 export { foldTeam } from './fold.ts'
 export type { TeamFact, TeamMemberFact } from './fold.ts'
 export { teamProjection } from './projection.ts'
+export { TeamWorkspace, WORKSPACE_DOMAIN, SHARED_AREA } from './workspace.ts'
+export type { WorkspaceEntry } from './workspace.ts'
 export * from './contract.ts'
 
 /** A team leader is any ordinary session; a teammate never leads its own team. */
@@ -69,8 +72,73 @@ function installLeaderTools(ctx: Context, agent: Agent): () => void {
 }
 
 /**
+ * Equip every leader session, now and as sessions arrive, with one tool set.
+ * @param ctx - the context owning the registrations.
+ * @param install - what to register into one leader's own agent scope.
+ * @returns the disposer taking the tools off every session that outlives it.
+ */
+function equipLeaders(ctx: Context, install: (agent: Agent) => () => void): () => void {
+  const equipped = new Map<SessionId, () => void>()
+  const equip = (agent: Agent): void => {
+    if (!leads(agent) || equipped.has(agent.id)) return
+    equipped.set(agent.id, install(agent))
+  }
+  // Subscribe before seeding, so a session published during this pass is
+  // equipped exactly once (the id set makes the overlap harmless).
+  ctx.on('agent/created', (payload: { agent: Agent }) => { equip(payload.agent) })
+  ctx.on('agent/disposed', (payload: { agent: Agent }) => { equipped.delete(payload.agent.id) })
+  for (const agent of ctx.agents.list()) equip(agent)
+  return () => {
+    // The registrations are agent-owned; unloading this row must still take
+    // the tools off sessions that outlive it.
+    for (const dispose of equipped.values()) dispose()
+    equipped.clear()
+  }
+}
+
+/**
+ * The virtual workspaces, when the deployment composed a storage domain form.
+ * Without one the team keeps everything else and the workspace tools are never
+ * registered — no member sees a tool that has nowhere to write.
+ * @param ctx - a context whose `team` service is resolved.
+ * @param config - the validated row configuration.
+ */
+function installWorkspaces(ctx: Context, config: TeamConfig): void {
+  ctx.inject(['storageDomain'], (workspaceCtx: Context) => {
+    const workspace = new TeamWorkspace(workspaceCtx, config)
+    workspaceCtx.effect(() => () => { workspace.dispose() }, 'team: workspace domain')
+
+    // Notes outlive turns, not teams: a disbanded team's board and a dismissed
+    // member's private pad have no owner left to read them.
+    workspaceCtx.on('team/changed', (payload: {
+      leaderId: SessionId
+      ended?: boolean
+      removedMember?: string
+    }) => {
+      if (payload.ended === true) void workspace.clear(payload.leaderId)
+      else if (payload.removedMember !== undefined) void workspace.clear(payload.leaderId, payload.removedMember)
+    })
+
+    workspaceCtx.effect(() => equipLeaders(workspaceCtx, agent => {
+      const disposers = [
+        agent.ctx.tools.register(noteTool(workspaceCtx, workspace, 'leader')),
+        agent.ctx.tools.register(boardTool(workspaceCtx, workspace, 'leader')),
+      ]
+      return () => {
+        for (const dispose of disposers.reverse()) dispose()
+      }
+    }), 'team: leader workspace tools')
+
+    workspaceCtx.effect(
+      () => installTeammateWorkspace(workspaceCtx, workspace),
+      'team: teammate workspace tools',
+    )
+  })
+}
+
+/**
  * Compose the team capability: the service, the durable projection unit, the
- * teammate world, and the per-session leader tools.
+ * teammate world, the per-session leader tools, and the virtual workspaces.
  * @param ctx - the row's context.
  * @param config - the validated row configuration.
  */
@@ -82,22 +150,10 @@ export function apply(ctx: Context, config: TeamConfig): void {
       'team: durable projection unit',
     )
     teamCtx.effect(() => installTeammateWorld(teamCtx), 'team: teammate world')
-
-    const equipped = new Map<SessionId, () => void>()
-    const equip = (agent: Agent): void => {
-      if (!leads(agent) || equipped.has(agent.id)) return
-      equipped.set(agent.id, installLeaderTools(teamCtx, agent))
-    }
-    // Subscribe before seeding, so a session published during this pass is
-    // equipped exactly once (the id set makes the overlap harmless).
-    teamCtx.on('agent/created', (payload: { agent: Agent }) => { equip(payload.agent) })
-    teamCtx.on('agent/disposed', (payload: { agent: Agent }) => { equipped.delete(payload.agent.id) })
-    for (const agent of teamCtx.agents.list()) equip(agent)
-    teamCtx.effect(() => () => {
-      // The registrations are agent-owned; unloading this row must still take
-      // the tools off sessions that outlive it.
-      for (const dispose of equipped.values()) dispose()
-      equipped.clear()
-    }, 'team: leader tools')
+    teamCtx.effect(
+      () => equipLeaders(teamCtx, agent => installLeaderTools(teamCtx, agent)),
+      'team: leader tools',
+    )
+    installWorkspaces(teamCtx, config)
   })
 }

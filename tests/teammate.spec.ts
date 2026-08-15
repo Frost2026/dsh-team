@@ -14,6 +14,7 @@ import { FakeAgents, FakeSubagents, FakeSystemPrompt, FakeTools, fakeAgent, type
 
 const CONFIG: TeamConfig = {
   provider: 'spawn', maxTeammates: 8, maxRecentMessages: 20, maxChainHops: 4, maxChainRoundTrips: 2,
+  maxWorkspaceEntries: 8, maxNoteChars: 400,
 }
 const signal = new AbortController().signal
 

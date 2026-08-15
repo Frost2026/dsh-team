@@ -15,10 +15,25 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import { ReasoningEffortId } from '@deepseek-ai/dsh-llm'
 import type {} from '@deepseek-ai/dsh-subagent'
 import type { TeamService } from './service.ts'
-import { listTool, sendTool } from './tools.ts'
+import { boardTool, listTool, noteTool, sendTool } from './tools.ts'
+import type { TeamWorkspace } from './workspace.ts'
 
 /** Guidance order: after the harness tool sections, before the persona. */
 const TEAM_SECTION_ORDER = 118
+
+/** The workspace paragraph sits right after the membership briefing. */
+const WORKSPACE_SECTION_ORDER = 119
+
+/** What a teammate needs to know about the two workspaces it can reach. */
+const WORKSPACE_BRIEFING = [
+  'Your team has two virtual workspaces, which are not files and are not in the user\'s working tree.',
+  'The shared board (team_board / team_note) is what every member reads and writes: put a conclusion, a '
+  + 'decision or hand-off material there instead of messaging it around — a note costs nobody a turn and '
+  + 'survives after you go idle, while a message costs the recipient a turn and spends conversation budget. '
+  + 'Read the board before you ask anyone anything; the answer may already be on it.',
+  'Your private pad (the same tools with private=true) is yours alone: keep your own working state there so '
+  + 'a later turn of yours can pick it up.',
+].join('\n')
 
 /** Dispose a batch completely, then report the first failure. */
 function release(disposers: readonly (() => void)[]): void {
@@ -114,6 +129,37 @@ export function installTeammateWorld(ctx: Context): () => void {
       disposers.push(childCtx.tools.register(sendTool(ctx, 'member')))
       disposers.push(childCtx.tools.register(listTool(ctx)))
       if (member.effort !== undefined) disposers.push(installEffort(childCtx, member.effort))
+    } catch (error: unknown) {
+      release(disposers)
+      throw error
+    }
+    return () => { release(disposers) }
+  })
+}
+
+/**
+ * Give every teammate its half of the virtual workspaces: the shared board it
+ * writes conclusions to, and its own private pad. Registered separately from
+ * {@link installTeammateWorld} because the workspaces are optional — a
+ * deployment without a storage domain form composes this contribution out and
+ * the rest of the teammate world is untouched.
+ * @param ctx - context carrying the team service and the open workspace.
+ * @param workspace - the open workspace domain.
+ * @returns the exact effect disposer removing the contribution.
+ */
+export function installTeammateWorkspace(ctx: Context, workspace: TeamWorkspace): () => void {
+  return ctx.subagents.registerContinuableSetup((childCtx) => {
+    const child = childCtx.agent
+    if (child === undefined || ctx.team.rosterFor(child) === undefined) return () => {}
+    const disposers: Array<() => void> = []
+    try {
+      disposers.push(childCtx.systemPrompt.section({
+        name: 'team-workspace',
+        order: WORKSPACE_SECTION_ORDER,
+        text: WORKSPACE_BRIEFING,
+      }))
+      disposers.push(childCtx.tools.register(noteTool(ctx, workspace, 'member')))
+      disposers.push(childCtx.tools.register(boardTool(ctx, workspace, 'member')))
     } catch (error: unknown) {
       release(disposers)
       throw error

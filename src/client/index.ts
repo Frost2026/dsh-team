@@ -27,7 +27,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 export const inject = ['slots', 'sessions', 'locale']
 
 /** No session in view, or a session with no team. */
-const EMPTY: TeamPanelState = { members: [], tasks: [], messages: [] }
+const EMPTY: TeamPanelState = { members: [], tasks: [], messages: [], board: [] }
 
 /** View-ring position: after the shipped chat and trajectory tabs. */
 const VIEW_ORDER = 20
@@ -40,6 +40,8 @@ function panelState(leaderId: SessionId, currentId: SessionId, team: TeamView): 
     members: team.members,
     tasks: team.tasks,
     messages: team.messages,
+    board: team.board,
+    ...team.boardAt !== undefined ? { boardAt: team.boardAt } : {},
   }
 }
 

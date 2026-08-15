@@ -366,7 +366,7 @@ export class TeamService extends Service {
       actor.team.inbox.clear()
       actor.team.chains.clear()
       actor.team.active = false
-      this.ctx.emit('team/changed', { leaderId: actor.leader.id })
+      this.ctx.emit('team/changed', { leaderId: actor.leader.id, ended: true })
       return { ended: true }
     }
     const recipient = this.resolveRecipient(actor, target)
@@ -376,7 +376,7 @@ export class TeamService extends Service {
     // A dismissed member carries no conversation forward; a later member
     // reusing its id would otherwise inherit a stranger's chain.
     actor.team.inbox.delete(recipient.id)
-    this.ctx.emit('team/changed', { leaderId: actor.leader.id })
+    this.ctx.emit('team/changed', { leaderId: actor.leader.id, removedMember: recipient.id })
     return { ended: false, memberId: recipient.id }
   }
 
@@ -399,6 +399,23 @@ export class TeamService extends Service {
       })),
       tasks: [...actor.team.tasks.values()],
       messages: [...view.messages],
+    }
+  }
+
+  /**
+   * Where one acting agent sits in its team: whose workspace it reaches, and
+   * how a note it writes is attributed. The leader's own seat carries its
+   * session id, so its private pad is addressed exactly like a teammate's.
+   * @param agent - the acting leader or teammate.
+   * @returns the team's leader id, the actor's own id, and its display name.
+   * @throws {TeamError} when the actor is not in a team.
+   */
+  seatOf(agent: Agent): { readonly leaderId: string; readonly memberId: string; readonly name: string } {
+    const actor = this.resolveActor(agent)
+    return {
+      leaderId: actor.leader.id,
+      memberId: actor.member?.memberId ?? actor.leader.id,
+      name: actor.member?.name ?? 'leader',
     }
   }
 
