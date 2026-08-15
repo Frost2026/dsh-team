@@ -138,6 +138,16 @@ describe('briefing', () => {
     service.dismiss(leader.agent, 'Alice')
     expect(child.prompt.sections[0]!.text()).toContain('no longer active')
   })
+
+  it('tells a teammate whose leader unloaded that the team is intact, and where to park the work', async () => {
+    const alice = await spawn('Alice')
+    const child = compose(alice)
+    agents.remove(leader.id)
+    const text = child.prompt.sections[0]!.text()
+    expect(text).toContain('team is intact')
+    expect(text).toContain('team_note')
+    expect(text).not.toContain('no longer active')
+  })
 })
 
 describe('reasoning effort', () => {

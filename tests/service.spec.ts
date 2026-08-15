@@ -275,12 +275,6 @@ describe('mailbox', () => {
     await expect(scene.service.send(alice.agent, 'Alice', 'hi', signal))
       .rejects.toMatchObject({ code: 'SELF_MESSAGE' })
   })
-
-  it('refuses to act for an agent that belongs to no team', async () => {
-    const stranger = fakeAgent('child-77', { parent: 'leader-77' })
-    await expect(scene.service.send(stranger.agent, 'leader', 'hi', signal))
-      .rejects.toMatchObject({ code: 'NO_TEAM' })
-  })
 })
 
 describe('task list', () => {
@@ -513,5 +507,44 @@ describe('conversation chains', () => {
     await scene.service.send(scene.leader.agent, 'Alice', 'round two', signal)
     const fresh = await scene.service.send(alice.agent, 'Bob', 'again', signal)
     expect(fresh.chain).toEqual({ chainId: 'c2', hop: 1 })
+  })
+})
+
+describe('a leader that is not loaded', () => {
+  /**
+   * Run one operation expected to refuse.
+   * @param run - the operation.
+   * @returns the refusal code, or `no-throw` when it was accepted.
+   */
+  async function codeOf(run: () => Promise<unknown>): Promise<string> {
+    try {
+      await run()
+      return 'no-throw'
+    } catch (error: unknown) {
+      return error instanceof TeamError ? error.code : `other: ${String(error)}`
+    }
+  }
+
+  it('tells a teammate its leader is away, not that it has no team', async () => {
+    const scene = world()
+    const alice = await spawn(scene, 'Alice', { relation: 'peer' })
+    scene.agents.remove(scene.leader.id)
+
+    expect(await codeOf(() => scene.service.send(alice.agent, 'leader', 'here it is', signal)))
+      .toBe('LEADER_AWAY')
+  })
+
+  it('says no team for a subagent that never belonged to one', async () => {
+    const scene = world()
+    const stray = scene.agents.add(fakeAgent('stray-1', { parent: scene.leader.id }))
+
+    expect(await codeOf(() => scene.service.send(stray.agent, 'leader', 'hello', signal)))
+      .toBe('NO_TEAM')
+  })
+
+  it('resolves a top-level session as its own leader, so the refusal names the recipient', async () => {
+    const scene = world()
+    expect(await codeOf(() => scene.service.send(scene.leader.agent, 'Alice', 'hello', signal)))
+      .toBe('UNKNOWN_MEMBER')
   })
 })

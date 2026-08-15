@@ -16,8 +16,8 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import type { ToolCallView, ToolDefinition, ToolResultView } from '@deepseek-ai/dsh-tools'
 import type { TeamMemberFact } from './fold.ts'
-import type { TeamService } from './service.ts'
-import { SHARED_AREA, type NoteAuthor, type TeamWorkspace } from './workspace.ts'
+import type { TeamSeat, TeamService } from './service.ts'
+import { SHARED_AREA, type TeamWorkspace } from './workspace.ts'
 
 /** The acting agent; a team tool without one is a composition mistake. */
 function actor(agent: Agent | undefined): Agent {
@@ -340,9 +340,10 @@ export function dismissTool(ctx: Context): ToolDefinition {
 /**
  * `team_list` — the shared read every member uses to decide who to talk to.
  * @param ctx - context carrying the team service.
+ * @param audience - whose reading of an empty team this registration serves.
  * @returns the tool definition.
  */
-export function listTool(ctx: Context): ToolDefinition {
+export function listTool(ctx: Context, audience: 'leader' | 'member' = 'leader'): ToolDefinition {
   return defineTool({
     name: 'team_list',
     description:
@@ -393,7 +394,9 @@ export function listTool(ctx: Context): ToolDefinition {
         type: 'text',
         text: value.active
           ? `${value.members.length} teammate(s), ${value.tasks.filter(task => task.status !== 'done').length} open task(s)`
-          : 'no team yet — team_spawn starts one',
+          : audience === 'leader'
+            ? 'no team yet — team_spawn starts one'
+            : 'the team is not readable from here right now; its main session is not loaded',
       }],
     },
     presentCall: () => ({ card: 'generic', title: 'Read the team', kind: 'read' }),
@@ -437,15 +440,20 @@ const BOARD_PROPERTIES = {
 } as const
 
 /**
- * Resolve the acting agent's workspace coordinates: which team's workspace,
- * which area, and who the note records as its author.
+ * How one workspace tool learns where its caller sits. A leader resolves
+ * through the live team; a teammate's registration closes over the seat it was
+ * composed with, so its workspace keeps working even while the leader session
+ * is not loaded — which is exactly when a teammate most needs somewhere to put
+ * its result.
  */
-function place(ctx: Context, agent: Agent, priv: boolean): {
+export type SeatResolver = (agent: Agent) => TeamSeat
+
+/** The team's workspace, the area, and the signature one call addresses. */
+function place(seat: TeamSeat, priv: boolean): {
   readonly leaderId: string
   readonly area: string
-  readonly author: NoteAuthor
+  readonly author: { readonly id: string; readonly name: string }
 } {
-  const seat = ctx.team.seatOf(agent)
   return {
     leaderId: seat.leaderId,
     area: priv ? seat.memberId : SHARED_AREA,
@@ -455,12 +463,16 @@ function place(ctx: Context, agent: Agent, priv: boolean): {
 
 /**
  * `team_note` — write or drop one note in a virtual workspace.
- * @param ctx - context carrying the team service.
  * @param workspace - the open workspace domain.
  * @param audience - whose description this registration serves.
+ * @param seatOf - where the caller sits (see {@link SeatResolver}).
  * @returns the tool definition.
  */
-export function noteTool(ctx: Context, workspace: TeamWorkspace, audience: 'leader' | 'member'): ToolDefinition {
+export function noteTool(
+  workspace: TeamWorkspace,
+  audience: 'leader' | 'member',
+  seatOf: SeatResolver,
+): ToolDefinition {
   const shared = audience === 'leader'
     ? 'Every teammate reads and writes the shared board, so it is where a decision belongs once you have made '
       + 'it — leaving a note costs no turn, while messaging someone costs one of theirs.'
@@ -510,8 +522,7 @@ export function noteTool(ctx: Context, workspace: TeamWorkspace, audience: 'lead
       : done(args.text === undefined ? `Dropped ${args.key}` : `Noted ${args.key}`, args.private === true ? 'private' : 'shared'),
     isConcurrencySafe: () => false,
     async execute(args, exec) {
-      const agent = actor(exec.agent)
-      const spot = place(ctx, agent, args.private === true)
+      const spot = place(seatOf(actor(exec.agent)), args.private === true)
       const now = Date.now()
       if (args.text === undefined) {
         await workspace.remove(spot.leaderId, spot.area, args.key)
@@ -531,12 +542,16 @@ export function noteTool(ctx: Context, workspace: TeamWorkspace, audience: 'lead
 
 /**
  * `team_board` — read a virtual workspace.
- * @param ctx - context carrying the team service.
  * @param workspace - the open workspace domain.
  * @param audience - whose description this registration serves.
+ * @param seatOf - where the caller sits (see {@link SeatResolver}).
  * @returns the tool definition.
  */
-export function boardTool(ctx: Context, workspace: TeamWorkspace, audience: 'leader' | 'member'): ToolDefinition {
+export function boardTool(
+  workspace: TeamWorkspace,
+  audience: 'leader' | 'member',
+  seatOf: SeatResolver,
+): ToolDefinition {
   return defineTool({
     name: 'team_board',
     description:
@@ -589,8 +604,7 @@ export function boardTool(ctx: Context, workspace: TeamWorkspace, audience: 'lea
       ? done('Read the team workspace', 'failed')
       : done('Team workspace'),
     async execute(args, exec) {
-      const agent = actor(exec.agent)
-      const spot = place(ctx, agent, args.private === true)
+      const spot = place(seatOf(actor(exec.agent)), args.private === true)
       const held = await workspace.read(spot.leaderId, spot.area)
       const wanted = args.key === undefined ? held : pickNote(held, args.key)
       return {

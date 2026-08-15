@@ -56,13 +56,31 @@ function memberLine(member: { name: string; role?: string; relation: string }): 
 }
 
 /**
+ * What a teammate is told when its roster row cannot be read. Two different
+ * facts wear that one absence, and they ask for opposite things: a leader
+ * session that is merely not loaded still has a team behind it, so the work is
+ * worth finishing and parking on the shared board; a team that let this member
+ * go has nobody left to read anything.
+ */
+function orphaned(ctx: Context, child: Agent): string {
+  const leaderId = child.session.header.parentSession
+  if (leaderId !== undefined && ctx.agents.get(leaderId) === undefined) {
+    return 'Your team is intact, but its main session is not loaded right now, so team_send has nowhere to '
+      + 'deliver. Your work is not lost: finish what you were asked for, write the result to the shared '
+      + 'workspace with team_note if you have one, and stop — the leader reads it when it comes back.'
+  }
+  return 'You were part of an agent team that is no longer active: nothing you send can be delivered and '
+    + 'nobody is waiting on you. Report what you already have and stop.'
+}
+
+/**
  * The teammate's standing briefing, re-rendered at every assembly so a member
  * that joins later, a promotion, or a new task is visible on the next step
  * without touching the child's own log.
  */
-function briefing(team: TeamService, child: Agent): string {
+function briefing(ctx: Context, team: TeamService, child: Agent): string {
   const roster = team.rosterFor(child)
-  if (roster === undefined) return 'You were part of an agent team that is no longer active.'
+  if (roster === undefined) return orphaned(ctx, child)
   const { self, others } = roster
   const identity = self.role === undefined
     ? `You are ${self.name}, a teammate on an agent team.`
@@ -124,10 +142,10 @@ export function installTeammateWorld(ctx: Context): () => void {
       disposers.push(childCtx.systemPrompt.section({
         name: 'team-membership',
         order: TEAM_SECTION_ORDER,
-        text: () => briefing(ctx.team, child),
+        text: () => briefing(ctx, ctx.team, child),
       }))
       disposers.push(childCtx.tools.register(sendTool(ctx, 'member')))
-      disposers.push(childCtx.tools.register(listTool(ctx)))
+      disposers.push(childCtx.tools.register(listTool(ctx, 'member')))
       if (member.effort !== undefined) disposers.push(installEffort(childCtx, member.effort))
     } catch (error: unknown) {
       release(disposers)
@@ -150,7 +168,13 @@ export function installTeammateWorld(ctx: Context): () => void {
 export function installTeammateWorkspace(ctx: Context, workspace: TeamWorkspace): () => void {
   return ctx.subagents.registerContinuableSetup((childCtx) => {
     const child = childCtx.agent
-    if (child === undefined || ctx.team.rosterFor(child) === undefined) return () => {}
+    const leaderId = child?.session.header.parentSession
+    const roster = child === undefined ? undefined : ctx.team.rosterFor(child)
+    if (child === undefined || leaderId === undefined || roster === undefined) return () => {}
+    // The seat is captured here, not resolved per call: the workspace is the
+    // one surface a teammate must keep while its leader session is unloaded.
+    const seat = { leaderId, memberId: child.id, name: roster.self.name }
+    const seatOf = (): typeof seat => seat
     const disposers: Array<() => void> = []
     try {
       disposers.push(childCtx.systemPrompt.section({
@@ -158,8 +182,8 @@ export function installTeammateWorkspace(ctx: Context, workspace: TeamWorkspace)
         order: WORKSPACE_SECTION_ORDER,
         text: WORKSPACE_BRIEFING,
       }))
-      disposers.push(childCtx.tools.register(noteTool(ctx, workspace, 'member')))
-      disposers.push(childCtx.tools.register(boardTool(ctx, workspace, 'member')))
+      disposers.push(childCtx.tools.register(noteTool(workspace, 'member', seatOf)))
+      disposers.push(childCtx.tools.register(boardTool(workspace, 'member', seatOf)))
     } catch (error: unknown) {
       release(disposers)
       throw error

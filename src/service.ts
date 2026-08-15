@@ -100,6 +100,13 @@ export interface TeamListResult {
   readonly messages: readonly TeamMessageView[]
 }
 
+/** Where one member sits: whose workspace it reaches, and how a note is signed. */
+export interface TeamSeat {
+  readonly leaderId: string
+  readonly memberId: string
+  readonly name: string
+}
+
 /** Who is acting, and which team they act in. */
 interface Actor {
   /** The live leader agent whose parent authority every delivery uses. */
@@ -410,7 +417,7 @@ export class TeamService extends Service {
    * @returns the team's leader id, the actor's own id, and its display name.
    * @throws {TeamError} when the actor is not in a team.
    */
-  seatOf(agent: Agent): { readonly leaderId: string; readonly memberId: string; readonly name: string } {
+  seatOf(agent: Agent): TeamSeat {
     const actor = this.resolveActor(agent)
     return {
       leaderId: actor.leader.id,
@@ -448,11 +455,24 @@ export class TeamService extends Service {
     return agent.status === 'running' ? 'running' : 'idle'
   }
 
-  /** Resolve the acting agent's team, or fail loud. */
+  /**
+   * Resolve the acting agent's team, or fail loud — and say WHICH failure it
+   * is. A teammate whose leader session is simply not loaded is not a teammate
+   * without a team: every delivery runs on the leader's parent authority, so
+   * the mailbox is shut until the leader is back, while the workspace (which
+   * needs nobody) stays open. Telling it "no team here yet" would send it to
+   * spawn one, which it cannot do.
+   */
   private resolveActor(agent: Agent): Actor {
     const actor = this.tryResolveActor(agent)
-    if (actor === undefined) throw new TeamError('NO_TEAM')
-    return actor
+    if (actor !== undefined) return actor
+    const leaderId = agent.session.header.parentSession
+    if (agent.session.header.origin === 'subagent'
+      && leaderId !== undefined
+      && this.ctx.agents.get(leaderId) === undefined) {
+      throw new TeamError('LEADER_AWAY')
+    }
+    throw new TeamError('NO_TEAM')
   }
 
   /** Resolve the acting agent's team, or report absence. */

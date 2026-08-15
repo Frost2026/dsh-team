@@ -9,6 +9,7 @@
 /** Every way a team operation refuses. */
 export type TeamErrorCode =
   | 'NO_TEAM'
+  | 'LEADER_AWAY'
   | 'NESTED_TEAM'
   | 'MAX_TEAMMATES'
   | 'DUPLICATE_NAME'
@@ -29,6 +30,10 @@ export type TeamErrorCode =
 /** Stable sentence per code; `detail` appends the caller-specific part. */
 const MESSAGES: Record<TeamErrorCode, string> = {
   NO_TEAM: 'no team here yet — spawn a teammate with team_spawn to start one',
+  LEADER_AWAY:
+    'your team is intact but its main session is not loaded right now, so nothing can be delivered through '
+    + 'it. Your work is not lost: write what you have to the shared workspace with team_note, which needs '
+    + 'nobody else, and stop — the leader reads it when it comes back',
   NESTED_TEAM: 'a teammate cannot lead its own team; ask your leader to spawn one instead',
   MAX_TEAMMATES: 'the team is full — dismiss a teammate before spawning another',
   DUPLICATE_NAME: 'a teammate with that name is already on the roster',

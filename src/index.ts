@@ -121,8 +121,8 @@ function installWorkspaces(ctx: Context, config: TeamConfig): void {
 
     workspaceCtx.effect(() => equipLeaders(workspaceCtx, agent => {
       const disposers = [
-        agent.ctx.tools.register(noteTool(workspaceCtx, workspace, 'leader')),
-        agent.ctx.tools.register(boardTool(workspaceCtx, workspace, 'leader')),
+        agent.ctx.tools.register(noteTool(workspace, 'leader', actor => workspaceCtx.team.seatOf(actor))),
+        agent.ctx.tools.register(boardTool(workspace, 'leader', actor => workspaceCtx.team.seatOf(actor))),
       ]
       return () => {
         for (const dispose of disposers.reverse()) dispose()
