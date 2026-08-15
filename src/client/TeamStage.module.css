@@ -1,0 +1,588 @@
+/* The agent-team stage view.
+
+   Design tokens only (no literal colors — per-member accents are the brand
+   token rotated, so a theme change carries them along), one motion vocabulary,
+   and every animation gated behind prefers-reduced-motion. */
+
+.stage {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+  padding: 14px 16px 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: team-stage-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ------------------------------------------------------------- status bar */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.barTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+}
+
+.barIcon {
+  color: var(--dsw-alias-brand-primary);
+}
+
+.barStats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.stat {
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--dsw-alias-label-tertiary);
+  white-space: nowrap;
+}
+
+.statLive {
+  color: var(--dsw-alias-brand-primary);
+  border-color: var(--dsw-alias-brand-primary);
+}
+
+/* ------------------------------------------------------------------ shell */
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 44%) minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+  flex: none;
+}
+
+.graph,
+.feed,
+.board {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 14px;
+  background: var(--dsw-alias-bg-overlay);
+}
+
+.paneTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.empty {
+  margin: 2px 0;
+  font-size: 12px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.blankTitle {
+  margin: 40px 0 4px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.blankHint {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* --------------------------------------------------------- constellation */
+
+.orbit {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  aspect-ratio: 1;
+}
+
+.links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+}
+
+.spoke {
+  stroke: var(--dsw-alias-border-l3);
+  stroke-width: 1;
+  transition: stroke 200ms ease, stroke-width 200ms ease;
+}
+
+/* Traffic in the visible tail, or a member mid-turn: the spoke carries packets. */
+.spoke[data-live='true'] {
+  stroke: var(--dsw-alias-brand-primary);
+  stroke-dasharray: 3 7;
+  animation: team-flow 1.1s linear infinite;
+}
+
+.spoke[data-focus='true'] {
+  stroke: var(--dsw-alias-brand-primary);
+  stroke-width: 2;
+}
+
+/* Who may talk to whom: peers share a channel, managed members do not. */
+.peerRing {
+  stroke: var(--dsw-alias-state-success-primary);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+  opacity: 0.4;
+  animation: team-ring-drift 24s linear infinite;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 0 0;
+  font-size: 10.5px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* ------------------------------------------------------------------ nodes */
+
+.hub,
+.node {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 96px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.node {
+  animation: team-node-in 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.hub:hover,
+.node:hover {
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.hub:focus-visible,
+.node:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+
+.hubDisc,
+.disc {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  color: var(--dsw-alias-label-primary-inverted);
+  background: var(--dsw-alias-brand-primary);
+  box-shadow: 0 4px 14px var(--dsw-alias-bg-mask-1);
+}
+
+.hubDisc {
+  width: 54px;
+  height: 54px;
+  outline: 1px solid var(--dsw-alias-brand-primary);
+  outline-offset: 4px;
+}
+
+.disc {
+  width: 42px;
+  height: 42px;
+  /* One brand token, rotated per seat: accents follow the theme. */
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+.discGlyph {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* A member mid-turn breathes a ring. */
+.hub[data-running='true'] .hubDisc::after,
+.node[data-running='true'] .disc::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid var(--dsw-alias-brand-primary);
+  animation: team-halo 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+/* Open work assigned to this member. */
+.load {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 2px solid var(--dsw-alias-bg-overlay);
+  font-size: 9.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--dsw-alias-label-primary-inverted);
+  background: var(--dsw-alias-state-success-primary);
+}
+
+.nodeName {
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--dsw-alias-label-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nodeMeta {
+  max-width: 100%;
+  font-size: 10px;
+  color: var(--dsw-alias-label-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nodeState {
+  position: absolute;
+  top: 30px;
+  right: 24px;
+  display: flex;
+}
+
+/* The transcript you are reading keeps a mark of its own. */
+.hub[aria-current='true'] .hubDisc,
+.node[aria-current='true'] .disc {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 3px;
+}
+
+.node[data-focus='true'] .disc {
+  box-shadow: 0 6px 20px var(--dsw-alias-bg-mask-2);
+}
+
+/* ------------------------------------------------------------------- feed */
+
+.stream {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 0;
+  max-height: 420px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.bubbleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  border-radius: 12px;
+  padding: 1px;
+  animation: team-bubble-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bubbleRow[data-outbound='true'] {
+  flex-direction: row-reverse;
+}
+
+.bubbleRow[data-focus='true'] {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.bubbleAvatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--dsw-alias-label-secondary);
+  background: var(--dsw-alias-fill-l2);
+}
+
+.bubbleAvatar .discGlyph {
+  font-size: 11px;
+}
+
+.bubbleAvatar[data-hidden='true'] {
+  visibility: hidden;
+}
+
+.bubble {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: 82%;
+  padding: 6px 10px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 12px;
+  border-top-left-radius: 4px;
+  background: var(--dsw-alias-fill-l2);
+}
+
+.bubbleRow[data-outbound='true'] .bubble {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 4px;
+  border-color: color-mix(in srgb, var(--dsw-alias-brand-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 12%, transparent);
+}
+
+/* A teammate's own result, not ordinary chatter. */
+.bubbleRow[data-message-kind='report'] .bubble {
+  border-left: 2px solid var(--dsw-alias-state-success-primary);
+}
+
+/* The runtime's account of an activation ending: quieter than a message. */
+.bubbleRow[data-message-kind='settled'] .bubble {
+  border-style: dashed;
+  opacity: 0.75;
+}
+
+.bubbleHead {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.bubbleAuthor {
+  font-weight: 600;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.bubbleArrow {
+  opacity: 0.55;
+}
+
+.bubbleKind {
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--dsw-alias-fill-l2);
+  color: var(--dsw-alias-label-secondary);
+}
+
+.bubbleTime {
+  margin-left: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bubbleText {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--dsw-alias-label-primary);
+  white-space: pre-wrap;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+}
+
+.bubbleTail {
+  display: flex;
+  flex: none;
+  align-self: center;
+  color: var(--dsw-alias-label-dimmed);
+}
+
+.bubbleRow[data-outbound='true'] .bubbleTail {
+  color: var(--dsw-alias-brand-primary);
+}
+
+/* ------------------------------------------------------------------ board */
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.columnTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.columnCount {
+  font-variant-numeric: tabular-nums;
+  color: var(--dsw-alias-label-dimmed);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 7px 9px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 10px;
+  animation: team-bubble-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.card[data-focus='true'] {
+  border-color: var(--dsw-alias-brand-primary);
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.card[data-task-status='active'] {
+  border-left: 2px solid var(--dsw-alias-brand-primary);
+}
+
+.card[data-task-status='done'] .cardTitle {
+  color: var(--dsw-alias-label-tertiary);
+  text-decoration: line-through;
+}
+
+.cardTitle {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--dsw-alias-label-primary);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.cardFoot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.cardWho {
+  flex: none;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.cardNote {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ narrow */
+
+@container (max-width: 780px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------------------------------------------------------------- motion */
+
+@keyframes team-stage-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes team-node-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+@keyframes team-bubble-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes team-flow {
+  to { stroke-dashoffset: -20; }
+}
+
+@keyframes team-ring-drift {
+  to { stroke-dashoffset: -160; }
+}
+
+@keyframes team-halo {
+  0% { opacity: 0.7; transform: scale(1); }
+  70% { opacity: 0; transform: scale(1.35); }
+  100% { opacity: 0; transform: scale(1.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage,
+  .node,
+  .bubbleRow,
+  .card {
+    animation: none;
+  }
+
+  .spoke[data-live='true'],
+  .peerRing,
+  .hub[data-running='true'] .hubDisc::after,
+  .node[data-running='true'] .disc::after {
+    animation: none;
+  }
+
+  .hub,
+  .node,
+  .spoke,
+  .card {
+    transition: none;
+  }
+}

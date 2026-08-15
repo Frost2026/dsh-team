@@ -1,9 +1,10 @@
 /**
- * The browser half's plugin body: which session's team is on screen, and what
- * the panel asks the session domain to open.
+ * The browser half's plugin body: which session's team is on screen, when the
+ * view ring grows an agent-team tab, and what the stage asks the session
+ * domain to open.
  *
  * The fold itself is the host's (tests/fold.spec.ts) — this file only covers
- * following, holding, and navigating.
+ * following, holding, contributing, and navigating.
  *
  * @module dsh-team/tests/client
  */
@@ -100,47 +101,76 @@ interface Injected {
   readonly openLeader: (leaderId: string) => void
 }
 
+/** One live `conversation.view` contribution, as the slot ledger holds it. */
+interface Tab {
+  readonly id: string
+  readonly order: number
+  readonly label: () => string
+  readonly face: Injected
+}
+
 let sessions: FakeSessions
-let injected: Injected
+/** The view-ring contributions currently registered. */
+let tabs: Tab[]
 let teardown: () => void
 
-/** Mount the plugin body over the doubles and capture its inject face. */
+/** Mount the plugin body over the doubles and watch what it contributes. */
 function mount(): void {
   sessions = new FakeSessions()
+  tabs = []
   const disposers: Array<() => void> = []
-  let face: Injected | undefined
   const ctx = {
     effect: (run: () => unknown, _label: string) => {
       const disposer = run()
       if (typeof disposer === 'function') disposers.push(disposer as () => void)
     },
-    locale: { register: () => () => {} },
+    locale: { register: () => () => {}, bind: () => (key: string) => key },
     sessions,
     slots: {
-      inject: (_name: string, register: () => unknown) => { register() },
-      register: (spec: { inject: () => Injected }) => {
-        face = spec.inject()
-        return () => {}
+      inject: (_name: string, install: () => () => void) => {
+        const dispose = install()
+        disposers.push(dispose)
+        return dispose
+      },
+      register: (spec: { id: string; order: number; label: () => string; inject: () => Injected }) => {
+        const tab: Tab = { id: spec.id, order: spec.order, label: spec.label, face: spec.inject() }
+        tabs.push(tab)
+        return () => {
+          const at = tabs.indexOf(tab)
+          if (at >= 0) tabs.splice(at, 1)
+        }
       },
     },
   } as unknown as ClientContext
 
   apply(ctx)
-  if (face === undefined) throw new Error('the overlay entry registered no inject face')
-  injected = face
   teardown = () => { for (const dispose of disposers.reverse()) dispose() }
+}
+
+/** The one live view tab; the plugin never contributes two. */
+function tab(): Tab {
+  const [only, ...rest] = tabs
+  if (only === undefined) throw new Error('no agent-team view tab is registered')
+  if (rest.length > 0) throw new Error(`${tabs.length} agent-team view tabs are registered`)
+  return only
 }
 
 /** The panel state currently published to the entry. */
 function panel(): TeamPanelState {
-  return injected.hooks.team.getSnapshot()
+  return tab().face.hooks.team.getSnapshot()
+}
+
+/** Seed a leader with a team and bring it into view, so the tab exists. */
+function seedTeam(): void {
+  sessions.seed('leader-1', teamOf([alice]))
+  sessions.list.set({ current: 'leader-1' })
 }
 
 beforeEach(() => { mount() })
 
 describe('following the current session', () => {
-  it('publishes nothing while no session is current', () => {
-    expect(panel()).toEqual({ members: [], tasks: [], messages: [] })
+  it('contributes no view tab while no session is current', () => {
+    expect(tabs).toEqual([])
   })
 
   it('publishes the team of the session that comes into view', () => {
@@ -152,7 +182,7 @@ describe('following the current session', () => {
   it('follows later pushes for the session on screen', () => {
     sessions.seed('leader-1', teamOf([]))
     sessions.list.set({ current: 'leader-1' })
-    expect(panel().leaderId).toBeUndefined()
+    expect(tabs).toEqual([])
 
     sessions.faces.get('leader-1')!.set(teamOf([alice]))
     expect(panel().members).toEqual([alice])
@@ -173,47 +203,48 @@ describe('following the current session', () => {
     sessions.list.set({ current: 'leader-1' })
     sessions.list.set({ current: 'other' })
 
-    expect(panel()).toEqual({ members: [], tasks: [], messages: [] })
+    expect(tabs).toEqual([])
   })
 
   it('attaches later when the current id arrives before its binding', () => {
     sessions.faces.set('leader-1', new Observable<TeamView | undefined>(teamOf([alice])))
     sessions.list.set({ current: 'leader-1' })
-    expect(panel().members).toEqual([])
+    expect(tabs).toEqual([])
 
     sessions.bound.add('leader-1')
     sessions.list.set({ current: 'leader-1' })
     expect(panel().members).toEqual([alice])
   })
 
-  it('drops every subscription when the row unloads', () => {
-    sessions.seed('leader-1', teamOf([alice]))
-    sessions.list.set({ current: 'leader-1' })
+  it('drops every subscription and the tab when the row unloads', () => {
+    seedTeam()
     expect(sessions.faces.get('leader-1')!.watchers).toBe(1)
 
     teardown()
     expect(sessions.list.watchers).toBe(0)
     expect(sessions.faces.get('leader-1')!.watchers).toBe(0)
-    expect(panel()).toEqual({ members: [], tasks: [], messages: [] })
+    expect(tabs).toEqual([])
   })
 })
 
 describe('navigation', () => {
+  beforeEach(() => { seedTeam() })
+
   it('returns to the leader conversation', () => {
-    injected.openLeader('leader-1')
+    tab().face.openLeader('leader-1')
     expect(sessions.opened).toEqual(['leader-1'])
   })
 
   it('opens a teammate through the durable address the catalog retains', () => {
     sessions.addresses.set('child-1', { parentSessionId: 'leader-1', childSessionId: 'child-1', mode: 'continuable' })
-    injected.openMember('leader-1', 'child-1')
+    tab().face.openMember('leader-1', 'child-1')
     expect(sessions.openedSubagents).toEqual([
       { parentSessionId: 'leader-1', childSessionId: 'child-1', mode: 'continuable' },
     ])
   })
 
   it('falls back to the direct-parent address when the catalog knows none', () => {
-    injected.openMember('leader-1', 'child-2')
+    tab().face.openMember('leader-1', 'child-2')
     expect(sessions.openedSubagents).toEqual([
       { parentSessionId: 'leader-1', childSessionId: 'child-2', mode: 'continuable' },
     ])
@@ -221,7 +252,7 @@ describe('navigation', () => {
 
   it('refreshes the catalog once and retries when the child is not retained yet', async () => {
     sessions.unknownChildren.add('child-3')
-    injected.openMember('leader-1', 'child-3')
+    tab().face.openMember('leader-1', 'child-3')
     expect(sessions.openedSubagents).toEqual([])
 
     await vi.waitFor(() => { expect(sessions.openedSubagents).toHaveLength(1) })
@@ -234,9 +265,42 @@ describe('navigation', () => {
       sessions.refreshed.push(parentId)
       await Promise.resolve()
     }
-    injected.openMember('leader-1', 'child-4')
+    tab().face.openMember('leader-1', 'child-4')
 
     await vi.waitFor(() => { expect(sessions.refreshed).toEqual(['leader-1']) })
     expect(sessions.openedSubagents).toEqual([])
+  })
+})
+
+describe('the view tab', () => {
+  it('appears only once the session on screen has a team', () => {
+    expect(tabs).toEqual([])
+    seedTeam()
+    expect(tab().id).toBe('agent-team')
+  })
+
+  it('sits after the shipped views and takes its label from the dictionary', () => {
+    seedTeam()
+    expect(tab().order).toBeGreaterThan(10)
+    expect(tab().label()).toBe('view.title')
+  })
+
+  it('withdraws itself when the team is disbanded', () => {
+    seedTeam()
+    sessions.faces.get('leader-1')!.set(teamOf([]))
+    expect(tabs).toEqual([])
+  })
+
+  it('stays a single contribution while the team keeps changing', () => {
+    seedTeam()
+    sessions.faces.get('leader-1')!.set(teamOf([alice, { ...alice, memberId: 'child-2', name: 'Bob' }]))
+    expect(tab().face.hooks.team.getSnapshot().members).toHaveLength(2)
+  })
+
+  it('keeps the tab while you read one of the teammates', () => {
+    seedTeam()
+    sessions.seed('child-1', teamOf([]))
+    sessions.list.set({ current: 'child-1' })
+    expect(tab().face.hooks.team.getSnapshot().currentId).toBe('child-1')
   })
 })

@@ -1,22 +1,24 @@
 /**
  * Browser half of dsh-team: follow the current session's `team` projection and
- * render the floating team surface in the shell overlay layer.
+ * contribute the team stage as one conversation view tab.
  *
  * There is no client-side fold. The host computes the team value once and the
  * framework pushes it here (history tail baseline + `session/projection`
- * frames), so this module only tracks WHICH session's value is on screen.
+ * frames), so this module only tracks WHICH session's value is on screen — and
+ * whether that session has a team at all, because the tab exists exactly while
+ * it does: an ordinary conversation never grows a view it cannot fill.
  */
 import type { ClientContext, ISessions, SessionId, SubagentAddress } from '@deepseek-ai/dsh-client-runtime/client'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
-import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
+import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { TeamView } from '../contract.ts'
-import { TeamFloating, type TeamInjected, type TeamPanelState } from './TeamFloating.tsx'
+import { TeamStage, type TeamInjected, type TeamPanelState } from './TeamStage.tsx'
 import { en, NS, zh, type TeamKey } from './locales.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
-    /** Agent-team floating surface copy. */
+    /** Agent-team stage copy. */
     team: TeamKey
   }
 }
@@ -27,7 +29,10 @@ export const inject = ['slots', 'sessions', 'locale']
 /** No session in view, or a session with no team. */
 const EMPTY: TeamPanelState = { members: [], tasks: [], messages: [] }
 
-/** Project one session's folded team value into the panel state. */
+/** View-ring position: after the shipped chat and trajectory tabs. */
+const VIEW_ORDER = 20
+
+/** Project one session's folded team value into the stage state. */
 function panelState(leaderId: SessionId, currentId: SessionId, team: TeamView): TeamPanelState {
   return {
     leaderId,
@@ -38,13 +43,19 @@ function panelState(leaderId: SessionId, currentId: SessionId, team: TeamView): 
   }
 }
 
+/** Whether the state on screen names a team worth a tab of its own. */
+function present(state: TeamPanelState): boolean {
+  return state.leaderId !== undefined && state.members.length > 0
+}
+
 /**
- * Register the locale dictionary and the overlay entry, and keep the panel
- * store pointed at the right session.
+ * Register the locale dictionary and the view tab, and keep the stage store
+ * pointed at the right session.
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-team: dictionaries')
+  const t = ctx.locale.bind(NS)
 
   // The host `dsh-session` merge types ctx.sessions as the SessionStore; the
   // browser service is the client ISessions face (same value, other shape).
@@ -57,7 +68,7 @@ export function apply(ctx: ClientContext): void {
   /**
    * The session in view folds no team of its own. While it belongs to the team
    * already on screen, keep showing that team and just move the "you are here"
-   * marker — navigating into a member must not make the panel vanish under the
+   * marker — navigating into a member must not make the stage vanish under the
    * cursor.
    */
   const holdOrClear = (current: SessionId): void => {
@@ -121,7 +132,7 @@ export function apply(ctx: ClientContext): void {
           sessions.openSubagent(address)
         } catch {
           // The child is genuinely absent from the refreshed catalog (dismissed
-          // and pruned, or a backend read failure); the panel stays put.
+          // and pruned, or a backend read failure); the stage stays put.
         }
       })
     }
@@ -133,12 +144,39 @@ export function apply(ctx: ClientContext): void {
     openLeader: (leaderId: string) => { sessions.open(leaderId as SessionId) },
   })
 
-  ctx.slots.inject('shell.overlay', () => ctx.slots.register({
-    name: 'shell.overlay',
-    id: 'agent-team',
-    locale: NS,
-    inject: injectFace,
-  }, TeamFloating))
+  /**
+   * The tab follows the team, not the plugin: it is registered while a team is
+   * on screen and withdrawn when the team ends, so the view ring shows an
+   * agent-team tab exactly in the sessions that have one. An unknown active
+   * view id falls back to chat, so withdrawing the tab under the reader is safe.
+   */
+  ctx.slots.inject('conversation.view', () => {
+    let disposeTab: (() => void) | null = null
+    const sync = (): void => {
+      const wanted = present(store.getSnapshot())
+      if (wanted === (disposeTab !== null)) return
+      if (!wanted) {
+        disposeTab?.()
+        disposeTab = null
+        return
+      }
+      disposeTab = ctx.slots.register({
+        name: 'conversation.view',
+        id: 'agent-team',
+        order: VIEW_ORDER,
+        locale: NS,
+        label: () => t('view.title'),
+        inject: injectFace,
+      }, TeamStage)
+    }
+    sync()
+    const disposeStore = store.subscribe(sync)
+    return () => {
+      disposeStore()
+      disposeTab?.()
+      disposeTab = null
+    }
+  })
 }
 
 export type { TeamPanelState }

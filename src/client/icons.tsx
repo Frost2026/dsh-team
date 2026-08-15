@@ -1,6 +1,6 @@
 /**
- * ic_ds_team_* glyphs for the agent-team floating surface. Same language as
- * the shipped icon set: 16px viewBox, single-color outline, fill=currentColor.
+ * ic_ds_team_* glyphs for the agent-team stage view. Same language as the
+ * shipped icon set: 16px viewBox, single-color outline, fill=currentColor.
  */
 import type { CSSProperties } from 'react'
 
@@ -24,19 +24,6 @@ export function IconTeamLeader16({ size = 16, className, style }: TeamIconProps)
   )
 }
 
-/** Teammate robot: antenna over a rounded head with two eyes. */
-export function IconTeammate16({ size = 16, className, style }: TeamIconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style} aria-hidden>
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M8 0.6 C 8.28 0.6 8.5 0.82 8.5 1.1 L 8.5 2.3 L 10.9 2.3 C 11.87 2.3 12.6 3.03 12.6 4 L 12.6 10.9 C 12.6 11.87 11.87 12.6 10.9 12.6 L 5.1 12.6 C 4.13 12.6 3.4 11.87 3.4 10.9 L 3.4 4 C 3.4 3.03 4.13 2.3 5.1 2.3 L 7.5 2.3 L 7.5 1.1 C 7.5 0.82 7.72 0.6 8 0.6 Z M2.5 4.3 L 2.5 10.6 C 1.97 10.6 1.5 10.13 1.5 9.6 L 1.5 5.3 C 1.5 4.77 1.97 4.3 2.5 4.3 Z M13.5 4.3 L 13.5 10.6 C 14.03 10.6 14.5 10.13 14.5 9.6 L 14.5 5.3 C 14.5 4.77 14.03 4.3 13.5 4.3 Z M5.9 6.4 C 5.62 6.4 5.4 6.62 5.4 6.9 C 5.4 7.18 5.62 7.4 5.9 7.4 C 6.18 7.4 6.4 7.18 6.4 6.9 C 6.4 6.62 6.18 6.4 5.9 6.4 Z M10.1 6.4 C 9.82 6.4 9.6 6.62 9.6 6.9 C 9.6 7.18 9.82 7.4 10.1 7.4 C 10.38 7.4 10.6 7.18 10.6 6.9 C 10.6 6.62 10.38 6.4 10.1 6.4 Z M6.3 10.2 C 6.02 10.2 5.8 9.98 5.8 9.7 L 10.2 9.7 C 10.2 9.98 9.98 10.2 9.7 10.2 Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
 
 /** Team mailbox: envelope with a delivery arrow entering the slot. */
 export function IconTeamMailbox16({ size = 16, className, style }: TeamIconProps) {
@@ -52,19 +39,6 @@ export function IconTeamMailbox16({ size = 16, className, style }: TeamIconProps
   )
 }
 
-/** Team spawn: four-point sparkle with a plus core. */
-export function IconTeamSpawn16({ size = 16, className, style }: TeamIconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style} aria-hidden>
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M8 0.6 C 8.22 0.6 8.4 0.78 8.4 1 L 8.4 3.4 L 10.8 3.4 C 11.02 3.4 11.2 3.58 11.2 3.8 C 11.2 4.02 11.02 4.2 10.8 4.2 L 8.4 4.2 L 8.4 6.6 C 8.4 6.82 8.22 7 8 7 C 7.78 7 7.6 6.82 7.6 6.6 L 7.6 4.2 L 5.2 4.2 C 4.98 4.2 4.8 4.02 4.8 3.8 C 4.8 3.58 4.98 3.4 5.2 3.4 L 7.6 3.4 L 7.6 1 C 7.6 0.78 7.78 0.6 8 0.6 Z M8 6.9 C 8.22 6.9 8.4 7.08 8.4 7.3 L 8.4 8.3 L 9.4 8.3 C 9.62 8.3 9.8 8.48 9.8 8.7 C 9.8 8.92 9.62 9.1 9.4 9.1 L 8.4 9.1 L 8.4 10.1 C 8.4 10.32 8.22 10.5 8 10.5 C 7.78 10.5 7.6 10.32 7.6 10.1 L 7.6 9.1 L 6.6 9.1 C 6.38 9.1 6.2 8.92 6.2 8.7 C 6.2 8.48 6.38 8.3 6.6 8.3 L 7.6 8.3 L 7.6 7.3 C 7.6 7.08 7.78 6.9 8 6.9 Z M11.7 10.6 C 11.92 10.6 12.1 10.78 12.1 11 L 12.1 12.1 L 13.2 12.1 C 13.42 12.1 13.6 12.28 13.6 12.5 C 13.6 12.72 13.42 12.9 13.2 12.9 L 12.1 12.9 L 12.1 14 C 12.1 14.22 11.92 14.4 11.7 14.4 C 11.48 14.4 11.3 14.22 11.3 14 L 11.3 12.9 L 10.2 12.9 C 9.98 12.9 9.8 12.72 9.8 12.5 C 9.8 12.28 9.98 12.1 10.2 12.1 L 11.3 12.1 L 11.3 11 C 11.3 10.78 11.48 10.6 11.7 10.6 Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
 
 /** Team task: clipboard with a check stroke. */
 export function IconTeamTask16({ size = 16, className, style }: TeamIconProps) {
@@ -108,7 +82,7 @@ export function IconTeamMessage16({ size = 16, className, style }: TeamIconProps
   )
 }
 
-/** The floating action button: a team of three nodes around a hub. */
+/** The team mark: three nodes around a hub. */
 export function IconTeam16({ size = 16, className, style }: TeamIconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style} aria-hidden>
@@ -136,16 +110,3 @@ export function IconTeamSend16({ size = 16, className, style }: TeamIconProps) {
   )
 }
 
-/** Close glyph for the panel header. */
-export function IconTeamClose16({ size = 16, className, style }: TeamIconProps) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style} aria-hidden>
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M3.6 2.9 C 3.8 2.7 4.1 2.7 4.3 2.9 L 8 6.6 L 11.7 2.9 C 11.9 2.7 12.2 2.7 12.4 2.9 C 12.6 3.1 12.6 3.4 12.4 3.6 L 8.7 7.3 L 12.4 11 C 12.6 11.2 12.6 11.5 12.4 11.7 C 12.2 11.9 11.9 11.9 11.7 11.7 L 8 8 L 4.3 11.7 C 4.1 11.9 3.8 11.9 3.6 11.7 C 3.4 11.5 3.4 11.2 3.6 11 L 7.3 7.3 L 3.6 3.6 C 3.4 3.4 3.4 3.1 3.6 2.9 Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
