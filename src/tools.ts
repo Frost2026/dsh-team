@@ -159,7 +159,10 @@ export function sendTool(ctx: Context, audience: 'leader' | 'member'): ToolDefin
     : 'Send a message to another team member. Address the leader as "leader", or a teammate by its name. '
       + 'The message becomes the recipient\'s next turn; you get no answer back from this call. Use it to ask '
       + 'a peer for input, hand work over, or raise something with the leader mid-task. Finished work goes to '
-      + 'the leader through the report tool instead.'
+      + 'the leader through the report tool instead. A conversation between teammates carries a budget: it '
+      + 'may only relay so far and you may not keep going back and forth with the same member about it, so '
+      + 'ask for what you actually need in one message. Messaging the leader is never refused — when a peer '
+      + 'exchange stops converging, that is the way out.'
   return defineTool({
     name: 'team_send',
     description,
@@ -175,6 +178,7 @@ export function sendTool(ctx: Context, audience: 'leader' | 'member'): ToolDefin
           messageId: { type: 'string', required: true },
           to: { type: 'string', required: true },
           name: { type: 'string', required: true },
+          hop: { type: 'number', required: true },
         },
       },
       render: (_args, value) => [{ type: 'text', text: `message queued as the next turn of ${value.name}` }],
@@ -183,6 +187,7 @@ export function sendTool(ctx: Context, audience: 'leader' | 'member'): ToolDefin
         messageId: value.messageId,
         to: value.to,
         text: args.message,
+        hop: value.hop,
       }),
     },
     presentCall: args => call(`Message ${args.to}`, args.message),
@@ -191,7 +196,12 @@ export function sendTool(ctx: Context, audience: 'leader' | 'member'): ToolDefin
       : done(`Message sent to ${args.to}`),
     async execute(args, exec) {
       const sent = await ctx.team.send(actor(exec.agent), args.to, args.message, exec.signal)
-      return { messageId: sent.messageId, to: sent.recipient.id, name: sent.recipient.name }
+      return {
+        messageId: sent.messageId,
+        to: sent.recipient.id,
+        name: sent.recipient.name,
+        hop: sent.chain.hop,
+      }
     },
   })
 }
@@ -372,6 +382,7 @@ export function listTool(ctx: Context): ToolDefinition {
                 from: { type: 'string', required: true },
                 to: { type: 'string', required: true },
                 text: { type: 'string', required: true },
+                hop: { type: 'number' },
               },
             },
           },
@@ -402,6 +413,7 @@ export function listTool(ctx: Context): ToolDefinition {
           from: message.from ?? 'leader',
           to: message.to ?? 'leader',
           text: message.text,
+          ...message.hop !== undefined ? { hop: message.hop } : {},
         })),
       })
     },

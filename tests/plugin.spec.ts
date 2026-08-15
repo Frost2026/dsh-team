@@ -16,12 +16,16 @@ describe('row', () => {
 
 describe('config', () => {
   it('runs on defaults, so a deployment adds the row with no knobs', () => {
-    expect(Config({})).toEqual({ provider: 'spawn', maxTeammates: 8, maxRecentMessages: 50 })
+    expect(Config({})).toEqual({
+      provider: 'spawn', maxTeammates: 8, maxRecentMessages: 50, maxChainHops: 4, maxChainRoundTrips: 2,
+    })
   })
 
   it('takes the deployment values it is given', () => {
-    expect(Config({ provider: 'fork', maxTeammates: 3, maxRecentMessages: 100 }))
-      .toEqual({ provider: 'fork', maxTeammates: 3, maxRecentMessages: 100 })
+    expect(Config({ provider: 'fork', maxTeammates: 3, maxRecentMessages: 100, maxChainHops: 2 }))
+      .toEqual({
+        provider: 'fork', maxTeammates: 3, maxRecentMessages: 100, maxChainHops: 2, maxChainRoundTrips: 2,
+      })
   })
 
   it('fails loud on a value outside the range it can honour', () => {

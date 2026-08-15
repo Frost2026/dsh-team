@@ -36,7 +36,11 @@ class FakeTeam {
 
   send(...args: unknown[]): Promise<unknown> {
     this.record('send', ...args)
-    return Promise.resolve({ messageId: 'm1', recipient: { kind: 'member', id: 'child-1', name: 'Alice' } })
+    return Promise.resolve({
+      messageId: 'm1',
+      recipient: { kind: 'member', id: 'child-1', name: 'Alice' },
+      chain: { chainId: 'c1', hop: 0 },
+    })
   }
 
   upsertTask(...args: unknown[]): unknown {
@@ -144,9 +148,9 @@ describe('team_send', () => {
     const tool = sendTool(ctx, 'leader')
     const args = { to: 'Alice', message: 'please review' }
     const value = await run(tool, args, leader)
-    expect(value).toEqual({ messageId: 'm1', to: 'child-1', name: 'Alice' })
+    expect(value).toEqual({ messageId: 'm1', to: 'child-1', name: 'Alice', hop: 0 })
     expect(readFact(tool.output.presentationMeta?.(args, value))).toEqual({
-      team: 'message', messageId: 'm1', to: 'child-1', text: 'please review',
+      team: 'message', messageId: 'm1', to: 'child-1', text: 'please review', hop: 0,
     })
   })
 

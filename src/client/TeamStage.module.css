@@ -409,6 +409,22 @@
   color: var(--dsw-alias-label-secondary);
 }
 
+.bubbleHop {
+  padding: 0 5px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--dsw-alias-border-l2);
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* A conversation this deep is one the peers have not settled. */
+.bubbleRow[data-hop='3'] .bubbleHop,
+.bubbleRow[data-hop='4'] .bubbleHop,
+.bubbleRow[data-hop='5'] .bubbleHop {
+  color: var(--dsw-alias-state-warning-primary);
+  border-color: var(--dsw-alias-state-warning-primary);
+}
+
 .bubbleTime {
   margin-left: 4px;
   font-variant-numeric: tabular-nums;

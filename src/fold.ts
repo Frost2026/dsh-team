@@ -40,7 +40,14 @@ export type TeamFact =
   | { readonly team: 'member-updated'; readonly member: TeamMemberFact }
   | { readonly team: 'member-removed'; readonly memberId: string }
   | { readonly team: 'ended' }
-  | { readonly team: 'message'; readonly messageId: string; readonly to: string; readonly text: string }
+  | {
+    readonly team: 'message'
+    readonly messageId: string
+    readonly to: string
+    readonly text: string
+    /** Depth of the delivery in its conversation chain. */
+    readonly hop?: number
+  }
   | { readonly team: 'task'; readonly task: TeamTaskView }
 
 type JsonRecord = Record<string, unknown>
@@ -53,6 +60,10 @@ function asRecord(value: unknown): JsonRecord | undefined {
 
 function asText(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+function asCount(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : undefined
 }
 
 function asRelation(value: unknown): TeamRelation | undefined {
@@ -125,7 +136,14 @@ export function readFact(meta: unknown): TeamFact | undefined {
       const messageId = asText(record['messageId'])
       const to = asText(record['to'])
       if (messageId === undefined || to === undefined) return undefined
-      return { team: 'message', messageId, to, text: asText(record['text']) ?? '' }
+      const hop = asCount(record['hop'])
+      return {
+        team: 'message',
+        messageId,
+        to,
+        text: asText(record['text']) ?? '',
+        ...hop !== undefined ? { hop } : {},
+      }
     }
     case 'task': {
       const task = readTask(record['task'])
@@ -143,6 +161,8 @@ interface IncomingMessage {
   readonly senderSessionId: string
   readonly senderName?: string
   readonly kind: 'message' | 'report' | 'settled'
+  /** Chain depth, on this plugin's own deliveries only. */
+  readonly hop?: number
 }
 
 /**
@@ -162,9 +182,11 @@ function readIncoming(source: unknown): IncomingMessage | undefined {
   const senderSessionId = asText(record['senderSessionId'])
   if (senderSessionId === undefined) return undefined
   const senderName = asText(record['senderName'])
+  const hop = asCount(record['hop'])
   return {
     senderSessionId,
     ...senderName !== undefined ? { senderName } : {},
+    ...hop !== undefined ? { hop } : {},
     kind: kind === 'team-message' ? 'message' : kind === 'subagent-report' ? 'report' : 'settled',
   }
 }
@@ -235,6 +257,7 @@ function applyFact(view: TeamView, fact: TeamFact, time: number, bound: number):
           kind: 'message',
           text: fact.text,
           time,
+          ...fact.hop !== undefined ? { hop: fact.hop } : {},
         }, bound),
       }
     case 'task':
@@ -263,6 +286,7 @@ function applyIncoming(
       kind: incoming.kind,
       text,
       time,
+      ...incoming.hop !== undefined ? { hop: incoming.hop } : {},
     }, bound),
   }
 }

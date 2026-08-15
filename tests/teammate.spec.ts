@@ -12,7 +12,9 @@ import { installTeammateWorld } from '../src/teammate.ts'
 import type { TeamConfig } from '../src/config.ts'
 import { FakeAgents, FakeSubagents, FakeSystemPrompt, FakeTools, fakeAgent, type FakeAgent } from './harness.ts'
 
-const CONFIG: TeamConfig = { provider: 'spawn', maxTeammates: 8, maxRecentMessages: 20 }
+const CONFIG: TeamConfig = {
+  provider: 'spawn', maxTeammates: 8, maxRecentMessages: 20, maxChainHops: 4, maxChainRoundTrips: 2,
+}
 const signal = new AbortController().signal
 
 /** The world one continuable child is composed in. */

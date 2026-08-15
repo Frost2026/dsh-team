@@ -116,7 +116,7 @@ describe('foldTeam', () => {
 
   it('records an inbound delivery only when its sender is on the roster', () => {
     const fromAlice = userMessageEvent(
-      { kind: 'team-message', form: 'relay', senderSessionId: 'child-1', senderName: 'Alice' },
+      { kind: 'team-message', form: 'relay', senderSessionId: 'child-1', senderName: 'Alice', chainId: 'c1', hop: 1 },
       'reviewed',
     )
     const fromStranger = userMessageEvent(
@@ -129,7 +129,10 @@ describe('foldTeam', () => {
       fromStranger,
     ], BOUND)
     expect(view.messages).toEqual([
-      { messageId: expect.any(String), from: 'child-1', kind: 'message', text: 'reviewed', time: expect.any(Number) },
+      {
+        messageId: expect.any(String), from: 'child-1', kind: 'message', text: 'reviewed',
+        time: expect.any(Number), hop: 1,
+      },
     ])
   })
 
@@ -167,7 +170,7 @@ describe('applyTeamEvent', () => {
   it('returns the same reference for a delivery from outside the roster', () => {
     const view = foldTeam([toolResultEvent({ team: 'member-added', member: alice })], BOUND)
     const stray = userMessageEvent(
-      { kind: 'team-message', form: 'relay', senderSessionId: 'nobody', senderName: 'Nobody' },
+      { kind: 'team-message', form: 'relay', senderSessionId: 'nobody', senderName: 'Nobody', chainId: 'c1', hop: 0 },
       'hi',
     )
     expect(applyTeamEvent(view, stray, BOUND)).toBe(view)

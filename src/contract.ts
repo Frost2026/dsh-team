@@ -59,6 +59,12 @@ export interface TeamMessageView {
   readonly kind: TeamMessageKind
   readonly text: string
   readonly time: number
+  /**
+   * Depth of this delivery in its conversation chain: 0 is a message the
+   * leader started, and every teammate-to-teammate relay adds one. A row
+   * without it was written before the plugin recorded chains.
+   */
+  readonly hop?: number
 }
 
 /** The durable team state folded from one leader session's log. */
@@ -75,10 +81,24 @@ export interface TeamView {
 export const EMPTY_TEAM_VIEW: TeamView = { active: false, members: [], tasks: [], messages: [] }
 
 /**
+ * One delivery's place in a conversation chain. A chain begins whenever the
+ * leader addresses a teammate and grows by one hop with every relay a teammate
+ * makes off the message it is working from; escalation to the leader always
+ * ends it. The pair is what bounds a peer conversation mechanically instead of
+ * by prompt — see `src/service.ts`.
+ */
+export interface TeamChain {
+  /** Identity of the conversation this delivery belongs to (per leader, per process). */
+  readonly chainId: string
+  /** Relays between the chain's first delivery and this one. */
+  readonly hop: number
+}
+
+/**
  * Durable attribution for one team mailbox delivery, carried by the recipient's
  * own `user/message` event so the sender survives persistence on both sides.
  */
-export interface TeamMessageSource {
+export interface TeamMessageSource extends TeamChain {
   readonly kind: 'team-message'
   /** A message another agent addressed to this one (`relay` context form). */
   readonly form: 'relay'

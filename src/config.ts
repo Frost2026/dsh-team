@@ -15,6 +15,14 @@ export interface TeamConfig {
   readonly maxTeammates: number
   /** Mailbox feed length kept in the durable fold and served to the panel. */
   readonly maxRecentMessages: number
+  /**
+   * Relays one teammate-started conversation may take before the mailbox
+   * refuses another peer delivery. Escalating to the leader is never refused,
+   * so the budget converges a peer exchange instead of ending the work.
+   */
+  readonly maxChainHops: number
+  /** Messages one ordered member pair may exchange within a single chain. */
+  readonly maxChainRoundTrips: number
 }
 
 /**
@@ -26,4 +34,6 @@ export const Config: z<Partial<TeamConfig>, TeamConfig> = z.object({
   provider: z.string().default('spawn'),
   maxTeammates: z.number().step(1).min(1).max(64).default(8),
   maxRecentMessages: z.number().step(1).min(1).max(1000).default(50),
+  maxChainHops: z.number().step(1).min(1).max(64).default(4),
+  maxChainRoundTrips: z.number().step(1).min(1).max(64).default(2),
 })

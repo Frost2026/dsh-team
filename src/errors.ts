@@ -18,6 +18,9 @@ export type TeamErrorCode =
   | 'SELF_MESSAGE'
   | 'UNAUTHORIZED'
   | 'UNKNOWN_EFFORT'
+  | 'CHAIN_EXHAUSTED'
+  | 'PING_PONG'
+  | 'REPEATED_MESSAGE'
 
 /** Stable sentence per code; `detail` appends the caller-specific part. */
 const MESSAGES: Record<TeamErrorCode, string> = {
@@ -31,6 +34,13 @@ const MESSAGES: Record<TeamErrorCode, string> = {
   SELF_MESSAGE: 'a member cannot message itself',
   UNAUTHORIZED: 'this team operation is not available to you',
   UNKNOWN_EFFORT: 'that reasoning effort is not offered by the selected model',
+  CHAIN_EXHAUSTED:
+    'this conversation has relayed as far as it may between teammates — settle it yourself and report to '
+    + 'the leader, which is never refused',
+  PING_PONG:
+    'you have already said your piece to this member in this conversation — decide with what you have, or '
+    + 'raise it with the leader',
+  REPEATED_MESSAGE: 'you already sent that exact message in this conversation; sending it again changes nothing',
 }
 
 /** One refused team operation. */

@@ -1,6 +1,6 @@
 # dsh-team — DeepSeek Harness 的 Agent Team
 
-给 dsh 加一支可以指挥的团队：主会话作为 **leader**，可以派生若干**常驻队友（teammate）**，队友有自己的会话、记忆与工具；成员之间通过**邮箱**互发消息（消息成为收件人的下一个 turn），共享一份**任务列表**；右下角的**悬浮面板**实时显示花名册、任务与消息流。设计理念参考 Claude Code 的 agent team（共享任务列表 + 邮箱直连 + 成员自协调），实现完全走 dsh 的能力缝。
+给 dsh 加一支可以指挥的团队：主会话作为 **leader**，可以派生若干**常驻队友（teammate）**，队友有自己的会话、记忆与工具；成员之间通过**邮箱**互发消息（消息成为收件人的下一个 turn），共享一份**任务列表**；会话视图环里多出一个 **Agent 团队**页签，把花名册、协作关系与消息流画成一张实时的协作台。设计理念参考 Claude Code 的 agent team（共享任务列表 + 邮箱直连 + 成员自协调），实现完全走 dsh 的能力缝。
 
 整个能力是**一个包、一行装配**：宿主半边（`dsh-team`）与浏览器半边（`dsh-team/client`）从同一个 `package.json` 构建。
 
@@ -8,7 +8,7 @@
 
 | 旧实现的问题 | 现在 |
 |---|---|
-| 拆成 6 个包（服务 / provider / 两个工具包 / UI / bundle），跨包只为一条能力 | **一个包**：`ctx.team` 服务 + 工具 + 队友作用域 + 投影 + 浏览器面板 |
+| 拆成 6 个包（服务 / provider / 两个工具包 / UI / bundle），跨包只为一条能力 | **一个包**：`ctx.team` 服务 + 工具 + 队友作用域 + 投影 + 浏览器协作台 |
 | 队友用 `ctx.agents.create()` 自建会话 → 会话树里多出一堆条目 | 队友是 **`ctx.subagents` 的 continuable 子代**，会话头被打上 `origin: 'subagent'`，工作区会话树按此过滤（`tree.ts` 的 `sessionVisible`），**不再出现在会话树里** |
 | 团队状态折叠两遍（宿主一份、浏览器会话视图一份），两边容易走偏 | **只折叠一次**：宿主的 `team` session projection，框架把值推给浏览器，客户端零折叠 |
 | 队友生命周期、冷恢复、驻留、中断全部自己实现 | 全部交给 subagent 缝：重启后**冷恢复**、活动驻留、`interrupt`、结算通知都是现成的 |
@@ -22,7 +22,7 @@
 
 - `childSessionMeta` 打上 `origin: 'subagent'` → 会话树不展示，也不参与通用 Host 路由；
 - durable child id + descriptor 由缝持有 → dsh 重启后队友**冷恢复**，团队不丢；
-- 队友的 transcript 仍可读：内置的 subagent 目录里它们是 `continuable` 子代，标签是 `名字 (角色)`，团队面板点一行就打开。
+- 队友的 transcript 仍可读：内置的 subagent 目录里它们是 `continuable` 子代，标签是 `名字 (角色)`，协作台点一个节点就打开。
 
 本插件在这之上只补三样 subagent 缝故意不提供的东西：**具名成员**、**成员之间的投递**、**一份共享任务列表**。
 
@@ -33,7 +33,21 @@
 - `relation` 决定**谁可以要求**投递（`managed` 只能发给 leader，`peer` 可以直接发给任何成员），
 - 从不决定**谁来执行**投递（永远是 leader 权威）。
 
-消息落到收件人自己的日志里，source 是 `{ kind: 'team-message', form: 'relay', senderSessionId, senderName }`——发送者归属随持久化一起留存。
+消息落到收件人自己的日志里，source 是 `{ kind: 'team-message', form: 'relay', senderSessionId, senderName, chainId, hop }`——发送者归属与会话深度都随持久化一起留存。
+
+### 队友之间不会聊到天荒地老
+
+`team_send` 把消息变成对方的下一个 turn——两个 peer 互相礼貌回复就能永远转下去，而这一切**不在用户的主对话里**，没人踩刹车。所以投递带**会话预算**，是机械约束而不是提示词祈祷：
+
+- **一次对话（chain）**：leader 每发一条消息就开一条新链（`hop = 0`）；队友发消息时**继承它当前正在处理的那条投递**的链，`hop + 1`。所以"leader 交办 → A 问 B → B 答 A"是同一次对话，而不是三条互不相干的消息。
+- **深度上限**（`maxChainHops`，默认 4）：一次对话在队友之间最多转这么多手，超了 `team_send` 直接拒绝。
+- **同一有序对不许来回磨**（`maxChainRoundTrips`，默认 2）：一条链里 A→B 最多这么多条。
+- **一字不差的重发直接拒**：同一条链里同一有序对重复同样的内容，对收件人不产生任何新信息。
+- **出口永远开着**：以上三条**只管队友→队友**。发给 leader 从不拒绝。所以预算不会把"有话要说"的成员困住，它只是把话逼回收敛点——拒绝语本身就是"settle it yourself and report to the leader"。
+- **为什么 leader 那一侧不设限**：leader 的每个 turn 都在用户看得见、能中断的主对话里，链走到 leader 就已经收敛了。真正危险的是**看不见的**横向循环。
+- **深度是持久事实**：`hop` 写进投递的 `team-message` 源里，跟着收件人的日志一起存，所以协作台的气泡上能看到"第 n 跳"——第 3 跳起变警告色。深度不是只有拒绝时才存在的东西，它一直是可观测的。
+
+链的执行状态（谁在处理哪条链、每条边发过几次）是**进程内**的，随 leader 的 live team 一起建立与丢弃，最多记住最近 64 条链；重启后重新开始——重启本身就断链。
 
 ### 只折叠一次
 
@@ -107,11 +121,13 @@ dsh plugin --profile web add link:$PWD   # 包自带 dsh.bundle.patch，加进�
 |---|---|---|
 | `provider` | `spawn` | 派生队友用的 `ctx.subagents` provider（base bundle 提供 `spawn`） |
 | `maxTeammates` | `8` | 单个 leader 的在册成员上限（1–64） |
-| `maxRecentMessages` | `50` | 折叠保留、面板显示的邮箱条数上限（1–1000） |
+| `maxRecentMessages` | `50` | 折叠保留、协作台显示的邮箱条数上限（1–1000） |
+| `maxChainHops` | `4` | 一次队友间对话最多转手几次（1–64）；发给 leader 不计入 |
+| `maxChainRoundTrips` | `2` | 一条链里同一有序对最多几条消息（1–64） |
 
 ## 已知限制
 
-- **peer↔peer 的历史只在成员自己的会话里**：leader 的折叠只看得见 leader 可见的流量，面板同理。
+- **peer↔peer 的历史只在成员自己的会话里**：leader 的折叠只看得见 leader 可见的流量，协作台同理——所以横向对话只有被预算拒绝后成员主动上报时才会进入 leader 的视野。
 - **任务列表由 leader 写**：队友的工具调用落在自己的日志里，leader 的持久状态读不到；队友用 `report` 汇报，由 leader 记账。
 - **Code Mode 下的团队调用不入折叠**：折叠读的是团队工具自己的 `tool/result`；`run_code` 里的嵌套调用不产生这些行（base bundle 默认不含 Code Mode）。
 - **工具成功但结果没落日志**（极端故障）会留下一个孤儿成员：活的花名册有、折叠没有，重启后消失。
@@ -121,7 +137,7 @@ dsh plugin --profile web add link:$PWD   # 包自带 dsh.bundle.patch，加进�
 
 ```sh
 pnpm run typecheck   # 源码 + 测试
-pnpm run test        # 125 个单测：折叠 / 投影 / 服务授权矩阵 / 工具契约 / 队友组装 / 客户端跟随与页签 / 协作台
+pnpm run test        # 133 个单测：折叠 / 投影 / 服务授权矩阵 / 工具契约 / 队友组装 / 会话预算 / 客户端跟随与页签 / 协作台
 pnpm run build       # 宿主 ESM + 浏览器闭包工厂（构建期强制客户端 bundle 纯净性）
 pnpm run check       # 三件一起
 ```

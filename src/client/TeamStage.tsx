@@ -384,6 +384,7 @@ function MessageBubble(props: {
     <div
       className={css.bubbleRow}
       data-message-kind={message.kind}
+      data-hop={message.hop === undefined ? undefined : String(message.hop)}
       data-outbound={outbound ? 'true' : undefined}
       data-focus={partner !== undefined && focus === partner ? 'true' : undefined}
       style={stagger(index)}
@@ -401,6 +402,11 @@ function MessageBubble(props: {
           {message.kind !== 'message' && (
             <span className={css.bubbleKind}>
               {message.kind === 'report' ? t('message.report') : t('message.settled')}
+            </span>
+          )}
+          {message.hop !== undefined && message.hop > 0 && (
+            <span className={css.bubbleHop} title={t('message.hopHint')}>
+              {t('message.hop', { hop: message.hop })}
             </span>
           )}
           <span className={css.bubbleTime}>{clock(message.time)}</span>

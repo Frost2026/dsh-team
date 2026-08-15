@@ -31,7 +31,7 @@ import type { SessionId as SessionIdType } from '@deepseek-ai/dsh-session'
 import type {} from '@deepseek-ai/dsh-subagent'
 import type {} from '@deepseek-ai/dsh-session-projection'
 import {
-  EMPTY_TEAM_VIEW, type TeamMemberView, type TeamMessageView, type TeamRelation,
+  EMPTY_TEAM_VIEW, type TeamChain, type TeamMemberView, type TeamMessageView, type TeamRelation,
   type TeamTaskStatus, type TeamTaskView, type TeamView,
 } from './contract.ts'
 import { TeamError } from './errors.ts'
@@ -41,11 +41,32 @@ import type { TeamConfig } from './config.ts'
 /** Live lifecycle of one teammate, as `list_agents` names the same states. */
 export type MemberStatus = 'running' | 'idle' | 'ready'
 
+/** How many recent conversation chains one team keeps enforcement state for. */
+const CHAIN_MEMORY = 64
+
+/** Traffic one conversation chain has already carried, per ordered pair. */
+interface ChainRecord {
+  /** Deliveries per `from → to` pair. */
+  readonly edges: Map<string, number>
+  /** The last text each ordered pair carried, so a verbatim repeat is refused. */
+  readonly said: Map<string, string>
+}
+
 /** The live team of one leader session. */
 interface TeamState {
   active: boolean
   readonly members: Map<string, TeamMemberFact>
   readonly tasks: Map<string, TeamTaskView>
+  /**
+   * The delivery each member is working from. A teammate's own sends inherit
+   * it, which is what makes a peer exchange one bounded conversation rather
+   * than an unbounded sequence of unrelated messages.
+   */
+  readonly inbox: Map<string, TeamChain>
+  /** Enforcement state per chain, oldest first and bounded by {@link CHAIN_MEMORY}. */
+  readonly chains: Map<string, ChainRecord>
+  /** Monotonic chain counter for this leader's live team. */
+  started: number
 }
 
 /** A spawn in flight: identity for the teammate scope that is being composed. */
@@ -127,6 +148,9 @@ export class TeamService extends Service {
       active: view.active,
       members: new Map(view.members.map(member => [member.memberId, memberFact(member)])),
       tasks: new Map(view.tasks.map(task => [task.taskId, task])),
+      inbox: new Map(),
+      chains: new Map(),
+      started: 0,
     }
     this.teams.set(leader.id, state)
     return state
@@ -221,28 +245,38 @@ export class TeamService extends Service {
    * Deliver one mailbox message. The leader may message any teammate; a peer
    * teammate may message the leader or any other teammate; a managed teammate
    * may message only the leader.
+   *
+   * A teammate-to-teammate delivery also spends chain budget: it continues the
+   * conversation its sender is working from, and that conversation may only
+   * relay so far and may not repeat one ordered pair. Escalation to the leader
+   * spends nothing, so the guard converges a peer exchange without ever
+   * trapping a member with something to say.
    * @param from - the acting agent (leader or teammate).
    * @param to - recipient member id or member name; `leader` addresses the leader.
    * @param text - the message content.
    * @param signal - cancellation owning the delivery until inbox acceptance.
-   * @returns the accepted message id and the resolved recipient.
+   * @returns the accepted message id, the resolved recipient, and the chain it joined.
    * @throws {TeamError} when the actor is outside the team, the recipient is
-   *   unknown, or the actor's relation forbids the delivery.
+   *   unknown, the actor's relation forbids the delivery, or the conversation
+   *   has spent its budget.
    */
   async send(
     from: Agent,
     to: string,
     text: string,
     signal: AbortSignal,
-  ): Promise<{ readonly messageId: string; readonly recipient: Recipient }> {
+  ): Promise<{ readonly messageId: string; readonly recipient: Recipient; readonly chain: TeamChain }> {
     const actor = this.resolveActor(from)
     const recipient = this.resolveRecipient(actor, to)
     if (actor.member !== undefined && actor.member.relation === 'managed' && recipient.kind !== 'leader') {
       throw new TeamError('UNAUTHORIZED', `${actor.member.name} is a managed teammate and may only message the leader`)
     }
     if (recipient.id === from.id) throw new TeamError('SELF_MESSAGE')
-    const messageId = await this.deliver(actor, recipient, [{ type: 'text', text }], signal)
-    return { messageId, recipient }
+    const chain = this.chainFor(actor, from)
+    if (recipient.kind === 'member') this.assertBudget(actor.team, chain, from.id, recipient, text)
+    const messageId = await this.deliver(actor, recipient, [{ type: 'text', text }], signal, chain)
+    this.recordDelivery(actor.team, chain, from.id, recipient, text)
+    return { messageId, recipient, chain }
   }
 
   /**
@@ -329,6 +363,8 @@ export class TeamService extends Service {
       for (const memberId of [...actor.team.members.keys()]) this.stopMember(actor.leader, memberId)
       actor.team.members.clear()
       actor.team.tasks.clear()
+      actor.team.inbox.clear()
+      actor.team.chains.clear()
       actor.team.active = false
       this.ctx.emit('team/changed', { leaderId: actor.leader.id })
       return { ended: true }
@@ -337,6 +373,9 @@ export class TeamService extends Service {
     if (recipient.kind !== 'member') throw new TeamError('UNKNOWN_MEMBER', target)
     this.stopMember(actor.leader, recipient.id)
     actor.team.members.delete(recipient.id)
+    // A dismissed member carries no conversation forward; a later member
+    // reusing its id would otherwise inherit a stranger's chain.
+    actor.team.inbox.delete(recipient.id)
     this.ctx.emit('team/changed', { leaderId: actor.leader.id })
     return { ended: false, memberId: recipient.id }
   }
@@ -427,18 +466,89 @@ export class TeamService extends Service {
     throw new TeamError('UNKNOWN_MEMBER', address)
   }
 
+  /**
+   * The chain one send belongs to. A teammate continues the conversation it is
+   * working from — that is what turns a peer exchange into one bounded
+   * conversation instead of an unbounded sequence of unrelated messages. The
+   * leader always opens a fresh chain: its own turns are the user-visible,
+   * interruptible convergence point, so a conversation that reached the leader
+   * has already converged and the next instruction starts over.
+   */
+  private chainFor(actor: Actor, from: Agent): TeamChain {
+    const inherited = actor.member === undefined ? undefined : actor.team.inbox.get(from.id)
+    if (inherited !== undefined) return { chainId: inherited.chainId, hop: inherited.hop + 1 }
+    actor.team.started += 1
+    return { chainId: `c${actor.team.started}`, hop: 0 }
+  }
+
+  /**
+   * Refuse a peer delivery this conversation can no longer afford: too many
+   * relays deep, one ordered pair talked out, or a verbatim repeat. Nothing
+   * here applies to a message addressed to the leader.
+   */
+  private assertBudget(
+    team: TeamState,
+    chain: TeamChain,
+    fromId: string,
+    recipient: Recipient,
+    text: string,
+  ): void {
+    if (chain.hop > this.config.maxChainHops) {
+      throw new TeamError('CHAIN_EXHAUSTED', `relay ${chain.hop} of at most ${this.config.maxChainHops}`)
+    }
+    const record = team.chains.get(chain.chainId)
+    if (record === undefined) return
+    const edge = edgeKey(fromId, recipient.id)
+    if ((record.edges.get(edge) ?? 0) >= this.config.maxChainRoundTrips) {
+      throw new TeamError(
+        'PING_PONG',
+        `${this.config.maxChainRoundTrips} message(s) already went to ${recipient.name} in this conversation`,
+      )
+    }
+    if (record.said.get(edge) === text) throw new TeamError('REPEATED_MESSAGE', recipient.name)
+  }
+
+  /** Charge one accepted peer delivery to its chain, and hand the chain on. */
+  private recordDelivery(
+    team: TeamState,
+    chain: TeamChain,
+    fromId: string,
+    recipient: Recipient,
+    text: string,
+  ): void {
+    if (recipient.kind !== 'member') return
+    team.inbox.set(recipient.id, chain)
+    let record = team.chains.get(chain.chainId)
+    if (record === undefined) {
+      record = { edges: new Map(), said: new Map() }
+      team.chains.set(chain.chainId, record)
+      // Bounded by insertion order: the oldest conversation's enforcement state
+      // falls off first, and a conversation that old is not the one looping.
+      for (const stale of team.chains.keys()) {
+        if (team.chains.size <= CHAIN_MEMORY) break
+        team.chains.delete(stale)
+      }
+    }
+    const edge = edgeKey(fromId, recipient.id)
+    record.edges.set(edge, (record.edges.get(edge) ?? 0) + 1)
+    record.said.set(edge, text)
+  }
+
   /** Deliver one message, choosing the transport the recipient's runtime requires. */
   private async deliver(
     actor: Actor,
     recipient: Recipient,
     content: ContentBlock[],
     signal: AbortSignal,
+    chain: TeamChain,
   ): Promise<string> {
     const source = {
       kind: 'team-message',
       form: 'relay',
       senderSessionId: actor.member?.memberId ?? actor.leader.id,
       senderName: actor.member?.name ?? 'leader',
+      chainId: chain.chainId,
+      hop: chain.hop,
     } as const
     if (recipient.kind === 'leader') {
       // The leader is an ordinary top-level agent: its inbox is the delivery
@@ -510,6 +620,11 @@ function memberFact(member: TeamMemberView): TeamMemberFact {
     ...member.model !== undefined ? { model: member.model } : {},
     ...member.effort !== undefined ? { effort: member.effort } : {},
   }
+}
+
+/** One ordered pair, as the chain ledger keys it. */
+function edgeKey(fromId: string, toId: string): string {
+  return `${fromId} ${toId}`
 }
 
 /** Case-insensitive roster lookup by display name. */

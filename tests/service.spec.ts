@@ -14,7 +14,9 @@ import {
   FakeAgents, FakeLlm, FakeSubagents, fakeAgent, toolResultEvent, type FakeAgent,
 } from './harness.ts'
 
-const CONFIG: TeamConfig = { provider: 'spawn', maxTeammates: 2, maxRecentMessages: 20 }
+const CONFIG: TeamConfig = {
+  provider: 'spawn', maxTeammates: 2, maxRecentMessages: 20, maxChainHops: 4, maxChainRoundTrips: 2,
+}
 
 /** One assembled world: the service plus the doubles it was built on. */
 interface World {
@@ -228,6 +230,8 @@ describe('mailbox', () => {
       form: 'relay',
       senderSessionId: scene.leader.id,
       senderName: 'leader',
+      chainId: 'c1',
+      hop: 0,
     })
   })
 
@@ -404,5 +408,109 @@ describe('hydration', () => {
     const scene = world({ leader: fakeAgent('leader-1', { events }) })
     const child = fakeAgent('child-1', { parent: 'leader-1' })
     expect(scene.service.adopt(child.agent)).toMatchObject({ name: 'Alice', relation: 'peer' })
+  })
+})
+
+describe('conversation chains', () => {
+  /**
+   * Run one asynchronous operation expected to refuse.
+   * @param run - the operation.
+   * @returns the refusal code, or `no-throw` when it was accepted.
+   */
+  async function refusalOf(run: () => Promise<unknown>): Promise<string> {
+    try {
+      await run()
+      return 'no-throw'
+    } catch (error: unknown) {
+      return error instanceof TeamError ? error.code : `other: ${String(error)}`
+    }
+  }
+
+  /** A leader with two peers, so a message can relay from one to the other. */
+  async function pair(config?: TeamConfig): Promise<{
+    readonly scene: World
+    readonly alice: FakeAgent
+    readonly bob: FakeAgent
+  }> {
+    const scene = world(config === undefined ? {} : { config })
+    const alice = await spawn(scene, 'Alice', { relation: 'peer', childId: 'child-1' })
+    const bob = await spawn(scene, 'Bob', { relation: 'peer', childId: 'child-2' })
+    return { scene, alice, bob }
+  }
+
+  it('opens a fresh conversation for every message the leader sends', async () => {
+    const { scene } = await pair()
+    const first = await scene.service.send(scene.leader.agent, 'Alice', 'start', signal)
+    const second = await scene.service.send(scene.leader.agent, 'Alice', 'again', signal)
+    expect(first.chain).toEqual({ chainId: 'c1', hop: 0 })
+    expect(second.chain).toEqual({ chainId: 'c2', hop: 0 })
+  })
+
+  it('continues the conversation a teammate is working from, one relay deeper', async () => {
+    const { scene, alice, bob } = await pair()
+    await scene.service.send(scene.leader.agent, 'Alice', 'look into it', signal)
+    const relayed = await scene.service.send(alice.agent, 'Bob', 'what do you know?', signal)
+    expect(relayed.chain).toEqual({ chainId: 'c1', hop: 1 })
+
+    const back = await scene.service.send(bob.agent, 'Alice', 'here is what I know', signal)
+    expect(back.chain).toEqual({ chainId: 'c1', hop: 2 })
+  })
+
+  it('carries the depth into the durable source the recipient keeps', async () => {
+    const { scene, alice } = await pair()
+    await scene.service.send(scene.leader.agent, 'Alice', 'look into it', signal)
+    await scene.service.send(alice.agent, 'Bob', 'what do you know?', signal)
+    expect(scene.subagents.followups.at(-1)?.source).toMatchObject({ chainId: 'c1', hop: 1, senderName: 'Alice' })
+  })
+
+  it('refuses a peer relay once the conversation has gone as far as it may', async () => {
+    const { scene, alice, bob } = await pair({ ...CONFIG, maxChainHops: 2, maxChainRoundTrips: 8 })
+    await scene.service.send(scene.leader.agent, 'Alice', 'look into it', signal)
+    await scene.service.send(alice.agent, 'Bob', 'first', signal)
+    await scene.service.send(bob.agent, 'Alice', 'second', signal)
+
+    expect(await refusalOf(() => scene.service.send(alice.agent, 'Bob', 'third', signal)))
+      .toBe('CHAIN_EXHAUSTED')
+  })
+
+  it('never refuses the way out: the leader stays reachable from a spent conversation', async () => {
+    const { scene, alice, bob } = await pair({ ...CONFIG, maxChainHops: 2, maxChainRoundTrips: 8 })
+    await scene.service.send(scene.leader.agent, 'Alice', 'look into it', signal)
+    await scene.service.send(alice.agent, 'Bob', 'first', signal)
+    await scene.service.send(bob.agent, 'Alice', 'second', signal)
+
+    const escalated = await scene.service.send(alice.agent, 'leader', 'we cannot settle this', signal)
+    expect(escalated.recipient.kind).toBe('leader')
+  })
+
+  it('refuses one pair that keeps trading messages inside the same conversation', async () => {
+    const { scene, alice, bob } = await pair({ ...CONFIG, maxChainHops: 16, maxChainRoundTrips: 1 })
+    await scene.service.send(scene.leader.agent, 'Alice', 'look into it', signal)
+    await scene.service.send(alice.agent, 'Bob', 'first', signal)
+    await scene.service.send(bob.agent, 'Alice', 'second', signal)
+
+    expect(await refusalOf(() => scene.service.send(alice.agent, 'Bob', 'third', signal)))
+      .toBe('PING_PONG')
+  })
+
+  it('refuses a verbatim repeat, which changes nothing for the recipient', async () => {
+    const { scene, alice, bob } = await pair({ ...CONFIG, maxChainHops: 16, maxChainRoundTrips: 8 })
+    await scene.service.send(scene.leader.agent, 'Alice', 'look into it', signal)
+    await scene.service.send(alice.agent, 'Bob', 'please confirm', signal)
+    await scene.service.send(bob.agent, 'Alice', 'confirm what?', signal)
+
+    expect(await refusalOf(() => scene.service.send(alice.agent, 'Bob', 'please confirm', signal)))
+      .toBe('REPEATED_MESSAGE')
+  })
+
+  it('starts the count over when the leader sends again, so real work is never trapped', async () => {
+    const { scene, alice } = await pair({ ...CONFIG, maxChainHops: 1, maxChainRoundTrips: 1 })
+    await scene.service.send(scene.leader.agent, 'Alice', 'round one', signal)
+    await scene.service.send(alice.agent, 'Bob', 'first', signal)
+    expect(await refusalOf(() => scene.service.send(alice.agent, 'Bob', 'again', signal))).toBe('PING_PONG')
+
+    await scene.service.send(scene.leader.agent, 'Alice', 'round two', signal)
+    const fresh = await scene.service.send(alice.agent, 'Bob', 'again', signal)
+    expect(fresh.chain).toEqual({ chainId: 'c2', hop: 1 })
   })
 })

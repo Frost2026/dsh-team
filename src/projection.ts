@@ -41,6 +41,7 @@ const teamViewSchema = z.object({
     kind: z.union([z.literal('message'), z.literal('report'), z.literal('settled')]),
     text: z.string(),
     time: z.number(),
+    hop: z.number().optional(),
   })),
 }) as unknown as z.ZodType<TeamView>
 
@@ -57,6 +58,7 @@ export function teamProjection(maxRecentMessages: number): ProjectionDefinition<
     apply: (state, event) => applyTeamEvent(state, event, maxRecentMessages),
     view: state => state,
     // 1: initial shape (members/tasks/messages folded from tool result meta).
-    stateVersion: 1,
+    // 2: mailbox rows carry the conversation-chain depth they were delivered at.
+    stateVersion: 2,
   }
 }

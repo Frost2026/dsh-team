@@ -71,8 +71,10 @@ function briefing(team: TeamService, child: Agent): string {
     + '"done". Use team_send when you need something FROM a member mid-task; the reply arrives later as its '
     + 'own turn, so do not wait for it in place. team_list shows the roster, the shared task list, and recent '
     + 'traffic. When you have reported, stop and wait for the next message instead of starting work nobody '
-    + 'asked for. If two rounds of messages with a teammate do not settle a question, report it to the leader '
-    + 'and move on.',
+    + 'asked for. A conversation between teammates is budgeted: it may only relay so far and one pair may not '
+    + 'keep trading messages inside it, so put everything you need into one message rather than negotiating. '
+    + 'Reaching the leader is never refused — when an exchange with a peer stops converging, say so to the '
+    + 'leader and move on.',
   ].join('\n')
 }
 

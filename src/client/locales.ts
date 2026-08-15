@@ -30,6 +30,8 @@ export const zh = {
   'task.unassigned': '未指派',
   'message.report': '汇报',
   'message.settled': '已收工',
+  'message.hop': '第 {hop} 跳',
+  'message.hopHint': '这条消息在一次队友间对话里的转发深度；深度用完只能回到主会话',
 } as const
 
 /** The namespace's dictionary key union (literal keys, locale-typed seats). */
@@ -64,4 +66,6 @@ export const en: Record<TeamKey, string> = {
   'task.unassigned': 'Unassigned',
   'message.report': 'report',
   'message.settled': 'finished',
+  'message.hop': 'hop {hop}',
+  'message.hopHint': 'How far this delivery relayed inside one teammate conversation; a spent budget leaves only the leader',
 }
