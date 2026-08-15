@@ -1,6 +1,6 @@
 /**
- * The agent-team stage: the constellation it draws, the bubbles it orients,
- * the board it fills, and what it asks the plugin body to open.
+ * The agent-team stage: the room it seats, the courier it sends, the drawer
+ * its ledgers wait behind, and what it asks the plugin body to open.
  *
  * @vitest-environment jsdom
  * @module dsh-team/tests/stage
@@ -36,12 +36,14 @@ const alice: TeamMemberView = {
 const bob: TeamMemberView = { memberId: 'child-2', name: 'Bob', relation: 'managed', joinedAt: 2 }
 const carol: TeamMemberView = { memberId: 'child-3', name: 'Carol', relation: 'peer', joinedAt: 3 }
 
-/** Mount the stage over one panel state. */
-function mount(state: Partial<TeamPanelState>, options: {
+interface MountOptions {
   readonly running?: readonly string[]
   readonly openMember?: (leaderId: string, memberId: string) => void
   readonly openLeader?: (leaderId: string) => void
-} = {}) {
+}
+
+/** Build the stage element over one panel state; kept apart so a test can rerender. */
+function element(state: Partial<TeamPanelState>, options: MountOptions = {}) {
   const panel: TeamPanelState = { members: [], tasks: [], messages: [], board: [], ...state } as TeamPanelState
   const props = {
     useTeam: (select: (snapshot: TeamPanelState) => unknown) => select(panel),
@@ -50,12 +52,22 @@ function mount(state: Partial<TeamPanelState>, options: {
     openLeader: options.openLeader ?? (() => {}),
     t: translate,
   } as unknown as TeamStageProps
-  return render(<TeamStage {...props} />)
+  return <TeamStage {...props} />
+}
+
+/** Mount the stage over one panel state. */
+function mount(state: Partial<TeamPanelState>, options: MountOptions = {}) {
+  return render(element(state, options))
 }
 
 /** Mount a full two-teammate team. */
-function stage(state: Partial<TeamPanelState> = {}, options: Parameters<typeof mount>[1] = {}) {
+function stage(state: Partial<TeamPanelState> = {}, options: MountOptions = {}) {
   return mount({ leaderId: 'leader-1', currentId: 'leader-1', members: [alice, bob], ...state }, options)
+}
+
+/** Open one ledger from the dock on the right edge of the room. */
+function openPanel(name: string): void {
+  fireEvent.click(screen.getByRole('button', { name }))
 }
 
 describe('presence', () => {
@@ -221,6 +233,75 @@ describe('the courier', () => {
   })
 })
 
+describe('the drawer', () => {
+  const messages: readonly TeamMessageView[] = [
+    { messageId: 'm1', to: 'child-1', kind: 'message', text: 'please review', time: 1 },
+    { messageId: 'm2', from: 'child-1', kind: 'report', text: 'the review is done', time: 2 },
+  ]
+  const tasks: readonly TeamTaskView[] = [
+    { taskId: 't1', title: 'review the diff', assigneeId: 'child-1', status: 'active' },
+    { taskId: 't2', title: 'write the note', status: 'done' },
+  ]
+  const board: readonly TeamBoardEntryView[] = [
+    { key: 'api decision', authorId: 'child-1', authorName: 'Alice', updatedAt: 3, preview: 'keep v1' },
+  ]
+
+  it('keeps every ledger tucked behind the dock until asked', () => {
+    const { container } = stage({ messages, tasks, board })
+    expect(container.querySelector('[data-message-kind]')).toBeNull()
+    expect(container.querySelector('[data-column]')).toBeNull()
+    expect(container.querySelector('[data-note-key]')).toBeNull()
+  })
+
+  it('opens a ledger from its door and closes it from the same door', () => {
+    const { container } = stage({ messages })
+    openPanel(en['stage.feed'])
+    expect(container.querySelector('[data-message-kind]')).toBeTruthy()
+    openPanel(en['stage.feed'])
+    expect(container.querySelector('[data-message-kind]')).toBeNull()
+  })
+
+  it('switches ledgers instead of stacking them', () => {
+    const { container } = stage({ messages, tasks })
+    openPanel(en['stage.feed'])
+    openPanel(en['stage.board'])
+    expect(container.querySelector('[data-message-kind]')).toBeNull()
+    expect(container.querySelector('[data-column="active"]')?.textContent).toContain('review the diff')
+  })
+
+  it('closes from the drawer\'s own close affordance', () => {
+    const { container } = stage({ tasks })
+    openPanel(en['stage.board'])
+    fireEvent.click(screen.getByLabelText(en['drawer.close']))
+    expect(container.querySelector('[data-column]')).toBeNull()
+  })
+
+  it('counts what waits behind each door', () => {
+    stage({ messages, tasks, board })
+    expect(screen.getByRole('button', { name: en['stage.feed'] }).textContent).toContain('2')
+    expect(screen.getByRole('button', { name: en['stage.workspace'] }).textContent).toContain('1')
+    // One of the two tasks is still open; the door counts work, not history.
+    expect(screen.getByRole('button', { name: en['stage.board'] }).textContent).toContain('1')
+  })
+
+  it('flags the mailbox door while a delivery waits behind it, until it is opened', () => {
+    const view = mount({ leaderId: 'leader-1', currentId: 'leader-1', members: [alice, bob], messages })
+    const door = () => screen.getByRole('button', { name: en['stage.feed'] })
+    expect(door().getAttribute('data-fresh')).toBeNull()
+
+    view.rerender(element({
+      leaderId: 'leader-1',
+      currentId: 'leader-1',
+      members: [alice, bob],
+      messages: [...messages, { messageId: 'm3', to: 'child-2', kind: 'message', text: 'next', time: 3 }],
+    }))
+    expect(door().getAttribute('data-fresh')).toBe('true')
+
+    fireEvent.click(door())
+    expect(door().getAttribute('data-fresh')).toBeNull()
+  })
+})
+
 describe('mailbox', () => {
   const messages: readonly TeamMessageView[] = [
     { messageId: 'm1', to: 'child-1', kind: 'message', text: 'please review', time: 1_700_000_000_000 },
@@ -230,6 +311,7 @@ describe('mailbox', () => {
 
   it('puts the leader own sends on the outbound side, naming both ends', () => {
     stage({ messages })
+    openPanel(en['stage.feed'])
     const outbound = screen.getByText('please review').closest('[data-message-kind]')
     expect(outbound?.getAttribute('data-outbound')).toBe('true')
     expect(outbound?.textContent).toContain(en['member.leader'])
@@ -238,12 +320,14 @@ describe('mailbox', () => {
 
   it('keeps an inbound bubble on the other side', () => {
     stage({ messages })
+    openPanel(en['stage.feed'])
     expect(screen.getByText('the review is done').closest('[data-message-kind]')?.getAttribute('data-outbound'))
       .toBeNull()
   })
 
   it('labels a report and a settlement, but not an ordinary message', () => {
     stage({ messages })
+    openPanel(en['stage.feed'])
     expect(screen.getByText(en['message.report'])).toBeTruthy()
     expect(screen.getByText(en['message.settled'])).toBeTruthy()
     expect(screen.getByText('please review').closest('[data-message-kind]')?.getAttribute('data-message-kind'))
@@ -252,6 +336,7 @@ describe('mailbox', () => {
 
   it('links a bubble to its member: hovering one focuses the other', () => {
     const { container } = stage({ messages })
+    openPanel(en['stage.feed'])
     const bubble = screen.getByText('please review').closest('[data-message-kind]')
     expect(bubble).toBeTruthy()
     fireEvent.mouseEnter(bubble as HTMLElement)
@@ -263,11 +348,13 @@ describe('mailbox', () => {
 
   it('falls back to a short id for a sender the roster no longer knows', () => {
     stage({ messages: [{ messageId: 'm9', from: 'child-9-long-id', kind: 'message', text: 'stale', time: 1 }] })
+    openPanel(en['stage.feed'])
     expect(screen.getByText('stale').closest('[data-message-kind]')?.textContent).toContain('child-')
   })
 
   it('says so when there is no traffic yet', () => {
     stage()
+    openPanel(en['stage.feed'])
     expect(screen.getByText(en['stage.noMessages'])).toBeTruthy()
   })
 })
@@ -281,6 +368,7 @@ describe('task board', () => {
 
   it('sorts every task into its own column', () => {
     const { container } = stage({ tasks })
+    openPanel(en['stage.board'])
     const column = (status: string): HTMLElement | null => container.querySelector(`[data-column="${status}"]`)
     expect(column('pending')?.textContent).toContain('ship it')
     expect(column('active')?.textContent).toContain('review the diff')
@@ -289,23 +377,27 @@ describe('task board', () => {
 
   it('names the assignee from the roster and marks an unassigned row', () => {
     stage({ tasks })
+    openPanel(en['stage.board'])
     expect(screen.getByText('review the diff').closest('[data-task-status]')?.textContent).toContain('Alice')
     expect(screen.getByText('ship it').closest('[data-task-status]')?.textContent).toContain(en['task.unassigned'])
   })
 
   it('carries the status on the card itself, so a done task reads as done', () => {
     stage({ tasks })
+    openPanel(en['stage.board'])
     expect(screen.getByText('write the note').closest('[data-task-status]')?.getAttribute('data-task-status'))
       .toBe('done')
   })
 
   it('keeps the closing note beside the card', () => {
     stage({ tasks })
+    openPanel(en['stage.board'])
     expect(screen.getByText('shipped')).toBeTruthy()
   })
 
   it('says so when there is no task yet', () => {
     stage()
+    openPanel(en['stage.board'])
     expect(screen.getByText(en['stage.noTasks'])).toBeTruthy()
   })
 })
@@ -324,6 +416,7 @@ describe('shared workspace', () => {
 
   it('shows every note with its author', () => {
     const { container } = stage({ board })
+    openPanel(en['stage.workspace'])
     const note = container.querySelector('[data-note-key="api decision"]')
     expect(note?.textContent).toContain('we keep v1 of the route')
     expect(note?.textContent).toContain('Alice')
@@ -332,6 +425,7 @@ describe('shared workspace', () => {
 
   it('says when the snapshot was taken, because a teammate write does not reach it', () => {
     const { container } = stage({ board, boardAt: 1_700_000_120_000 })
+    openPanel(en['stage.workspace'])
     const note = container.querySelector('[data-note-key]')
     expect(note).toBeTruthy()
     expect(screen.getByTitle(en['stage.boardStale'])).toBeTruthy()
@@ -339,6 +433,7 @@ describe('shared workspace', () => {
 
   it('links a note to its author: hovering one focuses the member', () => {
     const { container } = stage({ board })
+    openPanel(en['stage.workspace'])
     const note = container.querySelector('[data-note-key="api decision"]')
     fireEvent.mouseEnter(note as HTMLElement)
     expect(container.querySelector('[data-desk="child-1"]')?.getAttribute('data-focus')).toBe('true')
@@ -346,6 +441,7 @@ describe('shared workspace', () => {
 
   it('says so, and why it matters, when nothing is written yet', () => {
     stage()
+    openPanel(en['stage.workspace'])
     expect(screen.getByText(en['stage.noNotes'])).toBeTruthy()
     expect(screen.getByText(en['stage.noNotesHint'])).toBeTruthy()
   })

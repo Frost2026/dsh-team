@@ -2,8 +2,10 @@
  * The agent-team stage: a conversation view tab that draws the team as a room
  * you can look into — every member is a whale standing where its own live
  * state puts it (at a workstation, in the lounge, in the pool, at the snack
- * bar), a delivery is a whale swimming over to say something, and the mailbox,
- * the shared workspace and the task board sit under the floor.
+ * bar), and a delivery is a whale swimming over to say something. The room is
+ * the whole tab; the mailbox, the shared workspace and the task board wait
+ * behind a dock of doors on the right edge and open as a glass drawer over
+ * the floor, so the picture is never pushed out of view by its own ledgers.
  *
  * Every value it renders is the host's own `team` projection, delivered
  * through the injected store: the browser folds nothing. Geometry comes from
@@ -11,7 +13,7 @@
  * durable state and nothing else.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { StateDot } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale, PropsRuntime, SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
 import type { SessionId, SessionListState } from '@deepseek-ai/dsh-client-runtime/client'
@@ -101,12 +103,17 @@ function stagger(index: number): CSSProperties {
   return { animationDelay: `${Math.min(index, 10) * 30}ms` }
 }
 
+/** The three ledgers waiting behind the dock on the right edge of the room. */
+type PanelId = 'feed' | 'workspace' | 'tasks'
+
 /** Place one occupant on the floor: where it stands, how it packs, who is in front. */
 function at(slot: Slot): CSSProperties {
   return {
     left: `${slot.x}%`,
     top: `${slot.y}%`,
-    zIndex: slot.row + 1,
+    // The row rides a variable, not an inline z-index: an inline z-index
+    // would outrank the stylesheet and pin a hovered tile under its neighbors.
+    '--team-row': slot.row,
     '--team-tile-scale': scaleOf(slot.rows),
   } as CSSProperties
 }
@@ -122,6 +129,8 @@ export function TeamStage(props: TeamStageProps) {
   const sessions: SessionListState = useSessions(snapshot => snapshot)
   /** The member the pointer is over, anywhere on the stage. */
   const [focus, setFocus] = useState<string | undefined>(undefined)
+  /** Which ledger the drawer is showing; the room stands alone by default. */
+  const [panel, setPanel] = useState<PanelId | undefined>(undefined)
 
   const { leaderId, currentId, members, tasks, messages, board, boardAt } = state
 
@@ -141,6 +150,13 @@ export function TeamStage(props: TeamStageProps) {
     }
     return out
   }, [messages])
+
+  /** Mail counted as read: everything that had arrived when the feed was last open. */
+  const seenMessages = useRef(messages.length)
+  useEffect(() => {
+    if (panel === 'feed') seenMessages.current = messages.length
+  }, [panel, messages.length])
+  const freshMail = panel !== 'feed' && messages.length > seenMessages.current
 
   if (leaderId === undefined || members.length === 0) {
     return (
@@ -190,12 +206,20 @@ export function TeamStage(props: TeamStageProps) {
     talking.set(errand.toId, 'to')
   }
 
+  const toggle = (id: PanelId): void => { setPanel(current => current === id ? undefined : id) }
+  const titleOf = (id: PanelId): string =>
+    id === 'feed' ? t('stage.feed') : id === 'workspace' ? t('stage.workspace') : t('stage.board')
+
   return (
     <div className={css.stage} data-agent-team-stage>
       <header className={css.bar}>
         <span className={css.barTitle}>
           <IconTeam16 size={15} className={css.barIcon} />
           {t('stage.title')}
+        </span>
+        <span className={css.barHint}>
+          <IconTeamPeer16 size={13} />
+          {peers.length > 1 ? t('stage.peerRing') : t('stage.roomHint')}
         </span>
         <span className={css.barStats}>
           <span className={css.stat}>{t('stage.members', { count: members.length + 1 })}</span>
@@ -208,185 +232,249 @@ export function TeamStage(props: TeamStageProps) {
         </span>
       </header>
 
-      <section className={css.room} aria-label={t('stage.room')} data-open={peers.length > 1 ? 'true' : undefined}>
-        <div className={css.floor}>
-          {ZONE_ORDER.map(zone => (
-            <div
-              key={zone}
-              className={css.zone}
-              data-zone={zone}
-              data-occupied={filling[zone].length > 0 ? 'true' : undefined}
-              style={{
-                left: `${ZONES[zone].x}%`,
-                top: `${ZONES[zone].y}%`,
-                width: `${ZONES[zone].w}%`,
-                height: `${ZONES[zone].h}%`,
-              }}
-            >
-              <span className={css.zoneLabel} title={t(`zone.${zone}Hint` as TeamKey)}>
-                {t(`zone.${zone}` as TeamKey)}
-                {filling[zone].length > 0 && <span className={css.zoneCount}>{filling[zone].length}</span>}
-              </span>
-            </div>
-          ))}
+      <div className={css.scene}>
+        <section className={css.roomPane} aria-label={t('stage.room')}>
+          <div className={css.floor}>
+            {ZONE_ORDER.map(zone => (
+              <div
+                key={zone}
+                className={css.zone}
+                data-zone={zone}
+                data-occupied={filling[zone].length > 0 ? 'true' : undefined}
+                style={{
+                  left: `${ZONES[zone].x}%`,
+                  top: `${ZONES[zone].y}%`,
+                  width: `${ZONES[zone].w}%`,
+                  height: `${ZONES[zone].h}%`,
+                }}
+              >
+                <span className={css.zoneLabel} title={t(`zone.${zone}Hint` as TeamKey)}>
+                  {t(`zone.${zone}` as TeamKey)}
+                  {filling[zone].length > 0 && <span className={css.zoneCount}>{filling[zone].length}</span>}
+                </span>
+              </div>
+            ))}
 
-          <MemberTile
-            id={leaderId}
-            name={t('member.leader')}
-            seat={-1}
-            zone="work"
-            slot={points.get(leaderId) ?? { x: 50, y: 50, row: 0, rows: 1 }}
-            relation="lead"
-            role={undefined}
-            current={currentId === leaderId}
-            running={leaderRunning}
-            focused={focus === leaderId}
-            talking={talking.get(leaderId)}
-            screenLine={screenLineOf(leaderId, tasks, messages)}
-            tasks={0}
-            label={t('member.openLeader')}
-            title={t('member.leader')}
-            onOpen={() => { openLeader(leaderId) }}
-            onFocus={setFocus}
-            t={t}
-          />
-
-          {members.map((member, index) => (
             <MemberTile
-              key={member.memberId}
-              id={member.memberId}
-              name={member.name}
-              seat={index}
-              zone={zoneById.get(member.memberId) ?? 'pool'}
-              slot={points.get(member.memberId) ?? { x: 50, y: 50, row: 0, rows: 1 }}
-              relation={member.relation}
-              role={member.role}
-              current={currentId === member.memberId}
-              running={running.has(member.memberId)}
-              focused={focus === member.memberId}
-              talking={talking.get(member.memberId)}
-              screenLine={screenLineOf(member.memberId, tasks, messages)}
-              tasks={openOf(member.memberId)}
-              label={t('member.open', { name: member.name })}
-              title={meta(
-                member.name,
-                member.role,
-                member.model,
-                member.effort,
-                member.relation === 'peer' ? t('relation.peer') : t('relation.managed'),
-              )}
-              onOpen={() => { openMember(leaderId, member.memberId) }}
+              id={leaderId}
+              name={t('member.leader')}
+              seat={-1}
+              zone="work"
+              slot={points.get(leaderId) ?? { x: 50, y: 50, row: 0, rows: 1 }}
+              relation="lead"
+              role={undefined}
+              current={currentId === leaderId}
+              running={leaderRunning}
+              focused={focus === leaderId}
+              talking={talking.get(leaderId)}
+              screenLine={screenLineOf(leaderId, tasks, messages)}
+              tasks={0}
+              label={t('member.openLeader')}
+              title={t('member.leader')}
+              onOpen={() => { openLeader(leaderId) }}
               onFocus={setFocus}
               t={t}
             />
-          ))}
 
-          {errand !== undefined && (
-            <div
-              key={errand.message.messageId}
-              className={css.courier}
-              data-courier={errand.message.messageId}
-              data-from={errand.fromId}
-              data-to={errand.toId}
-              data-direction={errand.to.x >= errand.from.x ? 'right' : 'left'}
-              style={{
-                '--from-x': `${errand.from.x}%`,
-                '--from-y': `${errand.from.y}%`,
-                '--to-x': `${errand.to.x}%`,
-                '--to-y': `${errand.to.y}%`,
-                ...accentOf(seatOf(errand.fromId, leaderId, members)),
-              } as CSSProperties}
-              aria-label={t('stage.courier', {
-                name: names.get(errand.fromId) ?? errand.fromId,
-                to: names.get(errand.toId) ?? errand.toId,
-              })}
-            >
-              <span className={css.courierBubble}>{short(errand.message.text)}</span>
-              <Whale kind={kindOf(seatOf(errand.fromId, leaderId, members))} className={css.courierWhale} />
-            </div>
-          )}
-        </div>
+            {members.map((member, index) => (
+              <MemberTile
+                key={member.memberId}
+                id={member.memberId}
+                name={member.name}
+                seat={index}
+                zone={zoneById.get(member.memberId) ?? 'pool'}
+                slot={points.get(member.memberId) ?? { x: 50, y: 50, row: 0, rows: 1 }}
+                relation={member.relation}
+                role={member.role}
+                current={currentId === member.memberId}
+                running={running.has(member.memberId)}
+                focused={focus === member.memberId}
+                talking={talking.get(member.memberId)}
+                screenLine={screenLineOf(member.memberId, tasks, messages)}
+                tasks={openOf(member.memberId)}
+                label={t('member.open', { name: member.name })}
+                title={meta(
+                  member.name,
+                  member.role,
+                  member.model,
+                  member.effort,
+                  member.relation === 'peer' ? t('relation.peer') : t('relation.managed'),
+                )}
+                onOpen={() => { openMember(leaderId, member.memberId) }}
+                onFocus={setFocus}
+                t={t}
+              />
+            ))}
 
-        <p className={css.legend}>
-          <IconTeamPeer16 size={13} />
-          {peers.length > 1 ? t('stage.peerRing') : t('stage.roomHint')}
-        </p>
-      </section>
-
-      <div className={css.grid}>
-        <section className={css.feed} aria-label={t('stage.feed')}>
-          <h3 className={css.paneTitle}>
-            <IconTeamMailbox16 size={13} />
-            {t('stage.feed')}
-          </h3>
-          <MessageFeed
-            messages={messages}
-            names={names}
-            leaderLabel={t('member.leader')}
-            focus={focus}
-            onFocus={setFocus}
-            t={t}
-          />
-        </section>
-
-        <section className={css.board} aria-label={t('stage.workspace')}>
-          <h3 className={css.paneTitle}>
-            <IconTeamWorkspace16 size={13} />
-            {t('stage.workspace')}
-            {boardAt !== undefined && (
-              <span className={css.paneNote} title={t('stage.boardStale')}>
-                {t('stage.boardAt', { time: clock(boardAt) })}
-              </span>
-            )}
-          </h3>
-          {board.length === 0
-            ? (
-              <>
-                <p className={css.empty}>{t('stage.noNotes')}</p>
-                <p className={css.emptyHint}>{t('stage.noNotesHint')}</p>
-              </>
-            )
-            : (
-              <div className={css.notes}>
-                {board.map((entry, index) => (
-                  <NoteCard
-                    key={entry.key}
-                    entry={entry}
-                    index={index}
-                    focus={focus}
-                    onFocus={onFocus => { setFocus(onFocus) }}
-                    t={t}
-                  />
-                ))}
+            {errand !== undefined && (
+              <div
+                key={errand.message.messageId}
+                className={css.courier}
+                data-courier={errand.message.messageId}
+                data-from={errand.fromId}
+                data-to={errand.toId}
+                data-direction={errand.to.x >= errand.from.x ? 'right' : 'left'}
+                style={{
+                  '--from-x': `${errand.from.x}%`,
+                  '--from-y': `${errand.from.y}%`,
+                  '--to-x': `${errand.to.x}%`,
+                  '--to-y': `${errand.to.y}%`,
+                  ...accentOf(seatOf(errand.fromId, leaderId, members)),
+                } as CSSProperties}
+                aria-label={t('stage.courier', {
+                  name: names.get(errand.fromId) ?? errand.fromId,
+                  to: names.get(errand.toId) ?? errand.toId,
+                })}
+              >
+                <span className={css.courierBubble}>{short(errand.message.text)}</span>
+                <Whale kind={kindOf(seatOf(errand.fromId, leaderId, members))} className={css.courierWhale} />
               </div>
             )}
+          </div>
         </section>
-      </div>
 
-      <section className={css.board} aria-label={t('stage.board')}>
-        <h3 className={css.paneTitle}>
-          <IconTeamTask16 size={13} />
-          {t('stage.board')}
-        </h3>
-        {tasks.length === 0
-          ? <p className={css.empty}>{t('stage.noTasks')}</p>
-          : (
-            <div className={css.columns}>
-              {COLUMNS.map(status => (
-                <TaskColumn
-                  key={status}
-                  status={status}
-                  tasks={tasks.filter(task => task.status === status)}
+        <nav className={css.dock} aria-label={t('stage.dock')}>
+          <DockButton
+            id="feed"
+            label={t('stage.feed')}
+            count={messages.length}
+            active={panel === 'feed'}
+            fresh={freshMail}
+            onToggle={toggle}
+          >
+            <IconTeamMailbox16 size={15} />
+          </DockButton>
+          <DockButton
+            id="workspace"
+            label={t('stage.workspace')}
+            count={board.length}
+            active={panel === 'workspace'}
+            fresh={false}
+            onToggle={toggle}
+          >
+            <IconTeamWorkspace16 size={15} />
+          </DockButton>
+          <DockButton
+            id="tasks"
+            label={t('stage.board')}
+            count={openTasks}
+            active={panel === 'tasks'}
+            fresh={false}
+            onToggle={toggle}
+          >
+            <IconTeamTask16 size={15} />
+          </DockButton>
+        </nav>
+
+        {panel !== undefined && (
+          <aside className={css.drawer} data-panel={panel} aria-label={titleOf(panel)}>
+            <header className={css.drawerHead}>
+              <h3 className={css.paneTitle}>
+                {panel === 'feed' && <IconTeamMailbox16 size={13} />}
+                {panel === 'workspace' && <IconTeamWorkspace16 size={13} />}
+                {panel === 'tasks' && <IconTeamTask16 size={13} />}
+                {titleOf(panel)}
+                {panel === 'workspace' && boardAt !== undefined && (
+                  <span className={css.paneNote} title={t('stage.boardStale')}>
+                    {t('stage.boardAt', { time: clock(boardAt) })}
+                  </span>
+                )}
+              </h3>
+              <button
+                type="button"
+                className={css.drawerClose}
+                onClick={() => { setPanel(undefined) }}
+                aria-label={t('drawer.close')}
+              >
+                ×
+              </button>
+            </header>
+            <div className={css.drawerBody}>
+              {panel === 'feed' && (
+                <MessageFeed
+                  messages={messages}
                   names={names}
+                  leaderLabel={t('member.leader')}
                   focus={focus}
                   onFocus={setFocus}
                   t={t}
                 />
-              ))}
+              )}
+              {panel === 'workspace' && (
+                board.length === 0
+                  ? (
+                    <>
+                      <p className={css.empty}>{t('stage.noNotes')}</p>
+                      <p className={css.emptyHint}>{t('stage.noNotesHint')}</p>
+                    </>
+                  )
+                  : (
+                    <div className={css.notes}>
+                      {board.map((entry, index) => (
+                        <NoteCard
+                          key={entry.key}
+                          entry={entry}
+                          index={index}
+                          focus={focus}
+                          onFocus={onFocus => { setFocus(onFocus) }}
+                          t={t}
+                        />
+                      ))}
+                    </div>
+                  )
+              )}
+              {panel === 'tasks' && (
+                tasks.length === 0
+                  ? <p className={css.empty}>{t('stage.noTasks')}</p>
+                  : (
+                    <div className={css.columns}>
+                      {COLUMNS.map(status => (
+                        <TaskColumn
+                          key={status}
+                          status={status}
+                          tasks={tasks.filter(task => task.status === status)}
+                          names={names}
+                          focus={focus}
+                          onFocus={setFocus}
+                          t={t}
+                        />
+                      ))}
+                    </div>
+                  )
+              )}
             </div>
-          )}
-      </section>
+          </aside>
+        )}
+      </div>
     </div>
+  )
+}
+
+/** One door on the dock: an icon, a count of what waits behind it, a pulse for news. */
+function DockButton(props: {
+  readonly id: PanelId
+  readonly label: string
+  readonly count: number
+  readonly active: boolean
+  readonly fresh: boolean
+  readonly onToggle: (id: PanelId) => void
+  readonly children: ReactNode
+}) {
+  const { id, label, count, active, fresh, onToggle, children } = props
+  return (
+    <button
+      type="button"
+      className={css.dockButton}
+      aria-label={label}
+      title={label}
+      aria-pressed={active}
+      data-panel-id={id}
+      data-fresh={fresh ? 'true' : undefined}
+      onClick={() => { onToggle(id) }}
+    >
+      {children}
+      {count > 0 && <span className={css.dockCount}>{count > 99 ? '99+' : count}</span>}
+    </button>
   )
 }
 

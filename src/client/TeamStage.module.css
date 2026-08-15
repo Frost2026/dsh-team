@@ -8,10 +8,10 @@
   container-type: inline-size;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   height: 100%;
   min-height: 0;
-  padding: 14px 16px 18px;
+  padding: 12px 16px 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   animation: team-stage-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -61,27 +61,184 @@
   border-color: var(--dsw-alias-brand-primary);
 }
 
-/* ------------------------------------------------------------------ shell */
-
-.grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 14px;
-  align-items: stretch;
-  flex: none;
+.barHint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 10.5px;
+  color: var(--dsw-alias-label-tertiary);
 }
 
-.room,
-.feed,
-.board {
+/* ------------------------------------------------------------------ scene */
+
+/* The room fills the tab; the ledgers wait behind the dock. The clearance
+   keeps the floor's lounge out from under the app's floating composer. */
+.scene {
+  --team-clearance: clamp(88px, 14vh, 148px);
+  position: relative;
   display: flex;
-  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  padding-bottom: var(--team-clearance);
+}
+
+.roomPane {
+  position: relative;
+  flex: 1;
   min-width: 0;
   min-height: 0;
-  padding: 12px;
+}
+
+/* --------------------------------------------------------------- the dock */
+
+.dock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  align-self: flex-start;
+  width: 44px;
+  padding: 6px 0;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 999px;
+  background: var(--dsw-alias-bg-overlay);
+}
+
+.dockButton {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.dockButton:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.dockButton[aria-pressed='true'] {
+  background: var(--dsw-alias-brand-primary);
+  color: var(--dsw-alias-label-primary-inverted);
+}
+
+.dockCount {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 2px solid var(--dsw-alias-bg-overlay);
+  background: var(--dsw-alias-fill-l3);
+  color: var(--dsw-alias-label-secondary);
+  font-size: 9px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mail arrived while this door was shut. */
+.dockButton[data-fresh='true'] {
+  color: var(--dsw-alias-brand-primary);
+}
+
+.dockButton[data-fresh='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--dsw-alias-brand-primary);
+  animation: team-halo 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------- the drawer */
+
+/* A glass pane over the right of the room: the whales keep moving behind it. */
+.drawer {
+  position: absolute;
+  z-index: 30;
+  top: 0;
+  right: 54px;
+  bottom: var(--team-clearance);
+  display: flex;
+  flex-direction: column;
+  width: min(400px, 78cqw);
   border: 1px solid var(--dsw-alias-border-l2);
   border-radius: 14px;
-  background: var(--dsw-alias-bg-overlay);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--dsw-alias-bg-overlay) 86%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: -12px 10px 34px var(--dsw-alias-bg-mask-1);
+  animation: team-drawer-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.drawerHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+}
+
+.drawerHead .paneTitle {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.drawerClose {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.drawerClose:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.drawerBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 10px 12px 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The feed scrolls itself (it pins to the newest row); the body stands still. */
+.drawer[data-panel='feed'] .drawerBody {
+  overflow: hidden;
 }
 
 .paneTitle {
@@ -122,25 +279,58 @@
 .floor {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  min-height: 320px;
-  border-radius: 12px;
+  height: 100%;
+  min-height: 240px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 14px;
   overflow: hidden;
   background:
-    linear-gradient(180deg, var(--dsw-alias-fill-l1) 0%, var(--dsw-alias-bg-overlay) 62%),
-    var(--dsw-alias-bg-overlay);
+    linear-gradient(180deg, var(--dsw-alias-fill-l2) 0%, var(--dsw-alias-fill-l1) 11%, var(--dsw-alias-bg-overlay) 62%);
 }
 
-/* The room's own floorboards: one hairline grid, never a literal color. */
+/* The room's own floorboards, laid from the foot of the back wall down. */
 .floor::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: 11% 0 0;
   background-image:
     repeating-linear-gradient(90deg, var(--dsw-alias-border-l1) 0 1px, transparent 1px 64px),
     repeating-linear-gradient(0deg, var(--dsw-alias-border-l1) 0 1px, transparent 1px 64px);
-  opacity: 0.6;
+  opacity: 0.55;
   pointer-events: none;
+}
+
+/* The back wall: a skirting line, and three portholes of brand-tinted sea. */
+.floor::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      transparent calc(11% - 1px),
+      var(--dsw-alias-border-l2) calc(11% - 1px) 11%,
+      transparent 11%
+    ),
+    radial-gradient(
+      circle at 18% 5.5%,
+      color-mix(in srgb, var(--dsw-alias-brand-primary) 16%, transparent) 0 9px,
+      color-mix(in srgb, var(--dsw-alias-brand-primary) 45%, transparent) 10px 12px,
+      transparent 13px
+    ),
+    radial-gradient(
+      circle at 46% 5.5%,
+      color-mix(in srgb, var(--dsw-alias-brand-primary) 16%, transparent) 0 9px,
+      color-mix(in srgb, var(--dsw-alias-brand-primary) 45%, transparent) 10px 12px,
+      transparent 13px
+    ),
+    radial-gradient(
+      circle at 74% 5.5%,
+      color-mix(in srgb, var(--dsw-alias-brand-primary) 16%, transparent) 0 9px,
+      color-mix(in srgb, var(--dsw-alias-brand-primary) 45%, transparent) 10px 12px,
+      transparent 13px
+    );
 }
 
 .zone {
@@ -207,15 +397,6 @@
   letter-spacing: 0;
 }
 
-.legend {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin: 8px 0 0;
-  font-size: 10.5px;
-  color: var(--dsw-alias-label-tertiary);
-}
-
 /* ------------------------------------------------------------------ tiles */
 
 .tile {
@@ -229,9 +410,14 @@
   border: none;
   background: transparent;
   cursor: pointer;
+  /* The row rides a variable so the hover lift below can still outrank it. */
+  z-index: calc(1 + var(--team-row, 0));
   /* A crowded area packs its whales: the row's own scale rides the tile. */
   transform: translate(-50%, -50%) scale(var(--team-tile-scale, 1));
-  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    left 680ms cubic-bezier(0.3, 0.8, 0.3, 1),
+    top 680ms cubic-bezier(0.3, 0.8, 0.3, 1);
   animation: team-tile-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
@@ -296,7 +482,8 @@
   display: grid;
   place-items: center;
   width: 100%;
-  filter: drop-shadow(5px 7px 5px var(--dsw-alias-bg-mask-1));
+  /* The reference floor's long afternoon shadows, cast toward the viewer. */
+  filter: drop-shadow(8px 11px 7px var(--dsw-alias-bg-mask-1));
 }
 
 .tileWhale {
@@ -434,7 +621,7 @@
   border-radius: 4px;
   border: 1px solid var(--dsw-alias-border-l2);
   background: var(--dsw-alias-bg-overlay);
-  box-shadow: 4px 6px 10px var(--dsw-alias-bg-mask-1);
+  box-shadow: 7px 10px 14px var(--dsw-alias-bg-mask-1);
 }
 
 /* ------------------------------------------------------------ nameplates */
@@ -544,8 +731,8 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
+  flex: 1;
   min-height: 0;
-  max-height: 340px;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: 2px;
@@ -705,8 +892,8 @@
 }
 
 .notes {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
@@ -765,10 +952,11 @@
 
 /* ------------------------------------------------------------------ board */
 
+/* The drawer is one narrow pane: the board's columns stack as sections. */
 .columns {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .column {
@@ -850,21 +1038,17 @@
 
 /* ------------------------------------------------------------------ narrow */
 
-@container (max-width: 780px) {
-  .grid {
-    grid-template-columns: minmax(0, 1fr);
+@container (max-width: 640px) {
+  .barHint {
+    display: none;
   }
 
-  .columns {
-    grid-template-columns: minmax(0, 1fr);
+  .stat {
+    display: none;
   }
 
-  .notes {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .floor {
-    aspect-ratio: 4 / 3;
+  .stat:first-child {
+    display: inline-block;
   }
 }
 
@@ -882,6 +1066,11 @@
 
 @keyframes team-bubble-in {
   from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes team-drawer-in {
+  from { opacity: 0; transform: translateX(14px); }
   to { opacity: 1; transform: none; }
 }
 
@@ -929,6 +1118,7 @@
 @media (prefers-reduced-motion: reduce) {
   .stage,
   .tile,
+  .drawer,
   .bubbleRow,
   .card,
   .note {
@@ -946,12 +1136,14 @@
   .tile[data-talking='to'] .tileWhale,
   .tile[data-running='true'] .seat::after,
   .monitor[data-screen='working'] .screen,
+  .dockButton[data-fresh='true']::after,
   .water,
   .zzz {
     animation: none;
   }
 
   .tile,
+  .dockButton,
   .card {
     transition: none;
   }
