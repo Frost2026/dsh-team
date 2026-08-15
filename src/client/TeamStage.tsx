@@ -22,8 +22,8 @@ import type {
   TeamBoardEntryView, TeamMemberView, TeamMessageView, TeamTaskStatus, TeamTaskView,
 } from '../contract.ts'
 import {
-  IconTeam16, IconTeamLeader16, IconTeamMailbox16, IconTeamMessage16, IconTeamPeer16,
-  IconTeamSend16, IconTeamTask16, IconTeamWorkspace16,
+  IconTeam16, IconTeamExpand16, IconTeamLeader16, IconTeamMailbox16, IconTeamMessage16,
+  IconTeamPeer16, IconTeamSend16, IconTeamTask16, IconTeamWorkspace16,
 } from './icons.tsx'
 import type { TeamKey } from './locales.ts'
 import { ZONES, ZONE_ORDER, scaleOf, slotOf, zoneFor, type Point, type Slot, type Touch, type ZoneId } from './room.ts'
@@ -106,6 +106,38 @@ function stagger(index: number): CSSProperties {
 /** The three ledgers waiting behind the dock on the right edge of the room. */
 type PanelId = 'feed' | 'workspace' | 'tasks'
 
+/** The preset pictures a workstation monitor can show. */
+const APPS = ['doc', 'code', 'mail', 'grid', 'chart'] as const
+type AppKind = typeof APPS[number]
+
+/** Which picture one seat's monitor shows; the leader watches the dashboard. */
+function appOf(seat: number): AppKind {
+  if (seat < 0) return 'chart'
+  return APPS[seat % APPS.length] ?? 'doc'
+}
+
+/** One preset screen picture, drawn from bars alone so the theme owns it. */
+function ScreenApp(props: { readonly app: AppKind }) {
+  const { app } = props
+  const bars = app === 'doc' || app === 'mail' ? 3 : 4
+  return (
+    <span className={css.screenApp} data-app={app} aria-hidden>
+      {Array.from({ length: bars }, (_, index) => <i key={index} />)}
+    </span>
+  )
+}
+
+/** A member as a tiny portrait: its own kind of whale in its own accent. */
+function Cameo(props: { readonly seat: number | undefined, readonly name: string }) {
+  const { seat, name } = props
+  if (seat === undefined) return <span className={css.discGlyph}>{initial(name)}</span>
+  return (
+    <span className={css.cameo} data-cameo-species={kindOf(seat)} style={accentOf(seat)}>
+      <Whale kind={kindOf(seat)} className={css.cameoWhale} />
+    </span>
+  )
+}
+
 /** Place one occupant on the floor: where it stands, how it packs, who is in front. */
 function at(slot: Slot): CSSProperties {
   return {
@@ -131,6 +163,17 @@ export function TeamStage(props: TeamStageProps) {
   const [focus, setFocus] = useState<string | undefined>(undefined)
   /** Which ledger the drawer is showing; the room stands alone by default. */
   const [panel, setPanel] = useState<PanelId | undefined>(undefined)
+  /** Theater mode: the room covers the whole window, composer included. */
+  const [wide, setWide] = useState(false)
+
+  useEffect(() => {
+    if (!wide) return undefined
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setWide(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => { window.removeEventListener('keydown', onKey) }
+  }, [wide])
 
   const { leaderId, currentId, members, tasks, messages, board, boardAt } = state
 
@@ -169,6 +212,9 @@ export function TeamStage(props: TeamStageProps) {
 
   const names = new Map<string, string>([[leaderId, t('member.leader')]])
   for (const member of members) names.set(member.memberId, member.name)
+  /** Roster seat per member id, so the ledgers can draw the same cast. */
+  const seats = new Map<string, number>([[leaderId, -1]])
+  members.forEach((member, index) => seats.set(member.memberId, index))
   const openOf = (memberId: string): number =>
     tasks.filter(task => task.assigneeId === memberId && task.status !== 'done').length
 
@@ -211,7 +257,7 @@ export function TeamStage(props: TeamStageProps) {
     id === 'feed' ? t('stage.feed') : id === 'workspace' ? t('stage.workspace') : t('stage.board')
 
   return (
-    <div className={css.stage} data-agent-team-stage>
+    <div className={css.stage} data-agent-team-stage data-wide={wide ? 'true' : undefined}>
       <header className={css.bar}>
         <span className={css.barTitle}>
           <IconTeam16 size={15} className={css.barIcon} />
@@ -230,11 +276,23 @@ export function TeamStage(props: TeamStageProps) {
             <span className={css.stat}>{t('stage.tasks', { open: openTasks, total: tasks.length })}</span>
           )}
         </span>
+        <button
+          type="button"
+          className={css.barToggle}
+          aria-pressed={wide}
+          aria-label={t(wide ? 'stage.theaterExit' : 'stage.theater')}
+          title={t(wide ? 'stage.theaterExit' : 'stage.theater')}
+          onClick={() => { setWide(current => !current) }}
+        >
+          <IconTeamExpand16 size={14} />
+        </button>
       </header>
 
       <div className={css.scene}>
         <section className={css.roomPane} aria-label={t('stage.room')}>
           <div className={css.floor}>
+            <span className={css.wallBoard} data-prop="whiteboard" aria-hidden />
+            <span className={css.wallClock} data-prop="clock" aria-hidden />
             {ZONE_ORDER.map(zone => (
               <div
                 key={zone}
@@ -252,6 +310,19 @@ export function TeamStage(props: TeamStageProps) {
                   {t(`zone.${zone}` as TeamKey)}
                   {filling[zone].length > 0 && <span className={css.zoneCount}>{filling[zone].length}</span>}
                 </span>
+                {zone === 'lounge' && (
+                  <>
+                    <span className={css.sofa} data-prop="sofa" aria-hidden />
+                    <span className={css.plant} data-prop="plant" aria-hidden />
+                  </>
+                )}
+                {zone === 'snack' && <span className={css.vending} data-prop="vending" aria-hidden />}
+                {zone === 'pool' && (
+                  <>
+                    <span className={css.buoy} data-prop="buoy" aria-hidden />
+                    <span className={css.ladder} data-prop="ladder" aria-hidden />
+                  </>
+                )}
               </div>
             ))}
 
@@ -394,6 +465,7 @@ export function TeamStage(props: TeamStageProps) {
                 <MessageFeed
                   messages={messages}
                   names={names}
+                  seats={seats}
                   leaderLabel={t('member.leader')}
                   focus={focus}
                   onFocus={setFocus}
@@ -415,6 +487,7 @@ export function TeamStage(props: TeamStageProps) {
                           key={entry.key}
                           entry={entry}
                           index={index}
+                          seats={seats}
                           focus={focus}
                           onFocus={onFocus => { setFocus(onFocus) }}
                           t={t}
@@ -434,6 +507,7 @@ export function TeamStage(props: TeamStageProps) {
                           status={status}
                           tasks={tasks.filter(task => task.status === status)}
                           names={names}
+                          seats={seats}
                           focus={focus}
                           onFocus={setFocus}
                           t={t}
@@ -579,11 +653,16 @@ function MemberTile(props: {
       data-talking={talking}
     >
       {zone === 'work' && (
-        <span className={css.monitor} data-screen={screen} aria-hidden>
+        <span className={css.monitor} data-screen={screen} title={screenLine} aria-hidden>
           <span className={css.screen}>
             {screen === 'off'
               ? <span className={css.screenOff} />
-              : <span className={css.screenText}>{screenLine ?? t('screen.working')}</span>}
+              : (
+                <>
+                  <ScreenApp app={appOf(seat)} />
+                  <span className={css.screenText}>{screenLine ?? t('screen.working')}</span>
+                </>
+              )}
           </span>
           <span className={css.stand} />
         </span>
@@ -594,6 +673,12 @@ function MemberTile(props: {
       <span className={css.seat} data-zone={zone} aria-hidden>
         {zone === 'pool' && <span className={css.water} />}
         <Whale kind={kind} className={css.tileWhale} asleep={zone === 'lounge'} />
+        {zone === 'work' && (
+          <>
+            <span className={css.keyboard} data-prop="keyboard" />
+            <span className={css.mug} data-prop="mug" />
+          </>
+        )}
         {relation === 'lead' && (
           <span className={css.crown} aria-hidden>
             <IconTeamLeader16 size={12} />
@@ -619,12 +704,13 @@ function MemberTile(props: {
 function MessageFeed(props: {
   readonly messages: readonly TeamMessageView[]
   readonly names: ReadonlyMap<string, string>
+  readonly seats: ReadonlyMap<string, number>
   readonly leaderLabel: string
   readonly focus: string | undefined
   readonly onFocus: (memberId: string | undefined) => void
   readonly t: Translate
 }) {
-  const { messages, names, leaderLabel, focus, onFocus, t } = props
+  const { messages, names, seats, leaderLabel, focus, onFocus, t } = props
   const scroller = useRef<HTMLDivElement>(null)
 
   // A new delivery is the point of the feed: keep the newest row in view.
@@ -644,6 +730,7 @@ function MessageFeed(props: {
           index={index}
           grouped={index > 0 && messages[index - 1]?.from === message.from && messages[index - 1]?.to === message.to}
           names={names}
+          seats={seats}
           leaderLabel={leaderLabel}
           focus={focus}
           onFocus={onFocus}
@@ -660,12 +747,13 @@ function MessageBubble(props: {
   readonly index: number
   readonly grouped: boolean
   readonly names: ReadonlyMap<string, string>
+  readonly seats: ReadonlyMap<string, number>
   readonly leaderLabel: string
   readonly focus: string | undefined
   readonly onFocus: (memberId: string | undefined) => void
   readonly t: Translate
 }) {
-  const { message, index, grouped, names, leaderLabel, focus, onFocus, t } = props
+  const { message, index, grouped, names, seats, leaderLabel, focus, onFocus, t } = props
   const label = (id: string | undefined): string =>
     id === undefined ? leaderLabel : names.get(id) ?? id.slice(0, 6)
   const outbound = message.from === undefined
@@ -683,7 +771,7 @@ function MessageBubble(props: {
       onMouseLeave={() => { onFocus(undefined) }}
     >
       <span className={css.bubbleAvatar} aria-hidden data-hidden={grouped ? 'true' : undefined}>
-        {outbound ? <IconTeamLeader16 size={13} /> : <span className={css.discGlyph}>{initial(author)}</span>}
+        <Cameo seat={message.from === undefined ? -1 : seats.get(message.from)} name={author} />
       </span>
       <div className={css.bubble}>
         <span className={css.bubbleHead}>
@@ -711,15 +799,16 @@ function MessageBubble(props: {
   )
 }
 
-/** One note on the shared workspace, as the leader last saw it. */
+/** One note pinned to the shared workspace, as the leader last saw it. */
 function NoteCard(props: {
   readonly entry: TeamBoardEntryView
   readonly index: number
+  readonly seats: ReadonlyMap<string, number>
   readonly focus: string | undefined
   readonly onFocus: (memberId: string | undefined) => void
   readonly t: Translate
 }) {
-  const { entry, index, focus, onFocus } = props
+  const { entry, index, seats, focus, onFocus } = props
   return (
     <div
       className={css.note}
@@ -732,23 +821,29 @@ function NoteCard(props: {
       <span className={css.noteKey} title={entry.key}>{entry.key}</span>
       <span className={css.notePreview} title={entry.preview}>{entry.preview}</span>
       <span className={css.noteFoot}>
-        <span className={css.noteAuthor}>{entry.authorName}</span>
+        <span className={css.noteAuthor}>
+          <span className={css.cameoDot} aria-hidden>
+            <Cameo seat={seats.get(entry.authorId)} name={entry.authorName} />
+          </span>
+          {entry.authorName}
+        </span>
         <span className={css.noteTime}>{clock(entry.updatedAt)}</span>
       </span>
     </div>
   )
 }
 
-/** One column of the shared task board. */
+/** One lane of the shared task board. */
 function TaskColumn(props: {
   readonly status: TeamTaskStatus
   readonly tasks: readonly TeamTaskView[]
   readonly names: ReadonlyMap<string, string>
+  readonly seats: ReadonlyMap<string, number>
   readonly focus: string | undefined
   readonly onFocus: (memberId: string | undefined) => void
   readonly t: Translate
 }) {
-  const { status, tasks, names, focus, onFocus, t } = props
+  const { status, tasks, names, seats, focus, onFocus, t } = props
   const title = status === 'done' ? t('task.done') : status === 'active' ? t('task.active') : t('task.pending')
   return (
     <div className={css.column} data-column={status}>
@@ -769,6 +864,14 @@ function TaskColumn(props: {
           <span className={css.cardTitle} title={task.title}>{task.title}</span>
           <span className={css.cardFoot}>
             <span className={css.cardWho}>
+              {task.assigneeId !== undefined && (
+                <span className={css.cameoDot} aria-hidden>
+                  <Cameo
+                    seat={seats.get(task.assigneeId)}
+                    name={names.get(task.assigneeId) ?? task.assigneeId}
+                  />
+                </span>
+              )}
               {task.assigneeId === undefined
                 ? t('task.unassigned')
                 : names.get(task.assigneeId) ?? task.assigneeId.slice(0, 6)}

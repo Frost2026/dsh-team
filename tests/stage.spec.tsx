@@ -158,6 +158,20 @@ describe('the room', () => {
     expect(new Set(kinds).size).toBe(4)
   })
 
+  it('furnishes each area with its own props, and the wall with its fittings', () => {
+    const { container } = stage()
+    for (const prop of ['sofa', 'plant', 'vending', 'buoy', 'ladder', 'whiteboard', 'clock']) {
+      expect(container.querySelector(`[data-prop="${prop}"]`), prop).toBeTruthy()
+    }
+  })
+
+  it('sets a desk with a keyboard, and puts a preset picture on a busy screen', () => {
+    const { container } = stage({}, { running: ['child-1'] })
+    const busy = desk(container, 'child-1')
+    expect(busy?.querySelector('[data-prop="keyboard"]')).toBeTruthy()
+    expect(busy?.querySelector('[data-app]')).toBeTruthy()
+  })
+
   it('names the peer channel only once two members can use it', () => {
     stage()
     expect(screen.getByText(en['stage.roomHint'])).toBeTruthy()
@@ -230,6 +244,20 @@ describe('the courier', () => {
       messages: [{ messageId: 'm9', from: 'child-9', kind: 'message', text: 'stale', time: 1 }],
     })
     expect(container.querySelector('[data-courier]')).toBeNull()
+  })
+})
+
+describe('theater mode', () => {
+  it('stretches the stage over the whole window on demand, and Esc hands it back', () => {
+    const { container } = stage()
+    const root = container.querySelector('[data-agent-team-stage]')
+    expect(root?.getAttribute('data-wide')).toBeNull()
+
+    fireEvent.click(screen.getByLabelText(en['stage.theater']))
+    expect(root?.getAttribute('data-wide')).toBe('true')
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(root?.getAttribute('data-wide')).toBeNull()
   })
 })
 
@@ -344,6 +372,15 @@ describe('mailbox', () => {
 
     fireEvent.mouseLeave(bubble as HTMLElement)
     expect(container.querySelector('[data-desk="child-1"]')?.getAttribute('data-focus')).toBeNull()
+  })
+
+  it('gives every bubble the author own whale as its portrait', () => {
+    stage({ messages })
+    openPanel(en['stage.feed'])
+    expect(screen.getByText('please review').closest('[data-message-kind]')
+      ?.querySelector('[data-cameo-species="blue"]')).toBeTruthy()
+    expect(screen.getByText('the review is done').closest('[data-message-kind]')
+      ?.querySelector('[data-cameo-species="orca"]')).toBeTruthy()
   })
 
   it('falls back to a short id for a sender the roster no longer knows', () => {

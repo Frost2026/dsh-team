@@ -111,6 +111,20 @@ export function IconTeamSend16({ size = 16, className, style }: TeamIconProps) {
 }
 
 
+/** Theater-mode corners: the room stretched to the whole window. */
+export function IconTeamExpand16({ size = 16, className, style }: TeamIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style} aria-hidden>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M1.8 6.2 L1.8 2.3 C1.8 2.02 2.02 1.8 2.3 1.8 L6.2 1.8 L6.2 2.8 L2.8 2.8 L2.8 6.2 Z M9.8 1.8 L13.7 1.8 C13.98 1.8 14.2 2.02 14.2 2.3 L14.2 6.2 L13.2 6.2 L13.2 2.8 L9.8 2.8 Z M14.2 9.8 L14.2 13.7 C14.2 13.98 13.98 14.2 13.7 14.2 L9.8 14.2 L9.8 13.2 L13.2 13.2 L13.2 9.8 Z M6.2 14.2 L2.3 14.2 C2.02 14.2 1.8 13.98 1.8 13.7 L1.8 9.8 L2.8 9.8 L2.8 13.2 L6.2 13.2 Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
 /** Team workspace: a shared board with two pinned notes. */
 export function IconTeamWorkspace16({ size = 16, className, style }: TeamIconProps) {
   return (
