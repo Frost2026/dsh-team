@@ -87,43 +87,72 @@ describe('presence', () => {
   })
 })
 
-describe('constellation', () => {
-  it('seats the leader at the hub and every teammate on the orbit', () => {
+describe('the room', () => {
+  /** One member's place on the floor. */
+  function desk(container: HTMLElement, memberId: string): HTMLElement | null {
+    return container.querySelector(`[data-desk="${memberId}"]`)
+  }
+
+  it('seats the leader and every teammate on the floor', () => {
     stage()
     expect(screen.getByLabelText(en['member.openLeader'])).toBeTruthy()
     expect(screen.getByLabelText('Open the session of Alice')).toBeTruthy()
     expect(screen.getByLabelText('Open the session of Bob')).toBeTruthy()
   })
 
-  it('draws one spoke per teammate, carrying the relation', () => {
+  it('keeps the leader at a workstation and carries each relation on its own tile', () => {
     const { container } = stage()
-    const spokes = [...container.querySelectorAll('line')]
-    expect(spokes).toHaveLength(2)
-    expect(spokes.map(spoke => spoke.getAttribute('data-relation'))).toEqual(['peer', 'managed'])
+    expect(desk(container, 'leader-1')?.getAttribute('data-zone')).toBe('work')
+    expect(desk(container, 'leader-1')?.getAttribute('data-relation')).toBe('lead')
+    expect(desk(container, 'child-1')?.getAttribute('data-relation')).toBe('peer')
+    expect(desk(container, 'child-2')?.getAttribute('data-relation')).toBe('managed')
   })
 
-  it('lights the spoke of a member that is working', () => {
+  it('sends a member mid-turn to a workstation', () => {
     const { container } = stage({}, { running: ['child-2'] })
-    const managed = container.querySelector('line[data-relation="managed"]')
-    expect(managed?.getAttribute('data-live')).toBe('true')
-    expect(container.querySelector('line[data-relation="peer"]')?.getAttribute('data-live')).toBeNull()
+    expect(desk(container, 'child-2')?.getAttribute('data-zone')).toBe('work')
+    expect(desk(container, 'child-1')?.getAttribute('data-zone')).not.toBe('work')
   })
 
-  it('lights the spoke of a member that just carried mail', () => {
+  it('sits a member that was just messaged at a workstation, with the ask on its screen', () => {
     const { container } = stage({
-      messages: [{ messageId: 'm1', to: 'child-1', kind: 'message', text: 'go', time: 1 }],
+      messages: [{ messageId: 'm1', to: 'child-1', kind: 'message', text: 'review the diff', time: 1 }],
     })
-    expect(container.querySelector('line[data-relation="peer"]')?.getAttribute('data-live')).toBe('true')
+    const alice = desk(container, 'child-1')
+    expect(alice?.getAttribute('data-zone')).toBe('work')
+    expect(alice?.querySelector('[data-screen]')?.textContent).toContain('review the diff')
   })
 
-  it('draws the peer channel only once two members can use it', () => {
-    const { container } = stage()
-    expect(container.querySelector('circle')).toBeNull()
+  it('sends a whale to the snack bar once its own report is the latest thing it did', () => {
+    const { container } = stage({
+      messages: [{ messageId: 'm1', from: 'child-1', kind: 'report', text: 'done', time: 1 }],
+    })
+    expect(desk(container, 'child-1')?.getAttribute('data-zone')).toBe('snack')
+  })
+
+  it('parks an idle member with open work in the lounge, and one with none in the pool', () => {
+    const { container } = stage({
+      tasks: [{ taskId: 't1', title: 'review', assigneeId: 'child-1', status: 'active' }],
+    })
+    expect(desk(container, 'child-1')?.getAttribute('data-zone')).toBe('lounge')
+    expect(desk(container, 'child-2')?.getAttribute('data-zone')).toBe('pool')
+  })
+
+  it('gives every seat its own kind of whale', () => {
+    const { container } = stage({ members: [alice, bob, carol] })
+    const kinds = ['leader-1', 'child-1', 'child-2', 'child-3']
+      .map(id => desk(container, id)?.getAttribute('data-species'))
+    expect(kinds.every(kind => kind !== null && kind !== undefined)).toBe(true)
+    expect(new Set(kinds).size).toBe(4)
+  })
+
+  it('names the peer channel only once two members can use it', () => {
+    stage()
+    expect(screen.getByText(en['stage.roomHint'])).toBeTruthy()
     expect(screen.queryByText(en['stage.peerRing'])).toBeNull()
 
     cleanup()
-    const withPeers = stage({ members: [alice, bob, carol] })
-    expect(withPeers.container.querySelector('circle')).toBeTruthy()
+    stage({ members: [alice, bob, carol] })
     expect(screen.getByText(en['stage.peerRing'])).toBeTruthy()
   })
 
@@ -134,7 +163,7 @@ describe('constellation', () => {
       .toBe('Alice · reviewer · reasoner · high · Peer')
   })
 
-  it('carries the open work of one member on its own node', () => {
+  it('carries the open work of one member on its own tile', () => {
     stage({
       tasks: [
         { taskId: 't1', title: 'review', assigneeId: 'child-1', status: 'active' },
@@ -158,6 +187,37 @@ describe('constellation', () => {
     expect(openMember).toHaveBeenCalledWith('leader-1', 'child-1')
     fireEvent.click(screen.getByLabelText(en['member.openLeader']))
     expect(openLeader).toHaveBeenCalledWith('leader-1')
+  })
+})
+
+describe('the courier', () => {
+  it('carries the newest delivery across the room, in a bubble short enough to read', () => {
+    const { container } = stage({
+      messages: [
+        { messageId: 'm1', to: 'child-1', kind: 'message', text: 'first', time: 1 },
+        { messageId: 'm2', from: 'child-1', to: 'child-2', kind: 'message', text: 'take the second half', time: 2 },
+      ],
+    })
+    const courier = container.querySelector('[data-courier]')
+    expect(courier?.getAttribute('data-courier')).toBe('m2')
+    expect(courier?.getAttribute('data-from')).toBe('child-1')
+    expect(courier?.getAttribute('data-to')).toBe('child-2')
+    expect(courier?.textContent).toContain('take the second half')
+  })
+
+  it('leans both ends of the delivery toward each other', () => {
+    const { container } = stage({
+      messages: [{ messageId: 'm1', to: 'child-1', kind: 'message', text: 'go', time: 1 }],
+    })
+    expect(container.querySelector('[data-desk="leader-1"]')?.getAttribute('data-talking')).toBe('from')
+    expect(container.querySelector('[data-desk="child-1"]')?.getAttribute('data-talking')).toBe('to')
+  })
+
+  it('stays out of the room when the sender is no longer on the roster', () => {
+    const { container } = stage({
+      messages: [{ messageId: 'm9', from: 'child-9', kind: 'message', text: 'stale', time: 1 }],
+    })
+    expect(container.querySelector('[data-courier]')).toBeNull()
   })
 })
 
@@ -195,10 +255,10 @@ describe('mailbox', () => {
     const bubble = screen.getByText('please review').closest('[data-message-kind]')
     expect(bubble).toBeTruthy()
     fireEvent.mouseEnter(bubble as HTMLElement)
-    expect(container.querySelector('line[data-relation="peer"]')?.getAttribute('data-focus')).toBe('true')
+    expect(container.querySelector('[data-desk="child-1"]')?.getAttribute('data-focus')).toBe('true')
 
     fireEvent.mouseLeave(bubble as HTMLElement)
-    expect(container.querySelector('line[data-relation="peer"]')?.getAttribute('data-focus')).toBeNull()
+    expect(container.querySelector('[data-desk="child-1"]')?.getAttribute('data-focus')).toBeNull()
   })
 
   it('falls back to a short id for a sender the roster no longer knows', () => {
@@ -281,7 +341,7 @@ describe('shared workspace', () => {
     const { container } = stage({ board })
     const note = container.querySelector('[data-note-key="api decision"]')
     fireEvent.mouseEnter(note as HTMLElement)
-    expect(container.querySelector('line[data-relation="peer"]')?.getAttribute('data-focus')).toBe('true')
+    expect(container.querySelector('[data-desk="child-1"]')?.getAttribute('data-focus')).toBe('true')
   })
 
   it('says so, and why it matters, when nothing is written yet', () => {

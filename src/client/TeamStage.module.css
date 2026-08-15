@@ -1,7 +1,7 @@
-/* The agent-team stage view.
+/* The agent-team room view.
 
-   Design tokens only (no literal colors — per-member accents are the brand
-   token rotated, so a theme change carries them along), one motion vocabulary,
+   Design tokens only (no literal colors — a member's accent is the brand token
+   rotated, so a theme change carries every whale along), one motion vocabulary,
    and every animation gated behind prefers-reduced-motion. */
 
 .stage {
@@ -65,13 +65,13 @@
 
 .grid {
   display: grid;
-  grid-template-columns: minmax(300px, 44%) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: 14px;
   align-items: stretch;
   flex: none;
 }
 
-.graph,
+.room,
 .feed,
 .board {
   display: flex;
@@ -117,143 +117,224 @@
   color: var(--dsw-alias-label-tertiary);
 }
 
-/* --------------------------------------------------------- constellation */
+/* ------------------------------------------------------------------- room */
 
-.orbit {
+.floor {
   position: relative;
   width: 100%;
-  max-width: 380px;
-  margin: 0 auto;
-  aspect-ratio: 1;
+  aspect-ratio: 20 / 9;
+  min-height: 300px;
+  border-radius: 12px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, var(--dsw-alias-fill-l1) 0%, var(--dsw-alias-bg-overlay) 62%),
+    var(--dsw-alias-bg-overlay);
 }
 
-.links {
+/* The room's own floorboards: one hairline grid, never a literal color. */
+.floor::before {
+  content: '';
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  fill: none;
+  background-image:
+    repeating-linear-gradient(90deg, var(--dsw-alias-border-l1) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(0deg, var(--dsw-alias-border-l1) 0 1px, transparent 1px 64px);
+  opacity: 0.6;
+  pointer-events: none;
 }
 
-.spoke {
-  stroke: var(--dsw-alias-border-l3);
-  stroke-width: 1;
-  transition: stroke 200ms ease, stroke-width 200ms ease;
+.zone {
+  position: absolute;
+  border: 1px dashed var(--dsw-alias-border-l2);
+  border-radius: 14px;
+  pointer-events: none;
 }
 
-/* Traffic in the visible tail, or a member mid-turn: the spoke carries packets. */
-.spoke[data-live='true'] {
-  stroke: var(--dsw-alias-brand-primary);
-  stroke-dasharray: 3 7;
-  animation: team-flow 1.1s linear infinite;
+.zone[data-occupied='true'] {
+  background: var(--dsw-alias-fill-l1);
 }
 
-.spoke[data-focus='true'] {
-  stroke: var(--dsw-alias-brand-primary);
-  stroke-width: 2;
+/* The pool is the one area that is not floor. */
+.zone[data-zone='pool'] {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--dsw-alias-brand-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 8%, transparent);
 }
 
-/* Who may talk to whom: peers share a channel, managed members do not. */
-.peerRing {
-  stroke: var(--dsw-alias-state-success-primary);
-  stroke-width: 1;
-  stroke-dasharray: 2 6;
-  opacity: 0.4;
-  animation: team-ring-drift 24s linear infinite;
+.zone[data-zone='pool'][data-occupied='true'] {
+  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 14%, transparent);
+}
+
+/* The snack bar keeps a counter along its top edge. */
+.zone[data-zone='snack']::after {
+  content: '';
+  position: absolute;
+  inset: auto 8px 8px;
+  height: 4px;
+  border-radius: 3px;
+  background: var(--dsw-alias-fill-l3);
+}
+
+/* The lounge keeps a rug. */
+.zone[data-zone='lounge']::after {
+  content: '';
+  position: absolute;
+  inset: 14px 10px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--dsw-alias-border-l1);
+}
+
+.zoneLabel {
+  position: absolute;
+  top: 5px;
+  left: 9px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dsw-alias-label-dimmed);
+  pointer-events: auto;
+}
+
+.zoneCount {
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--dsw-alias-fill-l2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
 }
 
 .legend {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   font-size: 10.5px;
   color: var(--dsw-alias-label-tertiary);
 }
 
-/* ------------------------------------------------------------------ nodes */
+/* ------------------------------------------------------------------ tiles */
 
-.hub,
-.node {
+.tile {
   position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  width: 96px;
+  gap: 1px;
+  width: clamp(64px, 13cqw, 104px);
   padding: 0;
   border: none;
   background: transparent;
   cursor: pointer;
   transform: translate(-50%, -50%);
-  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: team-tile-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-.node {
-  animation: team-node-in 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+.tile:hover,
+.tile[data-focus='true'] {
+  transform: translate(-50%, -50%) scale(1.07);
+  z-index: 3;
 }
 
-.hub:hover,
-.node:hover {
-  transform: translate(-50%, -50%) scale(1.06);
-}
-
-.hub:focus-visible,
-.node:focus-visible {
+.tile:focus-visible {
   outline: 2px solid var(--dsw-alias-brand-primary);
   outline-offset: 3px;
   border-radius: 12px;
 }
 
-.hubDisc,
-.disc {
-  position: relative;
-  display: grid;
-  place-items: center;
-  flex: none;
-  border-radius: 50%;
-  color: var(--dsw-alias-label-primary-inverted);
-  background: var(--dsw-alias-brand-primary);
-  box-shadow: 0 4px 14px var(--dsw-alias-bg-mask-1);
+/* ------------------------------------------------------------- the whales */
+
+.whale {
+  width: 100%;
+  height: auto;
+  overflow: visible;
 }
 
-.hubDisc {
-  width: 54px;
-  height: 54px;
-  outline: 1px solid var(--dsw-alias-brand-primary);
-  outline-offset: 4px;
+.whaleBody {
+  fill: var(--dsw-alias-label-primary);
 }
 
-.disc {
-  width: 42px;
-  height: 42px;
+.whalePatch {
+  fill: var(--dsw-alias-bg-overlay);
+  opacity: 0.85;
+}
+
+.whaleScarf {
+  fill: none;
+  stroke: var(--dsw-alias-brand-primary);
+  stroke-width: 5;
+  stroke-linecap: round;
   /* One brand token, rotated per seat: accents follow the theme. */
   filter: hue-rotate(var(--team-accent-shift, 0deg));
 }
 
-.discGlyph {
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1;
+.whaleEye {
+  fill: var(--dsw-alias-bg-overlay);
 }
 
-/* A member mid-turn breathes a ring. */
-.hub[data-running='true'] .hubDisc::after,
-.node[data-running='true'] .disc::after {
-  content: '';
+.whaleLine {
+  fill: none;
+  stroke: var(--dsw-alias-bg-overlay);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.whaleTusk {
+  fill: none;
+  stroke: var(--dsw-alias-label-primary);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.seat {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  filter: drop-shadow(5px 7px 5px var(--dsw-alias-bg-mask-1));
+}
+
+.tileWhale {
+  width: 88%;
+}
+
+/* In the pool a whale drifts; on the floor it stands still. */
+.seat[data-zone='pool'] .tileWhale {
+  animation: team-bob 4.2s ease-in-out infinite;
+}
+
+.water {
   position: absolute;
-  inset: -3px;
+  inset: 26% -6% 12%;
   border-radius: 50%;
-  border: 1.5px solid var(--dsw-alias-brand-primary);
-  animation: team-halo 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  border: 1px solid color-mix(in srgb, var(--dsw-alias-brand-primary) 45%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 18%, transparent);
+  animation: team-ripple 3.6s ease-in-out infinite;
+}
+
+.crown {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  border-radius: 50%;
+  color: var(--dsw-alias-label-primary-inverted);
+  background: var(--dsw-alias-brand-primary);
 }
 
 /* Open work assigned to this member. */
 .load {
   position: absolute;
-  top: -3px;
-  right: -3px;
+  top: -2px;
+  right: 2px;
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
@@ -268,41 +349,191 @@
   background: var(--dsw-alias-state-success-primary);
 }
 
-.nodeName {
+.zzz {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--dsw-alias-label-dimmed);
+  animation: team-zzz 3s ease-in-out infinite;
+}
+
+.snack {
+  position: absolute;
+  top: 8px;
+  right: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 3px solid var(--dsw-alias-state-warning-primary);
+}
+
+/* ---------------------------------------------------------- workstations */
+
+.monitor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 86%;
+}
+
+.screen {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  padding: 4px 5px;
+  border: 1.5px solid var(--dsw-alias-border-l3);
+  border-radius: 4px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 22%, var(--dsw-alias-bg-overlay));
+}
+
+.monitor[data-screen='off'] .screen {
+  background: var(--dsw-alias-fill-l3);
+}
+
+.monitor[data-screen='working'] .screen {
+  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 34%, var(--dsw-alias-bg-overlay));
+  animation: team-screen 2.4s ease-in-out infinite;
+}
+
+.screenText {
+  font-size: 6.5px;
+  line-height: 1.35;
+  text-align: left;
+  color: var(--dsw-alias-label-primary);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+.screenOff {
+  width: 100%;
+  height: 100%;
+}
+
+.stand {
+  width: 22%;
+  height: 5px;
+  border-bottom: 3px solid var(--dsw-alias-fill-l3);
+  border-left: 1px solid transparent;
+  border-right: 1px solid transparent;
+}
+
+/* The desk surface every workstation whale sits behind. */
+.tile[data-zone='work'] .seat::before {
+  content: '';
+  position: absolute;
+  inset: 46% -12% 6%;
+  border-radius: 4px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-overlay);
+  box-shadow: 4px 6px 10px var(--dsw-alias-bg-mask-1);
+}
+
+/* ------------------------------------------------------------ nameplates */
+
+.plate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   max-width: 100%;
-  font-size: 12px;
-  font-weight: 500;
+  margin-top: 2px;
+}
+
+.plateName {
+  max-width: 100%;
+  font-size: 11.5px;
+  font-weight: 600;
   color: var(--dsw-alias-label-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.nodeMeta {
+.plateMeta {
   max-width: 100%;
-  font-size: 10px;
+  font-size: 9.5px;
   color: var(--dsw-alias-label-tertiary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.nodeState {
+.state {
   position: absolute;
-  top: 30px;
-  right: 24px;
+  top: 0;
+  left: 2px;
   display: flex;
 }
 
-/* The transcript you are reading keeps a mark of its own. */
-.hub[aria-current='true'] .hubDisc,
-.node[aria-current='true'] .disc {
-  outline: 2px solid var(--dsw-alias-brand-primary);
-  outline-offset: 3px;
+/* A member mid-turn breathes. */
+.tile[data-running='true'] .seat::after {
+  content: '';
+  position: absolute;
+  inset: 30% 4% 4%;
+  border-radius: 50%;
+  border: 1.5px solid var(--dsw-alias-brand-primary);
+  animation: team-halo 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  pointer-events: none;
 }
 
-.node[data-focus='true'] .disc {
-  box-shadow: 0 6px 20px var(--dsw-alias-bg-mask-2);
+/* The transcript you are reading keeps a mark of its own. */
+.tile[aria-current='true'] .plateName {
+  color: var(--dsw-alias-brand-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* The two ends of the newest delivery lean toward each other. */
+.tile[data-talking='from'] .tileWhale,
+.tile[data-talking='to'] .tileWhale {
+  animation: team-lean 2.6s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------- the courier */
+
+.courier {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: clamp(52px, 9cqw, 76px);
+  margin: -26px 0 0 -26px;
+  pointer-events: none;
+  z-index: 4;
+  animation: team-swim 4.6s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+}
+
+.courier[data-direction='left'] .courierWhale {
+  transform: scaleX(-1);
+}
+
+.courierWhale {
+  width: 100%;
+  filter: drop-shadow(4px 6px 5px var(--dsw-alias-bg-mask-1));
+}
+
+.courierBubble {
+  max-width: 190px;
+  padding: 3px 7px;
+  border-radius: 10px;
+  border-bottom-left-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--dsw-alias-brand-primary) 45%, transparent);
+  background: var(--dsw-alias-bg-overlay);
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--dsw-alias-label-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 3px 10px var(--dsw-alias-bg-mask-1);
 }
 
 /* ------------------------------------------------------------------- feed */
@@ -312,7 +543,7 @@
   flex-direction: column;
   gap: 7px;
   min-height: 0;
-  max-height: 420px;
+  max-height: 340px;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: 2px;
@@ -346,8 +577,10 @@
   background: var(--dsw-alias-fill-l2);
 }
 
-.bubbleAvatar .discGlyph {
+.discGlyph {
   font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .bubbleAvatar[data-hidden='true'] {
@@ -471,7 +704,7 @@
 
 .notes {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 8px;
 }
 
@@ -484,6 +717,7 @@
   border-radius: 10px;
   border-left: 2px solid var(--dsw-alias-state-success-primary);
   transition: border-color 160ms ease, background 160ms ease;
+  animation: team-bubble-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .note[data-focus='true'] {
@@ -557,10 +791,6 @@
   color: var(--dsw-alias-label-dimmed);
 }
 
-.note {
-  animation: team-bubble-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
 .card {
   display: flex;
   flex-direction: column;
@@ -630,6 +860,10 @@
   .notes {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .floor {
+    aspect-ratio: 4 / 3;
+  }
 }
 
 /* ---------------------------------------------------------------- motion */
@@ -639,8 +873,8 @@
   to { opacity: 1; transform: none; }
 }
 
-@keyframes team-node-in {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+@keyframes team-tile-in {
+  from { opacity: 0; transform: translate(-50%, -40%) scale(0.7); }
   to { opacity: 1; transform: translate(-50%, -50%); }
 }
 
@@ -649,39 +883,73 @@
   to { opacity: 1; transform: none; }
 }
 
-@keyframes team-flow {
-  to { stroke-dashoffset: -20; }
+/* One delivery, carried across the room by the whale that sent it. */
+@keyframes team-swim {
+  0% { left: var(--from-x); top: var(--from-y); opacity: 0; }
+  10% { opacity: 1; }
+  60% { left: var(--to-x); top: var(--to-y); opacity: 1; }
+  92% { left: var(--to-x); top: var(--to-y); opacity: 1; }
+  100% { left: var(--to-x); top: var(--to-y); opacity: 0; }
 }
 
-@keyframes team-ring-drift {
-  to { stroke-dashoffset: -160; }
+@keyframes team-bob {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50% { transform: translateY(-6%) rotate(1.5deg); }
+}
+
+@keyframes team-lean {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6%); }
+}
+
+@keyframes team-ripple {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.06); opacity: 0.6; }
+}
+
+@keyframes team-zzz {
+  0% { opacity: 0.2; transform: translateY(2px); }
+  50% { opacity: 1; transform: translateY(-3px); }
+  100% { opacity: 0.2; transform: translateY(2px); }
+}
+
+@keyframes team-screen {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.14); }
 }
 
 @keyframes team-halo {
   0% { opacity: 0.7; transform: scale(1); }
-  70% { opacity: 0; transform: scale(1.35); }
-  100% { opacity: 0; transform: scale(1.35); }
+  70% { opacity: 0; transform: scale(1.3); }
+  100% { opacity: 0; transform: scale(1.3); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .stage,
-  .node,
+  .tile,
   .bubbleRow,
   .card,
   .note {
     animation: none;
   }
 
-  .spoke[data-live='true'],
-  .peerRing,
-  .hub[data-running='true'] .hubDisc::after,
-  .node[data-running='true'] .disc::after {
+  .courier {
+    animation: none;
+    left: var(--to-x);
+    top: var(--to-y);
+  }
+
+  .seat[data-zone='pool'] .tileWhale,
+  .tile[data-talking='from'] .tileWhale,
+  .tile[data-talking='to'] .tileWhale,
+  .tile[data-running='true'] .seat::after,
+  .monitor[data-screen='working'] .screen,
+  .water,
+  .zzz {
     animation: none;
   }
 
-  .hub,
-  .node,
-  .spoke,
+  .tile,
   .card {
     transition: none;
   }
