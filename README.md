@@ -1,0 +1,127 @@
+# dsh-team — DeepSeek Harness 的 Agent Team
+
+给 dsh 加一支可以指挥的团队：主会话作为 **leader**，可以派生若干**常驻队友（teammate）**，队友有自己的会话、记忆与工具；成员之间通过**邮箱**互发消息（消息成为收件人的下一个 turn），共享一份**任务列表**；右下角的**悬浮面板**实时显示花名册、任务与消息流。设计理念参考 Claude Code 的 agent team（共享任务列表 + 邮箱直连 + 成员自协调），实现完全走 dsh 的能力缝。
+
+整个能力是**一个包、一行装配**：宿主半边（`dsh-team`）与浏览器半边（`dsh-team/client`）从同一个 `package.json` 构建。
+
+## 0.2 重写要点
+
+| 旧实现的问题 | 现在 |
+|---|---|
+| 拆成 6 个包（服务 / provider / 两个工具包 / UI / bundle），跨包只为一条能力 | **一个包**：`ctx.team` 服务 + 工具 + 队友作用域 + 投影 + 浏览器面板 |
+| 队友用 `ctx.agents.create()` 自建会话 → 会话树里多出一堆条目 | 队友是 **`ctx.subagents` 的 continuable 子代**，会话头被打上 `origin: 'subagent'`，工作区会话树按此过滤（`tree.ts` 的 `sessionVisible`），**不再出现在会话树里** |
+| 团队状态折叠两遍（宿主一份、浏览器会话视图一份），两边容易走偏 | **只折叠一次**：宿主的 `team` session projection，框架把值推给浏览器，客户端零折叠 |
+| 队友生命周期、冷恢复、驻留、中断全部自己实现 | 全部交给 subagent 缝：重启后**冷恢复**、活动驻留、`interrupt`、结算通知都是现成的 |
+| 工具注册在全局，普通 subagent 也能看到用不了的团队工具 | leader 工具注册在**该会话自己的 agent scope**，队友工具注册在**该子代的 scope**，谁都不会看到自己用不了的工具 |
+
+## 设计
+
+### 队友 = continuable subagent
+
+队友必须有会话（要记忆、要日志、要能恢复），所以问题不是"别建会话"，而是"**别建一个普通会话**"。`ctx.subagents.startContinuable()` 建的子代天然满足：
+
+- `childSessionMeta` 打上 `origin: 'subagent'` → 会话树不展示，也不参与通用 Host 路由；
+- durable child id + descriptor 由缝持有 → dsh 重启后队友**冷恢复**，团队不丢；
+- 队友的 transcript 仍可读：内置的 subagent 目录里它们是 `continuable` 子代，标签是 `名字 (角色)`，团队面板点一行就打开。
+
+本插件在这之上只补三样 subagent 缝故意不提供的东西：**具名成员**、**成员之间的投递**、**一份共享任务列表**。
+
+### 投递权威永远是 leader 的
+
+`ctx.subagents.followup()` 只认 durable 直接父级的权威，而 leader 正是每个队友的直接父级。所以 peer↔peer 消息也是"由 leader 权威执行、消息源里写明真实发送者"的一次投递：
+
+- `relation` 决定**谁可以要求**投递（`managed` 只能发给 leader，`peer` 可以直接发给任何成员），
+- 从不决定**谁来执行**投递（永远是 leader 权威）。
+
+消息落到收件人自己的日志里，source 是 `{ kind: 'team-message', form: 'relay', senderSessionId, senderName }`——发送者归属随持久化一起留存。
+
+### 只折叠一次
+
+rc.6 的 `Session.append` 无法把事件标成 `ignorable`，因此**仓库外插件不能新增会话事件类型**（否则卸载插件后旧日志会拒绝加载）。所以团队的每条持久事实都骑在 harness 已认识的词汇上：
+
+- 团队工具自己 `tool/result` 的 `meta`（`presentationMeta` 带**整个实体**，不是增量）；
+- `user/message` 的消息源（`team-message` / 内置的 `subagent-report` / `subagent-settled`）。
+
+`src/fold.ts` 是唯一的折叠实现，`src/projection.ts` 把它注册成 `team` session projection：宿主算一次，框架负责推给浏览器（历史尾巴基线 + `session/projection` 帧），客户端只决定"现在显示哪个会话的值"。
+
+### 工具作用域
+
+- leader 侧：`agent/created` 时把 6 个工具注册进**该 agent 自己的 ctx**（普通 subagent 继承全局注册表，但不继承别人的 agent scope，所以看不到）。
+- 队友侧：`registerContinuableSetup` 在子代**未发布的组装窗口**里注册 `team_send`、`team_list`、身份提示段落与（可选的）思考强度；不属于任何团队的子代拿到的是空的 disposer。
+
+## 模型看到的工具
+
+| 工具 | 谁能用 | 作用 |
+|---|---|---|
+| `team_spawn` | leader | 派生队友：`name` / `task` / `relation`，可选 `role`、`persona`、`model`、`reasoning_effort` |
+| `team_send` | leader + 队友 | 邮箱。收件人写队友名、成员 id 或 `leader`；消息成为对方的下一个 turn，不等回复 |
+| `team_task` | leader | 共享任务列表：不带 `task_id` 是新建，带则更新；`assignee` 支持名字或 id |
+| `team_relation` | leader | `managed` ⇄ `peer` 升降级 |
+| `team_dismiss` | leader | 解雇一个队友；不给参数则解散整队（中断当前工作，transcript 仍可读） |
+| `team_list` | leader + 队友 | 花名册（含 `running` / `idle` / `ready` 实时状态）、任务列表、最近邮箱流量 |
+
+队友汇报用的是 harness 内置的 `report`（`@deepseek-ai/dsh-tool-subagent-report` 在子代作用域里注册，且不受 `toolFilter` 影响）——本插件不再重复造一个 `team_report`，汇报会以 `subagent-report` 源落进 leader 日志，被同一份折叠记进消息流。
+
+每个写操作的工具卡片都有自己的标题（`Spawn teammate Alice` / `Alice joined the team` / `Message Alice` / `New task: …` / `Team disbanded`），失败时直接把拒绝原因写在卡片上；写操作一律 `isConcurrencySafe: () => false`，不会被并行调度打散。
+
+## 模型与思考强度
+
+- `model`：走 `AgentOptions.model`，只影响这一个队友；省略则继承 leader 的模型。
+- `reasoning_effort`：不是 `AgentOptions` 的字段（它是请求头状态），所以队友作用域里挂一个 `agent/request` waterfall，把 `reasoningEffort` 钉在**这个队友自己的**每次请求上。派生时就用 `ctx.llm.resolveModelInfo()` 校验该模型是否提供这个强度，**当场失败**而不是等到队友第一次发请求。
+- 强度记在成员事实里（随折叠持久化），冷恢复后仍然生效——subagent descriptor 本身不存这个字段。
+
+## 悬浮 UI
+
+`shell.overlay` 槽位里的一个悬浮按钮 + 面板（`src/client/`）：
+
+- 有团队才出现；成员在跑时按钮呼吸光晕 + 徽标显示在跑人数，否则显示成员数；
+- 面板分三段：**成员**（leader + 队友，角色/模型/强度、`peer`/`managed` 标签、实时状态点、`aria-current` 标出你正在看的那个 transcript）、**任务**（`未完成/总数`，指派人按花名册解析，完成的划掉）、**消息流**（方向、`汇报`/`已收工` 标记、时间）；
+- 点成员开它的 transcript（走 durable 的 subagent 地址，目录没拉取过就刷新后重试），点主会话回来；
+- 交互与动效：`Escape` 收起、按钮/面板/行分别有入场动画与**逐行 stagger**、`aria-expanded` + `aria-controls` 的标准 disclosure 结构、全部动效在 `prefers-reduced-motion` 下关闭；样式只用主题 token（`--dsw-alias-*`），不写死颜色。
+
+导航进队友会话时面板不会消失：面板认得"当前会话是这支团队的成员"，只把"你在这儿"的标记挪过去。
+
+## 安装
+
+```sh
+cd ~/projects/dsh-team
+./scripts/install-profile.sh web        # 构建 + 链接进 ~/.dsh/profiles/web（会先摘掉 0.1 的六行旧装配）
+dsh --profile web --dump-config | grep 'id: team'
+dsh --profile web
+```
+
+手动等价物：
+
+```sh
+pnpm install && pnpm run build
+dsh plugin --profile web add link:$PWD   # 包自带 dsh.bundle.patch，加进去即生效
+```
+
+改完源码重跑 `pnpm run build`：宿主行要重启 dsh，客户端 bundle 刷新页面即可。
+
+## 配置（`cordis.patch.yml` 可覆写）
+
+| 键 | 默认 | 含义 |
+|---|---|---|
+| `provider` | `spawn` | 派生队友用的 `ctx.subagents` provider（base bundle 提供 `spawn`） |
+| `maxTeammates` | `8` | 单个 leader 的在册成员上限（1–64） |
+| `maxRecentMessages` | `50` | 折叠保留、面板显示的邮箱条数上限（1–1000） |
+
+## 已知限制
+
+- **peer↔peer 的历史只在成员自己的会话里**：leader 的折叠只看得见 leader 可见的流量，面板同理。
+- **任务列表由 leader 写**：队友的工具调用落在自己的日志里，leader 的持久状态读不到；队友用 `report` 汇报，由 leader 记账。
+- **Code Mode 下的团队调用不入折叠**：折叠读的是团队工具自己的 `tool/result`；`run_code` 里的嵌套调用不产生这些行（base bundle 默认不含 Code Mode）。
+- **工具成功但结果没落日志**（极端故障）会留下一个孤儿成员：活的花名册有、折叠没有，重启后消失。
+- 不嵌套：队友不能再开自己的团队（`NESTED_TEAM`）。
+
+## 开发
+
+```sh
+pnpm run typecheck   # 源码 + 测试
+pnpm run test        # 115 个单测：折叠 / 投影 / 服务授权矩阵 / 工具契约 / 队友组装 / 客户端跟随 / 面板
+pnpm run build       # 宿主 ESM + 浏览器闭包工厂（构建期强制客户端 bundle 纯净性）
+pnpm run check       # 三件一起
+```
+
+构建与类型针对 npm 上的 `@deepseek-ai/dsh@0.1.0-rc.6`。遵循 harness 的插件纪律：注册即 effect、能力缝三角色、事件全 JSON 整值、模型可见即落日志、配置无硬编码。

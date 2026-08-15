@@ -1,0 +1,409 @@
+/**
+ * The model-facing team tools. Two audiences, one service: a leader session
+ * gets the full set on its own agent scope, and a teammate gets the mailbox
+ * subset inside its child scope, so neither an ordinary subagent nor a
+ * teammate ever sees a tool it cannot use.
+ *
+ * Every mutating tool projects the WHOLE post-change entity through
+ * `presentationMeta`. That projection is the team's durable record — see
+ * ./fold.ts for why the plugin cannot append a session event of its own.
+ *
+ * @module dsh-team/tools
+ */
+
+import type { Context } from '@deepseek-ai/cordis'
+import type { Agent } from '@deepseek-ai/dsh-agent'
+import { defineTool } from '@deepseek-ai/dsh-tools'
+import type { ToolCallView, ToolDefinition, ToolResultView } from '@deepseek-ai/dsh-tools'
+import type { TeamMemberFact } from './fold.ts'
+import type { TeamService } from './service.ts'
+
+/** The acting agent; a team tool without one is a composition mistake. */
+function actor(agent: Agent | undefined): Agent {
+  if (agent === undefined) throw new Error('team tools require an acting agent')
+  return agent
+}
+
+/** Pending-call card with the team treatment. */
+function call(title: string, rawInput?: unknown): ToolCallView {
+  return { card: 'generic', title, kind: 'other', ...rawInput !== undefined ? { rawInput } : {} }
+}
+
+/** Completed-call card carrying one line of prose. */
+function done(title: string, text?: string): ToolResultView {
+  return {
+    card: 'generic',
+    title,
+    ...text !== undefined ? { content: [{ type: 'text', text }] } : {},
+  }
+}
+
+/** First text block of a failed result, for the failure card. */
+function failureText(result: { readonly content: readonly unknown[] }): string {
+  const first = result.content[0]
+  return first !== null && typeof first === 'object' && (first as { type?: unknown }).type === 'text'
+    ? String((first as { text?: unknown }).text ?? 'failed')
+    : 'failed'
+}
+
+/** Member facts as one output value and one durable fact share them. */
+const MEMBER_PROPERTIES = {
+  memberId: { type: 'string', required: true },
+  name: { type: 'string', required: true },
+  role: { type: 'string' },
+  relation: { type: 'string', required: true, enum: ['managed', 'peer'] },
+  model: { type: 'string' },
+  effort: { type: 'string' },
+} as const
+
+/** Task facts as one output value and one durable fact share them. */
+const TASK_PROPERTIES = {
+  taskId: { type: 'string', required: true },
+  title: { type: 'string', required: true },
+  assigneeId: { type: 'string' },
+  status: { type: 'string', required: true, enum: ['pending', 'active', 'done'] },
+  note: { type: 'string' },
+} as const
+
+/** Drop the undefined optional members a JSON fact must not carry. */
+function memberValue(member: TeamMemberFact): {
+  memberId: string; name: string; role?: string; relation: 'managed' | 'peer'; model?: string; effort?: string
+} {
+  return {
+    memberId: member.memberId,
+    name: member.name,
+    relation: member.relation,
+    ...member.role !== undefined ? { role: member.role } : {},
+    ...member.model !== undefined ? { model: member.model } : {},
+    ...member.effort !== undefined ? { effort: member.effort } : {},
+  }
+}
+
+/**
+ * `team_spawn` — start a teammate. Leader-only: a teammate that could spawn
+ * would own a team its leader cannot see.
+ * @param ctx - context carrying the team service.
+ * @returns the tool definition.
+ */
+export function spawnTool(ctx: Context): ToolDefinition {
+  return defineTool({
+    name: 'team_spawn',
+    description:
+      'Add a teammate to your agent team. A teammate is a long-lived agent with its own session, its own '
+      + 'memory and its own tools; it works in the background while you keep working, and it stays available '
+      + 'until you dismiss it. Give it a name you will address it by and a first task. relation "managed" '
+      + 'means it may only message you; "peer" means it may also message the other teammates directly and '
+      + 'coordinate with them without going through you. Prefer a teammate over a one-shot subagent when the '
+      + 'work needs several rounds, a durable owner, or someone the rest of the team can talk to.',
+    parameters: {
+      name: { type: 'string', required: true, description: 'Short display name you and the team will address it by, e.g. Alice.' },
+      task: { type: 'string', required: true, description: 'The first task, self-contained: the teammate does not see your conversation.' },
+      relation: {
+        type: 'string',
+        required: true,
+        enum: ['managed', 'peer'],
+        description: 'managed: reports only to you. peer: may also message other teammates directly.',
+      },
+      role: { type: 'string', description: 'Optional role, e.g. reviewer. Shown to the whole team.' },
+      persona: { type: 'string', description: 'Optional persona replacing the deployment persona for this teammate only.' },
+      model: { type: 'string', description: 'Optional model id; default inherits your own model.' },
+      reasoning_effort: { type: 'string', description: 'Optional provider-owned reasoning effort for this teammate, e.g. high. Rejected when the model does not offer it.' },
+    },
+    output: {
+      schema: { type: 'object', additionalProperties: false, properties: MEMBER_PROPERTIES },
+      render: (_args, value) => [{
+        type: 'text',
+        text: `teammate ${value.name} joined as a ${value.relation} member and started on its task. `
+          + `Address it as "${value.name}" or "${value.memberId}".`,
+      }],
+      presentationMeta: (_args, value) => ({ team: 'member-added', member: value }),
+    },
+    presentCall: args => call(`Spawn teammate ${args.name}`, {
+      relation: args.relation,
+      ...args.role !== undefined ? { role: args.role } : {},
+      ...args.model !== undefined ? { model: args.model } : {},
+      task: args.task,
+    }),
+    presentResult: (args, result) => result.isError
+      ? done(`Spawn teammate ${args.name}`, `failed: ${failureText(result)}`)
+      : done(`${args.name} joined the team`, args.role === undefined ? args.relation : `${args.role} · ${args.relation}`),
+    isConcurrencySafe: () => false,
+    async execute(args, exec) {
+      const member = await ctx.team.spawn(actor(exec.agent), {
+        name: args.name,
+        task: args.task,
+        relation: args.relation,
+        ...args.role !== undefined ? { role: args.role } : {},
+        ...args.persona !== undefined ? { persona: args.persona } : {},
+        ...args.model !== undefined ? { model: args.model } : {},
+        ...args.reasoning_effort !== undefined ? { reasoningEffort: args.reasoning_effort } : {},
+      }, exec.signal)
+      return memberValue(member)
+    },
+  })
+}
+
+/**
+ * `team_send` — the mailbox, shared by the leader and every teammate. The
+ * service decides what the caller's relation allows.
+ * @param ctx - context carrying the team service.
+ * @param audience - whose description this registration serves.
+ * @returns the tool definition.
+ */
+export function sendTool(ctx: Context, audience: 'leader' | 'member'): ToolDefinition {
+  const description = audience === 'leader'
+    ? 'Send a message to one teammate. It becomes that teammate\'s next turn: if it is busy, the message '
+      + 'waits until the current turn ends, so it cannot redirect work already underway. Delivery is '
+      + 'asynchronous — this returns once the message is accepted, never the teammate\'s answer; the reply '
+      + 'arrives later as its own message to you.'
+    : 'Send a message to another team member. Address the leader as "leader", or a teammate by its name. '
+      + 'The message becomes the recipient\'s next turn; you get no answer back from this call. Use it to ask '
+      + 'a peer for input, hand work over, or raise something with the leader mid-task. Finished work goes to '
+      + 'the leader through the report tool instead.'
+  return defineTool({
+    name: 'team_send',
+    description,
+    parameters: {
+      to: { type: 'string', required: true, description: 'Recipient: a teammate name, a member id, or "leader".' },
+      message: { type: 'string', required: true, description: 'Self-contained message; the recipient does not see your conversation.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          messageId: { type: 'string', required: true },
+          to: { type: 'string', required: true },
+          name: { type: 'string', required: true },
+        },
+      },
+      render: (_args, value) => [{ type: 'text', text: `message queued as the next turn of ${value.name}` }],
+      presentationMeta: (args, value) => ({
+        team: 'message',
+        messageId: value.messageId,
+        to: value.to,
+        text: args.message,
+      }),
+    },
+    presentCall: args => call(`Message ${args.to}`, args.message),
+    presentResult: (args, result) => result.isError
+      ? done(`Message ${args.to}`, `not delivered: ${failureText(result)}`)
+      : done(`Message sent to ${args.to}`),
+    async execute(args, exec) {
+      const sent = await ctx.team.send(actor(exec.agent), args.to, args.message, exec.signal)
+      return { messageId: sent.messageId, to: sent.recipient.id, name: sent.recipient.name }
+    },
+  })
+}
+
+/**
+ * `team_task` — the shared task list. Writes are the leader's; teammates read
+ * it through `team_list` and report their outcomes through the built-in
+ * `report` tool.
+ * @param ctx - context carrying the team service.
+ * @returns the tool definition.
+ */
+export function taskTool(ctx: Context): ToolDefinition {
+  return defineTool({
+    name: 'team_task',
+    description:
+      'Create or update one row of the shared team task list — the list every teammate can read, so it is '
+      + 'where multi-teammate work is coordinated without routing every detail through messages. Omit task_id '
+      + 'to create a row (title required); pass task_id to update one. Assign with a teammate name or member '
+      + 'id. A teammate closes its own row through its report, so you rarely set status yourself.',
+    parameters: {
+      title: { type: 'string', description: 'Task title; required when creating.' },
+      assignee: { type: 'string', description: 'Teammate name or member id; omit to leave the task unassigned.' },
+      task_id: { type: 'string', description: 'Existing task id to update; omit to create a new task.' },
+      status: { type: 'string', enum: ['pending', 'active', 'done'], description: 'Task state; defaults to pending on creation.' },
+      note: { type: 'string', description: 'Short note recorded with the task, e.g. why it was closed.' },
+    },
+    output: {
+      schema: { type: 'object', additionalProperties: false, properties: TASK_PROPERTIES },
+      render: (_args, value) => [{
+        type: 'text',
+        text: `task ${value.taskId} "${value.title}" is ${value.status}`
+          + (value.assigneeId === undefined ? ' and unassigned' : ` for ${value.assigneeId}`),
+      }],
+      presentationMeta: (_args, value) => ({ team: 'task', task: value }),
+    },
+    presentCall: args => call(
+      args.task_id === undefined ? `New task: ${args.title ?? ''}` : `Update task ${args.task_id}`,
+      { ...args.assignee !== undefined ? { assignee: args.assignee } : {}, ...args.status !== undefined ? { status: args.status } : {} },
+    ),
+    presentResult: (args, result) => result.isError
+      ? done('Team task', `failed: ${failureText(result)}`)
+      : done(args.task_id === undefined ? `Task added: ${args.title ?? ''}` : `Task ${args.task_id} updated`),
+    isConcurrencySafe: () => false,
+    execute(args, exec) {
+      const task = ctx.team.upsertTask(actor(exec.agent), {
+        ...args.task_id !== undefined ? { taskId: args.task_id } : {},
+        ...args.title !== undefined ? { title: args.title } : {},
+        ...args.assignee !== undefined ? { assigneeId: args.assignee } : {},
+        ...args.status !== undefined ? { status: args.status } : {},
+        ...args.note !== undefined ? { note: args.note } : {},
+      })
+      return Promise.resolve({
+        taskId: task.taskId,
+        title: task.title,
+        status: task.status,
+        ...task.assigneeId !== undefined ? { assigneeId: task.assigneeId } : {},
+        ...task.note !== undefined ? { note: task.note } : {},
+      })
+    },
+  })
+}
+
+/**
+ * `team_relation` — widen or tighten one teammate's autonomy.
+ * @param ctx - context carrying the team service.
+ * @returns the tool definition.
+ */
+export function relationTool(ctx: Context): ToolDefinition {
+  return defineTool({
+    name: 'team_relation',
+    description:
+      'Change how much one teammate may talk to the rest of the team. "peer" lets it message other teammates '
+      + 'directly and self-coordinate; "managed" routes all of its traffic back through you. Widen when a '
+      + 'teammate needs to work with another one; tighten when you want every hand-off to pass your desk.',
+    parameters: {
+      member: { type: 'string', required: true, description: 'Teammate name or member id.' },
+      relation: { type: 'string', required: true, enum: ['managed', 'peer'], description: 'The new relation.' },
+    },
+    output: {
+      schema: { type: 'object', additionalProperties: false, properties: MEMBER_PROPERTIES },
+      render: (_args, value) => [{ type: 'text', text: `${value.name} is now a ${value.relation} member` }],
+      presentationMeta: (_args, value) => ({ team: 'member-updated', member: value }),
+    },
+    presentCall: args => call(`Set ${args.member} to ${args.relation}`),
+    presentResult: (args, result) => result.isError
+      ? done(`Set ${args.member} to ${args.relation}`, `failed: ${failureText(result)}`)
+      : done(`${args.member} is now ${args.relation}`),
+    isConcurrencySafe: () => false,
+    execute(args, exec) {
+      return Promise.resolve(memberValue(ctx.team.setRelation(actor(exec.agent), args.member, args.relation)))
+    },
+  })
+}
+
+/**
+ * `team_dismiss` — release one teammate, or the whole team.
+ * @param ctx - context carrying the team service.
+ * @returns the tool definition.
+ */
+export function dismissTool(ctx: Context): ToolDefinition {
+  return defineTool({
+    name: 'team_dismiss',
+    description:
+      'Dismiss one teammate, or the whole team when you name nobody. A dismissed teammate stops what it is '
+      + 'doing and receives no further messages; its transcript stays readable. Dismiss teammates whose work '
+      + 'is finished — an idle teammate costs nothing to keep, but a stale one invites you to message it again.',
+    parameters: {
+      member: { type: 'string', description: 'Teammate name or member id; omit to dismiss the whole team.' },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: { ended: { type: 'boolean', required: true }, memberId: { type: 'string' } },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: value.ended ? 'the team is disbanded' : `teammate ${String(value.memberId)} is dismissed`,
+      }],
+      presentationMeta: (_args, value) => value.ended
+        ? { team: 'ended' }
+        : { team: 'member-removed', memberId: String(value.memberId) },
+    },
+    presentCall: args => call(args.member === undefined ? 'Disband the team' : `Dismiss ${args.member}`),
+    presentResult: (args, result) => result.isError
+      ? done('Dismiss', `failed: ${failureText(result)}`)
+      : done(args.member === undefined ? 'Team disbanded' : `${args.member} dismissed`),
+    isConcurrencySafe: () => false,
+    execute(args, exec) {
+      return Promise.resolve(ctx.team.dismiss(actor(exec.agent), args.member))
+    },
+  })
+}
+
+/**
+ * `team_list` — the shared read every member uses to decide who to talk to.
+ * @param ctx - context carrying the team service.
+ * @returns the tool definition.
+ */
+export function listTool(ctx: Context): ToolDefinition {
+  return defineTool({
+    name: 'team_list',
+    description:
+      'Read the team: every member with its role, relation and live state (running, idle, or ready to wake), '
+      + 'the shared task list, and the recent mailbox traffic the leader can see. Use it before messaging or '
+      + 'assigning work, and to check whether a teammate is still busy.',
+    parameters: {},
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          active: { type: 'boolean', required: true },
+          members: {
+            type: 'array',
+            required: true,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                ...MEMBER_PROPERTIES,
+                status: { type: 'string', required: true, enum: ['running', 'idle', 'ready'] },
+              },
+            },
+          },
+          tasks: {
+            type: 'array',
+            required: true,
+            items: { type: 'object', additionalProperties: false, properties: TASK_PROPERTIES },
+          },
+          messages: {
+            type: 'array',
+            required: true,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                from: { type: 'string', required: true },
+                to: { type: 'string', required: true },
+                text: { type: 'string', required: true },
+              },
+            },
+          },
+        },
+      },
+      render: (_args, value) => [{
+        type: 'text',
+        text: value.active
+          ? `${value.members.length} teammate(s), ${value.tasks.filter(task => task.status !== 'done').length} open task(s)`
+          : 'no team yet — team_spawn starts one',
+      }],
+    },
+    presentCall: () => ({ card: 'generic', title: 'Read the team', kind: 'read' }),
+    presentResult: (_args, result) => result.isError ? done('Read the team', 'failed') : done('Team state'),
+    execute(_args, exec) {
+      const team = ctx.team.list(actor(exec.agent))
+      return Promise.resolve({
+        active: team.active,
+        members: team.members.map(member => ({ ...memberValue(member), status: member.status })),
+        tasks: team.tasks.map(task => ({
+          taskId: task.taskId,
+          title: task.title,
+          status: task.status,
+          ...task.assigneeId !== undefined ? { assigneeId: task.assigneeId } : {},
+          ...task.note !== undefined ? { note: task.note } : {},
+        })),
+        messages: team.messages.map(message => ({
+          from: message.from ?? 'leader',
+          to: message.to ?? 'leader',
+          text: message.text,
+        })),
+      })
+    },
+  })
+}

@@ -1,0 +1,19 @@
+# The dsh-team bundle patch: one row over whatever base layer the profile
+# composes. The package is its own bundle, so `dsh plugin add link:<path>`
+# both installs and activates it — there is no separate bundle package to
+# keep in step.
+#
+# The row needs `@deepseek-ai/dsh-subagent` (with a continuable provider, e.g.
+# `subagent-spawn-in-process`), `dsh-session-projection`, and session
+# persistence — all present in `@deepseek-ai/dsh-base`.
+
+- insert:
+    - id: team
+      name: 'dsh-team'
+      config:
+        # `ctx.subagents` provider that materializes teammates.
+        provider: spawn
+        # Live roster ceiling per leader session.
+        maxTeammates: 8
+        # Mailbox rows kept in the durable fold and shown in the panel.
+        maxRecentMessages: 50

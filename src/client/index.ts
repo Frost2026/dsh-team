@@ -1,0 +1,144 @@
+/**
+ * Browser half of dsh-team: follow the current session's `team` projection and
+ * render the floating team surface in the shell overlay layer.
+ *
+ * There is no client-side fold. The host computes the team value once and the
+ * framework pushes it here (history tail baseline + `session/projection`
+ * frames), so this module only tracks WHICH session's value is on screen.
+ */
+import type { ClientContext, ISessions, SessionId, SubagentAddress } from '@deepseek-ai/dsh-client-runtime/client'
+import { createSnapshotStore } from '@deepseek-ai/dsh-client-runtime/client'
+import type {} from '@deepseek-ai/dsh-client-locale/client'
+import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
+import type { TeamView } from '../contract.ts'
+import { TeamFloating, type TeamInjected, type TeamPanelState } from './TeamFloating.tsx'
+import { en, NS, zh, type TeamKey } from './locales.ts'
+
+declare module '@deepseek-ai/dsh-client-ui-slots' {
+  interface LocaleNamespaceMap {
+    /** Agent-team floating surface copy. */
+    team: TeamKey
+  }
+}
+
+/** Required services: the slot registry, the session domain, and locale. */
+export const inject = ['slots', 'sessions', 'locale']
+
+/** No session in view, or a session with no team. */
+const EMPTY: TeamPanelState = { members: [], tasks: [], messages: [] }
+
+/** Project one session's folded team value into the panel state. */
+function panelState(leaderId: SessionId, currentId: SessionId, team: TeamView): TeamPanelState {
+  return {
+    leaderId,
+    currentId,
+    members: team.members,
+    tasks: team.tasks,
+    messages: team.messages,
+  }
+}
+
+/**
+ * Register the locale dictionary and the overlay entry, and keep the panel
+ * store pointed at the right session.
+ * @param ctx - client root context.
+ */
+export function apply(ctx: ClientContext): void {
+  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-team: dictionaries')
+
+  // The host `dsh-session` merge types ctx.sessions as the SessionStore; the
+  // browser service is the client ISessions face (same value, other shape).
+  const sessions = ctx.sessions as unknown as ISessions
+  const store = createSnapshotStore<TeamPanelState>(EMPTY)
+
+  let followed: SessionId | undefined
+  let disposeFace: (() => void) | null = null
+
+  /**
+   * The session in view folds no team of its own. While it belongs to the team
+   * already on screen, keep showing that team and just move the "you are here"
+   * marker — navigating into a member must not make the panel vanish under the
+   * cursor.
+   */
+  const holdOrClear = (current: SessionId): void => {
+    const held = store.getSnapshot()
+    store.set(held.leaderId !== undefined && held.members.some(member => member.memberId === current)
+      ? { ...held, currentId: current }
+      : EMPTY)
+  }
+
+  const follow = (): void => {
+    const current = sessions.list.getSnapshot().current
+    // Re-run while no face is held: the current id can be published before its
+    // binding exists, and the retry is one map lookup.
+    if (current === followed && (current === undefined || disposeFace !== null)) return
+    followed = current
+    disposeFace?.()
+    disposeFace = null
+    if (current === undefined) {
+      store.set(EMPTY)
+      return
+    }
+    const binding = sessions.binding(current)
+    if (binding === undefined) {
+      holdOrClear(current)
+      return
+    }
+    const face = binding.session.projections.faceOf('team')
+    const pull = (): void => {
+      const team = face.getSnapshot() as TeamView | undefined
+      if (team !== undefined && team.members.length > 0) {
+        store.set(panelState(current, current, team))
+        return
+      }
+      holdOrClear(current)
+    }
+    pull()
+    disposeFace = face.subscribe(pull)
+  }
+
+  follow()
+  const disposeList = sessions.list.subscribe(follow)
+  ctx.effect(() => () => {
+    disposeList()
+    disposeFace?.()
+    disposeFace = null
+    followed = undefined
+    store.set(EMPTY)
+  }, 'dsh-team: session follower')
+
+  /** Open one teammate transcript through its durable direct-parent address. */
+  const openMember = (leaderId: string, memberId: string): void => {
+    const address: SubagentAddress = sessions.subagentAddress(memberId as SessionId)
+      ?? { parentSessionId: leaderId as SessionId, childSessionId: memberId as SessionId, mode: 'continuable' }
+    try {
+      sessions.openSubagent(address)
+    } catch {
+      // Swallows only "not a healthy catalog child": the parent's child catalog
+      // has not been fetched yet in this client. Refresh it, then try once more.
+      void sessions.refreshSubagents(leaderId as SessionId).then(() => {
+        try {
+          sessions.openSubagent(address)
+        } catch {
+          // The child is genuinely absent from the refreshed catalog (dismissed
+          // and pruned, or a backend read failure); the panel stays put.
+        }
+      })
+    }
+  }
+
+  const injectFace = (): TeamInjected & { readonly hooks: { readonly team: typeof store } } => ({
+    hooks: { team: store },
+    openMember,
+    openLeader: (leaderId: string) => { sessions.open(leaderId as SessionId) },
+  })
+
+  ctx.slots.inject('shell.overlay', () => ctx.slots.register({
+    name: 'shell.overlay',
+    id: 'agent-team',
+    locale: NS,
+    inject: injectFace,
+  }, TeamFloating))
+}
+
+export type { TeamPanelState }

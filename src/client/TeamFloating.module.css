@@ -1,0 +1,480 @@
+/* The floating agent-team surface.
+
+   Design tokens only (no literal colors), one motion vocabulary, and every
+   animation gated behind prefers-reduced-motion. The overlay layer itself is
+   click-through; this entry opts its own boxes back into pointer events. */
+
+.root {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.root > * {
+  pointer-events: auto;
+}
+
+/* ---------------------------------------------------------------- button */
+
+.button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 21px;
+  cursor: pointer;
+  color: var(--dsw-alias-label-secondary);
+  background: var(--dsw-alias-bg-overlay);
+  box-shadow: 0 6px 18px var(--dsw-alias-bg-mask-1);
+  transition:
+    width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 200ms ease,
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: team-button-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.button:hover {
+  color: var(--dsw-alias-label-primary);
+  border-color: var(--dsw-alias-border-l3);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px var(--dsw-alias-bg-mask-2);
+}
+
+.button:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 2px;
+}
+
+/* Team present: the button adopts the brand and carries the roster count. */
+.buttonOn {
+  color: var(--dsw-alias-label-primary-inverted);
+  border-color: transparent;
+  background: var(--dsw-alias-brand-primary);
+}
+
+.buttonOn:hover {
+  color: var(--dsw-alias-label-primary-inverted);
+  border-color: transparent;
+}
+
+/* Someone is working: a slow ring breathing out of the button. */
+.buttonBusy::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid var(--dsw-alias-brand-primary);
+  animation: team-ring 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  pointer-events: none;
+}
+
+.buttonIcon {
+  display: block;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.buttonOpen .buttonIcon {
+  transform: rotate(90deg) scale(0.92);
+}
+
+.badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 2px solid var(--dsw-alias-bg-base);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--dsw-alias-label-primary-inverted);
+  background: var(--dsw-alias-state-success-primary);
+  animation: team-badge-in 240ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ----------------------------------------------------------------- panel */
+
+.panel {
+  width: 360px;
+  max-height: min(62vh, 560px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-overlay);
+  box-shadow: 0 18px 52px var(--dsw-alias-bg-mask-2);
+  transform-origin: 100% 100%;
+  animation: team-panel-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 12px 14px;
+  border-bottom: 1px solid var(--dsw-alias-border-l2);
+}
+
+.panelTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+}
+
+.headerIcon {
+  color: var(--dsw-alias-brand-primary);
+}
+
+.headerHint {
+  flex: 1;
+  font-size: 11.5px;
+  color: var(--dsw-alias-label-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--dsw-alias-label-tertiary);
+  background: transparent;
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.iconButton:hover {
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.panelBody {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 0 10px;
+}
+
+.section {
+  padding: 4px 10px;
+}
+
+.section + .section {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--dsw-alias-border-l2);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  padding: 0 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.sectionCount {
+  font-variant-numeric: tabular-nums;
+  color: var(--dsw-alias-label-dimmed);
+}
+
+.empty {
+  margin: 2px 4px 4px;
+  font-size: 12px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* ------------------------------------------------------------ member row */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  text-align: left;
+  background: transparent;
+  transition: background 140ms ease, transform 140ms ease;
+  animation: team-row-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.row:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.row:active {
+  transform: scale(0.99);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: -2px;
+}
+
+.rowIcon {
+  display: flex;
+  flex: none;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.leaderRow .rowIcon {
+  color: var(--dsw-alias-brand-primary);
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rowName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--dsw-alias-label-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--dsw-alias-label-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  line-height: 16px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  color: var(--dsw-alias-label-secondary);
+}
+
+.pillPeer {
+  color: var(--dsw-alias-state-success-primary);
+  border-color: var(--dsw-alias-state-success-primary);
+}
+
+.statusSlot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: 14px;
+  justify-content: center;
+}
+
+/* A working member's dot pulses; an asleep one is dimmed. */
+.statusRunning {
+  animation: team-pulse 1.6s ease-in-out infinite;
+}
+
+.statusReady {
+  opacity: 0.45;
+}
+
+/* -------------------------------------------------------------- task row */
+
+.taskRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 9px;
+  animation: team-row-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.taskTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--dsw-alias-label-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskDone .taskTitle {
+  color: var(--dsw-alias-label-tertiary);
+  text-decoration: line-through;
+}
+
+.taskAssignee {
+  flex: none;
+  font-size: 11px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+/* ----------------------------------------------------------- message row */
+
+.messageRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 9px;
+  animation: team-row-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.messageRow:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.messageIcon {
+  display: flex;
+  flex: none;
+  margin-top: 1px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.messageOut .messageIcon {
+  color: var(--dsw-alias-brand-primary);
+}
+
+.messageBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.messageDirection {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.messageArrow {
+  opacity: 0.6;
+}
+
+.messageKind {
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--dsw-alias-fill-l2);
+  color: var(--dsw-alias-label-secondary);
+}
+
+.messageText {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--dsw-alias-label-primary);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.messageTime {
+  flex: none;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* ---------------------------------------------------------------- motion */
+
+@keyframes team-button-in {
+  from { opacity: 0; transform: scale(0.8) translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes team-panel-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes team-row-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes team-badge-in {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes team-ring {
+  0% { opacity: 0.55; transform: scale(1); }
+  70% { opacity: 0; transform: scale(1.45); }
+  100% { opacity: 0; transform: scale(1.45); }
+}
+
+@keyframes team-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .panel,
+  .row,
+  .taskRow,
+  .messageRow,
+  .badge {
+    animation: none;
+  }
+
+  .buttonBusy::after,
+  .statusRunning {
+    animation: none;
+  }
+
+  .button,
+  .buttonIcon,
+  .row {
+    transition: none;
+  }
+}
