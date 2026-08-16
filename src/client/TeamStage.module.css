@@ -783,11 +783,10 @@
     translate(-56%, calc(-100% - var(--team-unit) * 0.19))
     scale(var(--team-scale, 1));
   transform-origin: 56% 100%;
-  /* Front to back at one seat: desk and monitor, seated member, chair. The
-     monitor stands off the member's left shoulder, so even though the desk is
-     the nearest layer it covers the member's lap and legs — not their head,
-     and not the chair. */
-  z-index: calc(11 + var(--team-depth, 0));
+  /* Back to front at one seat: desk and monitor, seated member, chair. The
+     monitor stands off the member's left shoulder, so the desk stays behind
+     the person and the chair — it never slides over either of them. */
+  z-index: calc(6 + var(--team-depth, 0));
   pointer-events: none;
 }
 
@@ -835,9 +834,9 @@
       no-repeat 50% 100% / 100% 8%;
 }
 
-/* The chair is the backmost of the three layers: somebody seen from behind
-   covers the middle of the chair, while the chair's shoulders and base stay
-   visible around the member. */
+/* The chair is the nearest of the three seated layers: the chair back sits
+   in front of the member's torso, while the member's hood and the desk stay
+   visible above and around it. */
 .chair {
   --team-unit: clamp(72px, 24cqh, 182px);
   --team-figure: calc(var(--team-unit) * 0.6);
@@ -847,7 +846,7 @@
   height: calc(var(--team-unit) * 0.5);
   transform: translate(-50%, -100%) scale(var(--team-scale, 1));
   transform-origin: 50% 100%;
-  z-index: calc(8 + var(--team-depth, 0));
+  z-index: calc(12 + var(--team-depth, 0));
   pointer-events: none;
 }
 
