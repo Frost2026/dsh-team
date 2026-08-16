@@ -1,12 +1,13 @@
 /**
- * The agent-team stage: the room it seats, the courier it sends, the drawer
- * its ledgers wait behind, and what it asks the plugin body to open.
+ * The agent-team stage: the room it seats, the walk one member takes to
+ * deliver a message, the ledgers behind the dock, and what it asks the plugin
+ * body to open — and to hold.
  *
  * @vitest-environment jsdom
  * @module dsh-team/tests/stage
  */
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { SessionListState } from '@deepseek-ai/dsh-client-runtime/client'
 import type { TeamBoardEntryView, TeamMemberView, TeamMessageView, TeamTaskView } from '../src/contract.ts'
@@ -40,6 +41,7 @@ interface MountOptions {
   readonly running?: readonly string[]
   readonly openMember?: (leaderId: string, memberId: string) => void
   readonly openLeader?: (leaderId: string) => void
+  readonly holdComposer?: () => () => void
 }
 
 /** Build the stage element over one panel state; kept apart so a test can rerender. */
@@ -50,6 +52,7 @@ function element(state: Partial<TeamPanelState>, options: MountOptions = {}) {
     useSessions: (select: (snapshot: SessionListState) => unknown) => select(sessions(options.running)),
     openMember: options.openMember ?? (() => {}),
     openLeader: options.openLeader ?? (() => {}),
+    ...options.holdComposer === undefined ? {} : { holdComposer: options.holdComposer },
     t: translate,
   } as unknown as TeamStageProps
   return <TeamStage {...props} />
@@ -68,6 +71,16 @@ function stage(state: Partial<TeamPanelState> = {}, options: MountOptions = {}) 
 /** Open one ledger from the dock on the right edge of the room. */
 function openPanel(name: string): void {
   fireEvent.click(screen.getByRole('button', { name }))
+}
+
+/** One member of the crew, wherever it is standing. */
+function person(container: HTMLElement, memberId: string): HTMLElement | null {
+  return container.querySelector(`[data-member="${memberId}"]`)
+}
+
+/** One member's own workstation. */
+function desk(container: HTMLElement, memberId: string): HTMLElement | null {
+  return container.querySelector(`[data-desk="${memberId}"]`)
 }
 
 describe('presence', () => {
@@ -99,12 +112,24 @@ describe('presence', () => {
   })
 })
 
-describe('the room', () => {
-  /** One member's place on the floor. */
-  function desk(container: HTMLElement, memberId: string): HTMLElement | null {
-    return container.querySelector(`[data-desk="${memberId}"]`)
-  }
+describe('the composer seat', () => {
+  it('holds the composer for as long as the room is on screen, then hands it back', () => {
+    const release = vi.fn()
+    const holdComposer = vi.fn(() => release)
+    const view = stage({}, { holdComposer })
+    expect(holdComposer).toHaveBeenCalledTimes(1)
+    expect(release).not.toHaveBeenCalled()
 
+    view.unmount()
+    expect(release).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders without one: the seat belongs to the plugin body, not to the stage', () => {
+    expect(() => stage()).not.toThrow()
+  })
+})
+
+describe('the room', () => {
   it('seats the leader and every teammate on the floor', () => {
     stage()
     expect(screen.getByLabelText(en['member.openLeader'])).toBeTruthy()
@@ -112,64 +137,110 @@ describe('the room', () => {
     expect(screen.getByLabelText('Open the session of Bob')).toBeTruthy()
   })
 
-  it('keeps the leader at a workstation and carries each relation on its own tile', () => {
+  it('gives every member a desk of its own, with a computer on it', () => {
     const { container } = stage()
-    expect(desk(container, 'leader-1')?.getAttribute('data-zone')).toBe('work')
-    expect(desk(container, 'leader-1')?.getAttribute('data-relation')).toBe('lead')
-    expect(desk(container, 'child-1')?.getAttribute('data-relation')).toBe('peer')
-    expect(desk(container, 'child-2')?.getAttribute('data-relation')).toBe('managed')
+    for (const id of ['leader-1', 'child-1', 'child-2']) {
+      const station = desk(container, id)
+      expect(station, id).toBeTruthy()
+      expect(station?.querySelector('[data-prop="monitor"]'), id).toBeTruthy()
+      expect(station?.querySelector('[data-prop="keyboard"]'), id).toBeTruthy()
+      expect(station?.querySelector('[data-prop="mug"]'), id).toBeTruthy()
+    }
+    expect(container.querySelectorAll('[data-desk]')).toHaveLength(3)
   })
 
-  it('sends a member mid-turn to a workstation', () => {
-    const { container } = stage({}, { running: ['child-2'] })
-    expect(desk(container, 'child-2')?.getAttribute('data-zone')).toBe('work')
-    expect(desk(container, 'child-1')?.getAttribute('data-zone')).not.toBe('work')
+  it('puts a preset picture on a screen, and switches an idle one off', () => {
+    const { container } = stage({}, { running: ['child-1'] })
+    const busy = desk(container, 'child-1')
+    expect(busy?.getAttribute('data-screen')).toBe('working')
+    expect(busy?.querySelector('[data-app]')).toBeTruthy()
+    expect(desk(container, 'child-2')?.getAttribute('data-screen')).toBe('off')
   })
 
-  it('sits a member that was just messaged at a workstation, with the ask on its screen', () => {
+  it('gives neighbouring seats different pictures to work from', () => {
+    const { container } = stage(
+      { members: [alice, bob, carol] },
+      { running: ['child-1', 'child-2', 'child-3'] },
+    )
+    const apps = ['child-1', 'child-2', 'child-3']
+      .map(id => desk(container, id)?.querySelector('[data-app]')?.getAttribute('data-app'))
+    expect(new Set(apps).size).toBe(3)
+  })
+
+  it('puts what a member was asked on its own screen', () => {
     const { container } = stage({
       messages: [{ messageId: 'm1', to: 'child-1', kind: 'message', text: 'review the diff', time: 1 }],
     })
-    const alice = desk(container, 'child-1')
-    expect(alice?.getAttribute('data-zone')).toBe('work')
-    expect(alice?.querySelector('[data-screen]')?.textContent).toContain('review the diff')
+    expect(desk(container, 'child-1')?.textContent).toContain('review the diff')
   })
 
-  it('sends a whale to the snack bar once its own report is the latest thing it did', () => {
+  it('reads the pose of every member off its own live state', () => {
+    const { container } = stage({
+      tasks: [{ taskId: 't1', title: 'review', assigneeId: 'child-2', status: 'active' }],
+    }, { running: ['child-1'] })
+    expect(person(container, 'child-1')?.getAttribute('data-pose')).toBe('working')
+    expect(person(container, 'child-2')?.getAttribute('data-pose')).toBe('reading')
+    expect(person(container, 'leader-1')?.getAttribute('data-pose')).toBe('idle')
+  })
+
+  it('sits every member down facing its own screen, back to the room', () => {
+    const { container } = stage()
+    for (const id of ['leader-1', 'child-1', 'child-2']) {
+      const seated = person(container, id)
+      expect(seated?.getAttribute('data-facing'), id).toBe('back')
+      expect(seated?.querySelector('[data-back="true"]'), id).toBeTruthy()
+    }
+  })
+
+  it('turns a member around once it is off its own chair', () => {
     const { container } = stage({
       messages: [{ messageId: 'm1', from: 'child-1', kind: 'report', text: 'done', time: 1 }],
     })
-    expect(desk(container, 'child-1')?.getAttribute('data-zone')).toBe('snack')
+    const away = person(container, 'child-1')
+    expect(away?.getAttribute('data-facing')).toBe('front')
+    expect(away?.querySelector('[data-back="true"]')).toBeNull()
+    // The one still at its desk keeps its back to you.
+    expect(person(container, 'child-2')?.getAttribute('data-facing')).toBe('back')
   })
 
-  it('parks an idle member with open work in the lounge, and one with none in the pool', () => {
+  it('lets a member that has delivered and owns nothing leave its desk', () => {
     const { container } = stage({
+      messages: [{ messageId: 'm1', from: 'child-1', kind: 'report', text: 'done', time: 1 }],
+    })
+    expect(person(container, 'child-1')?.getAttribute('data-away')).toBe('true')
+    expect(person(container, 'child-2')?.getAttribute('data-away')).toBeNull()
+    // Its own desk keeps standing there, with its own computer on it.
+    expect(desk(container, 'child-1')?.getAttribute('data-empty')).toBe('true')
+  })
+
+  it('keeps a member that still owns open work at its desk', () => {
+    const { container } = stage({
+      messages: [{ messageId: 'm1', from: 'child-1', kind: 'report', text: 'done', time: 1 }],
       tasks: [{ taskId: 't1', title: 'review', assigneeId: 'child-1', status: 'active' }],
     })
-    expect(desk(container, 'child-1')?.getAttribute('data-zone')).toBe('lounge')
-    expect(desk(container, 'child-2')?.getAttribute('data-zone')).toBe('pool')
+    expect(person(container, 'child-1')?.getAttribute('data-away')).toBeNull()
   })
 
-  it('gives every seat its own kind of whale', () => {
+  it('gives every seat its own mask', () => {
     const { container } = stage({ members: [alice, bob, carol] })
-    const kinds = ['leader-1', 'child-1', 'child-2', 'child-3']
-      .map(id => desk(container, id)?.getAttribute('data-species'))
-    expect(kinds.every(kind => kind !== null && kind !== undefined)).toBe(true)
-    expect(new Set(kinds).size).toBe(4)
+    const masks = ['leader-1', 'child-1', 'child-2', 'child-3']
+      .map(id => person(container, id)?.getAttribute('data-species'))
+    expect(masks.every(mask => mask !== null && mask !== undefined)).toBe(true)
+    expect(new Set(masks).size).toBe(4)
   })
 
-  it('furnishes each area with its own props, and the wall with its fittings', () => {
+  it('furnishes the room instead of labelling it', () => {
     const { container } = stage()
-    for (const prop of ['sofa', 'plant', 'vending', 'buoy', 'ladder', 'whiteboard', 'clock']) {
+    for (const prop of ['window', 'whiteboard', 'clock', 'sofa', 'table', 'plant', 'cooler', 'rug']) {
       expect(container.querySelector(`[data-prop="${prop}"]`), prop).toBeTruthy()
     }
   })
 
-  it('sets a desk with a keyboard, and puts a preset picture on a busy screen', () => {
-    const { container } = stage({}, { running: ['child-1'] })
-    const busy = desk(container, 'child-1')
-    expect(busy?.querySelector('[data-prop="keyboard"]')).toBeTruthy()
-    expect(busy?.querySelector('[data-app]')).toBeTruthy()
+  it('carries each relation on the member itself', () => {
+    const { container } = stage()
+    expect(person(container, 'leader-1')?.getAttribute('data-relation')).toBe('lead')
+    expect(person(container, 'child-1')?.getAttribute('data-relation')).toBe('peer')
+    expect(person(container, 'child-2')?.getAttribute('data-relation')).toBe('managed')
   })
 
   it('names the peer channel only once two members can use it', () => {
@@ -216,48 +287,94 @@ describe('the room', () => {
   })
 })
 
-describe('the courier', () => {
-  it('carries the newest delivery across the room, in a bubble short enough to read', () => {
-    const { container } = stage({
-      messages: [
-        { messageId: 'm1', to: 'child-1', kind: 'message', text: 'first', time: 1 },
-        { messageId: 'm2', from: 'child-1', to: 'child-2', kind: 'message', text: 'take the second half', time: 2 },
-      ],
-    })
-    const courier = container.querySelector('[data-courier]')
-    expect(courier?.getAttribute('data-courier')).toBe('m2')
-    expect(courier?.getAttribute('data-from')).toBe('child-1')
-    expect(courier?.getAttribute('data-to')).toBe('child-2')
-    expect(courier?.textContent).toContain('take the second half')
+describe('the delivery', () => {
+  const carried: readonly TeamMessageView[] = [
+    { messageId: 'm1', to: 'child-1', kind: 'message', text: 'first', time: 1 },
+    { messageId: 'm2', from: 'child-1', to: 'child-2', kind: 'message', text: 'take the second half', time: 2 },
+  ]
+
+  /** Where one member is standing, as the style the room places it with. */
+  function spot(container: HTMLElement, memberId: string): string {
+    const node = person(container, memberId)
+    return `${node?.style.left ?? ''},${node?.style.top ?? ''}`
+  }
+
+  it('walks the sender itself over: there is one of each member, never a copy', () => {
+    const { container } = stage({ messages: carried })
+    expect(container.querySelectorAll('[data-member="child-1"]')).toHaveLength(1)
+    expect(person(container, 'child-1')?.getAttribute('data-talking')).toBe('from')
+    expect(person(container, 'child-2')?.getAttribute('data-talking')).toBe('to')
   })
 
-  it('leans both ends of the delivery toward each other', () => {
-    const { container } = stage({
-      messages: [{ messageId: 'm1', to: 'child-1', kind: 'message', text: 'go', time: 1 }],
-    })
-    expect(container.querySelector('[data-desk="leader-1"]')?.getAttribute('data-talking')).toBe('from')
-    expect(container.querySelector('[data-desk="child-1"]')?.getAttribute('data-talking')).toBe('to')
+  it('leaves the sender its own desk to come back to', () => {
+    vi.useFakeTimers()
+    try {
+      const { container } = stage({ messages: carried })
+      const station = desk(container, 'child-1')
+      const home = `${station?.style.left ?? ''},${station?.style.top ?? ''}`
+      act(() => { vi.advanceTimersByTime(3_000) })
+      const visiting = spot(container, 'child-1')
+      expect(visiting).not.toBe(home)
+      expect(person(container, 'child-1')?.getAttribute('data-walk')).toBeNull()
+
+      // The errand ends, and the member walks back to the desk it came from.
+      act(() => { vi.advanceTimersByTime(12_000) })
+      act(() => { vi.advanceTimersByTime(3_000) })
+      expect(spot(container, 'child-1')).toBe(home)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('says its piece once it gets there, short enough to read', () => {
+    vi.useFakeTimers()
+    try {
+      const { container } = stage({ messages: carried })
+      expect(container.querySelector('[data-speech]')).toBeNull()
+
+      act(() => { vi.advanceTimersByTime(3_000) })
+      const said = container.querySelector('[data-speech="child-1"]')
+      expect(said?.textContent).toContain('take the second half')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('shows you the face of everyone on their feet, and only theirs', () => {
+    vi.useFakeTimers()
+    try {
+      const { container } = stage({ messages: carried })
+      const walker = person(container, 'child-1')
+      expect(walker?.getAttribute('data-walk')).toBe('true')
+      expect(walker?.querySelector('[data-back="true"]')).toBeNull()
+
+      act(() => { vi.advanceTimersByTime(3_000) })
+      for (const id of ['child-1', 'child-2']) {
+        const node = person(container, id)
+        expect(node?.getAttribute('data-walk'), id).toBeNull()
+        // Turned toward each other to talk: sideways, never away from you.
+        expect(['left', 'right'], id).toContain(node?.getAttribute('data-facing'))
+        expect(node?.querySelector('[data-back="true"]'), id).toBeNull()
+      }
+      // Nobody else looks up: the leader goes on working at its own screen.
+      expect(person(container, 'leader-1')?.getAttribute('data-facing')).toBe('back')
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('stays out of the room when the sender is no longer on the roster', () => {
     const { container } = stage({
       messages: [{ messageId: 'm9', from: 'child-9', kind: 'message', text: 'stale', time: 1 }],
     })
-    expect(container.querySelector('[data-courier]')).toBeNull()
+    expect(container.querySelector('[data-talking]')).toBeNull()
   })
-})
 
-describe('theater mode', () => {
-  it('stretches the stage over the whole window on demand, and Esc hands it back', () => {
-    const { container } = stage()
-    const root = container.querySelector('[data-agent-team-stage]')
-    expect(root?.getAttribute('data-wide')).toBeNull()
-
-    fireEvent.click(screen.getByLabelText(en['stage.theater']))
-    expect(root?.getAttribute('data-wide')).toBe('true')
-
-    fireEvent.keyDown(window, { key: 'Escape' })
-    expect(root?.getAttribute('data-wide')).toBeNull()
+  it('sends nobody walking for the runtime own account of an activation ending', () => {
+    const { container } = stage({
+      messages: [{ messageId: 'm1', from: 'child-1', kind: 'settled', text: 'Alice finished', time: 1 }],
+    })
+    expect(container.querySelector('[data-talking]')).toBeNull()
   })
 })
 
@@ -331,26 +448,54 @@ describe('the drawer', () => {
 })
 
 describe('mailbox', () => {
+  const long = 'the review is done, and here is every last thing I looked at while I was doing it, '
+    + 'because a teammate that reports has a great deal to say and says all of it at once'
   const messages: readonly TeamMessageView[] = [
     { messageId: 'm1', to: 'child-1', kind: 'message', text: 'please review', time: 1_700_000_000_000 },
-    { messageId: 'm2', from: 'child-1', kind: 'report', text: 'the review is done', time: 1_700_000_060_000 },
+    { messageId: 'm2', from: 'child-1', kind: 'report', text: long, time: 1_700_000_060_000 },
     { messageId: 'm3', from: 'child-2', kind: 'settled', text: 'Bob finished', time: 1_700_000_120_000 },
   ]
 
-  it('puts the leader own sends on the outbound side, naming both ends', () => {
-    stage({ messages })
+  it('keeps one refreshed line per member: what it is doing, and its latest word', () => {
+    const { container } = stage({ messages }, { running: ['child-1'] })
     openPanel(en['stage.feed'])
-    const outbound = screen.getByText('please review').closest('[data-message-kind]')
-    expect(outbound?.getAttribute('data-outbound')).toBe('true')
-    expect(outbound?.textContent).toContain(en['member.leader'])
-    expect(outbound?.textContent).toContain('Alice')
+    const row = container.querySelector('[data-crew-row="child-1"]')
+    expect(row?.textContent).toContain('Alice')
+    expect(row?.textContent).toContain(en['status.running'])
+    expect(row?.textContent).toContain('the review is done')
+    expect(container.querySelector('[data-crew-row="child-2"]')?.textContent).toContain('Bob finished')
+    expect(container.querySelectorAll('[data-crew-row]')).toHaveLength(3)
   })
 
-  it('keeps an inbound bubble on the other side', () => {
-    stage({ messages })
+  it('says so on a member nobody has spoken to yet', () => {
+    stage()
     openPanel(en['stage.feed'])
-    expect(screen.getByText('the review is done').closest('[data-message-kind]')?.getAttribute('data-outbound'))
-      .toBeNull()
+    expect(screen.getAllByText(en['feed.quiet']).length).toBe(3)
+  })
+
+  it('puts every member of the team on the same side of the log', () => {
+    const { container } = stage({ messages })
+    openPanel(en['stage.feed'])
+    expect(container.querySelectorAll('[data-message-kind]')).toHaveLength(3)
+    expect(container.querySelector('[data-outbound]')).toBeNull()
+  })
+
+  it('cuts a long row down to a line, and keeps the whole of it in the row', () => {
+    const { container } = stage({ messages })
+    openPanel(en['stage.feed'])
+    const row = container.querySelector('[data-message-kind="report"]')
+    const text = row?.querySelector('[title]')
+    expect(text?.getAttribute('title')).toBe(long)
+    expect((text?.textContent ?? '').length).toBeLessThan(long.length)
+    expect(text?.textContent).toMatch(/…$/u)
+  })
+
+  it('names both ends of every row', () => {
+    const { container } = stage({ messages })
+    openPanel(en['stage.feed'])
+    const first = container.querySelector('[data-message-kind="message"]')
+    expect(first?.textContent).toContain(en['member.leader'])
+    expect(first?.textContent).toContain('Alice')
   })
 
   it('labels a report and a settlement, but not an ordinary message', () => {
@@ -358,35 +503,31 @@ describe('mailbox', () => {
     openPanel(en['stage.feed'])
     expect(screen.getByText(en['message.report'])).toBeTruthy()
     expect(screen.getByText(en['message.settled'])).toBeTruthy()
-    expect(screen.getByText('please review').closest('[data-message-kind]')?.getAttribute('data-message-kind'))
-      .toBe('message')
   })
 
-  it('links a bubble to its member: hovering one focuses the other', () => {
+  it('links a row to its member: hovering one focuses the other', () => {
     const { container } = stage({ messages })
     openPanel(en['stage.feed'])
-    const bubble = screen.getByText('please review').closest('[data-message-kind]')
-    expect(bubble).toBeTruthy()
-    fireEvent.mouseEnter(bubble as HTMLElement)
-    expect(container.querySelector('[data-desk="child-1"]')?.getAttribute('data-focus')).toBe('true')
+    const row = container.querySelector('[data-message-kind="message"]')
+    expect(row).toBeTruthy()
+    fireEvent.mouseEnter(row as HTMLElement)
+    expect(person(container, 'child-1')?.getAttribute('data-focus')).toBe('true')
 
-    fireEvent.mouseLeave(bubble as HTMLElement)
-    expect(container.querySelector('[data-desk="child-1"]')?.getAttribute('data-focus')).toBeNull()
+    fireEvent.mouseLeave(row as HTMLElement)
+    expect(person(container, 'child-1')?.getAttribute('data-focus')).toBeNull()
   })
 
-  it('gives every bubble the author own whale as its portrait', () => {
-    stage({ messages })
+  it('gives every row the author own mask as its portrait', () => {
+    const { container } = stage({ messages })
     openPanel(en['stage.feed'])
-    expect(screen.getByText('please review').closest('[data-message-kind]')
-      ?.querySelector('[data-cameo-species="blue"]')).toBeTruthy()
-    expect(screen.getByText('the review is done').closest('[data-message-kind]')
-      ?.querySelector('[data-cameo-species="orca"]')).toBeTruthy()
+    expect(container.querySelector('[data-message-kind="message"] [data-cameo-species="blue"]')).toBeTruthy()
+    expect(container.querySelector('[data-message-kind="report"] [data-cameo-species="orca"]')).toBeTruthy()
   })
 
   it('falls back to a short id for a sender the roster no longer knows', () => {
-    stage({ messages: [{ messageId: 'm9', from: 'child-9-long-id', kind: 'message', text: 'stale', time: 1 }] })
+    const { container } = stage({ messages: [{ messageId: 'm9', from: 'child-9-long-id', kind: 'message', text: 'stale', time: 1 }] })
     openPanel(en['stage.feed'])
-    expect(screen.getByText('stale').closest('[data-message-kind]')?.textContent).toContain('child-')
+    expect(container.querySelector('[data-message-kind]')?.textContent).toContain('child-')
   })
 
   it('says so when there is no traffic yet', () => {
@@ -413,10 +554,11 @@ describe('task board', () => {
   })
 
   it('names the assignee from the roster and marks an unassigned row', () => {
-    stage({ tasks })
+    const { container } = stage({ tasks })
     openPanel(en['stage.board'])
-    expect(screen.getByText('review the diff').closest('[data-task-status]')?.textContent).toContain('Alice')
-    expect(screen.getByText('ship it').closest('[data-task-status]')?.textContent).toContain(en['task.unassigned'])
+    expect(container.querySelector('[data-task-status="active"]')?.textContent).toContain('Alice')
+    expect(container.querySelector('[data-task-status="pending"]')?.textContent)
+      .toContain(en['task.unassigned'])
   })
 
   it('carries the status on the card itself, so a done task reads as done', () => {
@@ -463,8 +605,7 @@ describe('shared workspace', () => {
   it('says when the snapshot was taken, because a teammate write does not reach it', () => {
     const { container } = stage({ board, boardAt: 1_700_000_120_000 })
     openPanel(en['stage.workspace'])
-    const note = container.querySelector('[data-note-key]')
-    expect(note).toBeTruthy()
+    expect(container.querySelector('[data-note-key]')).toBeTruthy()
     expect(screen.getByTitle(en['stage.boardStale'])).toBeTruthy()
   })
 
@@ -473,7 +614,7 @@ describe('shared workspace', () => {
     openPanel(en['stage.workspace'])
     const note = container.querySelector('[data-note-key="api decision"]')
     fireEvent.mouseEnter(note as HTMLElement)
-    expect(container.querySelector('[data-desk="child-1"]')?.getAttribute('data-focus')).toBe('true')
+    expect(person(container, 'child-1')?.getAttribute('data-focus')).toBe('true')
   })
 
   it('says so, and why it matters, when nothing is written yet', () => {

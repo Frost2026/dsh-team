@@ -1,11 +1,11 @@
 /**
  * The agent-team stage: a conversation view tab that draws the team as a room
- * you can look into — every member is a whale standing where its own live
- * state puts it (at a workstation, in the lounge, in the pool, at the snack
- * bar), and a delivery is a whale swimming over to say something. The room is
- * the whole tab; the mailbox, the shared workspace and the task board wait
- * behind a dock of doors on the right edge and open as a glass drawer over
- * the floor, so the picture is never pushed out of view by its own ledgers.
+ * you can look into — every member has a desk of its own with its own computer
+ * on it, stands where its live state puts it, and walks the floor to say
+ * something to somebody else. The room is the whole tab: while the stage is on
+ * screen it holds the composer seat, so nothing is left over the floor; the
+ * mailbox, the shared workspace and the task board wait behind a dock of doors
+ * on the right edge and open as a glass drawer over the room.
  *
  * Every value it renders is the host's own `team` projection, delivered
  * through the injected store: the browser folds nothing. Geometry comes from
@@ -22,12 +22,15 @@ import type {
   TeamBoardEntryView, TeamMemberView, TeamMessageView, TeamTaskStatus, TeamTaskView,
 } from '../contract.ts'
 import {
-  IconTeam16, IconTeamExpand16, IconTeamLeader16, IconTeamMailbox16, IconTeamMessage16,
+  IconTeam16, IconTeamLeader16, IconTeamMailbox16, IconTeamMessage16,
   IconTeamPeer16, IconTeamSend16, IconTeamTask16, IconTeamWorkspace16,
 } from './icons.tsx'
-import type { TeamKey } from './locales.ts'
-import { ZONES, ZONE_ORDER, scaleOf, slotOf, zoneFor, type Point, type Slot, type Touch, type ZoneId } from './room.ts'
-import { Whale, accentOf, kindOf } from './whales.tsx'
+import {
+  LOUNGE, breakAt, deskOf, poseFor, stationFor, visitAt,
+  type Desk, type Point, type Pose, type Post, type Touch,
+} from './room.ts'
+import { useWalk, type Facing } from './walk.ts'
+import { Crew, accentOf, maskOf } from './crew.tsx'
 import css from './TeamStage.module.css'
 
 /** What the plugin's session follower publishes to this entry. */
@@ -45,12 +48,18 @@ export interface TeamPanelState {
   readonly boardAt?: number
 }
 
-/** Navigation the plugin body owns (it holds the session service). */
+/** Navigation and chrome the plugin body owns (it holds the client services). */
 export interface TeamInjected {
   /** Open one teammate's transcript through its durable parent address. */
   readonly openMember: (leaderId: string, memberId: string) => void
   /** Return to the leader's own conversation. */
   readonly openLeader: (leaderId: string) => void
+  /**
+   * Take the composer seat for as long as the room is on screen; the returned
+   * disposer hands it back. The room is a picture, not a place you type into,
+   * and the tab is worth more than the strip of window the input card takes.
+   */
+  readonly holdComposer?: () => () => void
 }
 
 /** Complete view-tab props: the root kit, the locale, and the inject face. */
@@ -65,8 +74,14 @@ type Translate = PropsLocale<'team'>['t']
 /** How far back the mailbox counts as "this is what the member is doing now". */
 const LIVE_MESSAGES = 4
 
-/** How much of a message the courier's bubble carries across the room. */
-const BUBBLE_CHARS = 42
+/** How much of a message one member says out loud while it delivers it. */
+const SPEECH_CHARS = 44
+
+/** How much of a message one log row carries. */
+const LOG_CHARS = 110
+
+/** How long one delivery keeps its carrier away from its own desk. */
+const ERRAND_MS = 9_000
 
 /** The board's columns, left to right. */
 const COLUMNS: readonly TeamTaskStatus[] = ['pending', 'active', 'done']
@@ -92,8 +107,8 @@ function initial(name: string): string {
   return [...name][0]?.toUpperCase() ?? '?'
 }
 
-/** One line of a message, short enough to read while it crosses the room. */
-function short(text: string, limit = BUBBLE_CHARS): string {
+/** One line of a message, short enough to read where it is shown. */
+function short(text: string, limit: number): string {
   const line = text.replace(/\s+/gu, ' ').trim()
   return [...line].length <= limit ? line : `${[...line].slice(0, limit).join('')}…`
 }
@@ -107,47 +122,70 @@ function stagger(index: number): CSSProperties {
 type PanelId = 'feed' | 'workspace' | 'tasks'
 
 /** The preset pictures a workstation monitor can show. */
-const APPS = ['doc', 'code', 'mail', 'grid', 'chart'] as const
+const APPS = ['code', 'chart', 'doc', 'mail', 'grid', 'term'] as const
 type AppKind = typeof APPS[number]
+
+/** How many bars each preset picture is drawn from. */
+const APP_BARS: Record<AppKind, number> = { code: 5, chart: 5, doc: 4, mail: 3, grid: 4, term: 4 }
 
 /** Which picture one seat's monitor shows; the leader watches the dashboard. */
 function appOf(seat: number): AppKind {
   if (seat < 0) return 'chart'
-  return APPS[seat % APPS.length] ?? 'doc'
+  return APPS[seat % APPS.length] ?? 'code'
 }
 
 /** One preset screen picture, drawn from bars alone so the theme owns it. */
 function ScreenApp(props: { readonly app: AppKind }) {
   const { app } = props
-  const bars = app === 'doc' || app === 'mail' ? 3 : 4
   return (
     <span className={css.screenApp} data-app={app} aria-hidden>
-      {Array.from({ length: bars }, (_, index) => <i key={index} />)}
+      {Array.from({ length: APP_BARS[app] }, (_, index) => <i key={index} />)}
     </span>
   )
 }
 
-/** A member as a tiny portrait: its own kind of whale in its own accent. */
+/** A member as a tiny portrait: its own mask in its own accent. */
 function Cameo(props: { readonly seat: number | undefined, readonly name: string }) {
   const { seat, name } = props
   if (seat === undefined) return <span className={css.discGlyph}>{initial(name)}</span>
   return (
-    <span className={css.cameo} data-cameo-species={kindOf(seat)} style={accentOf(seat)}>
-      <Whale kind={kindOf(seat)} className={css.cameoWhale} />
+    <span className={css.cameo} data-cameo-species={maskOf(seat)} style={accentOf(seat)}>
+      <Crew kind={maskOf(seat)} className={css.cameoCrew} portrait />
     </span>
   )
 }
 
-/** Place one occupant on the floor: where it stands, how it packs, who is in front. */
-function at(slot: Slot): CSSProperties {
+/** Where one thing stands on the floor, and how big it draws there. */
+function at(post: Post | Point, scale: number): CSSProperties {
   return {
-    left: `${slot.x}%`,
-    top: `${slot.y}%`,
-    // The row rides a variable, not an inline z-index: an inline z-index
-    // would outrank the stylesheet and pin a hovered tile under its neighbors.
-    '--team-row': slot.row,
-    '--team-tile-scale': scaleOf(slot.rows),
+    left: `${post.x}%`,
+    top: `${post.y}%`,
+    // Depth rides a variable rather than an inline z-index: an inline z-index
+    // would outrank the stylesheet and pin a hovered member under its desk.
+    '--team-depth': Math.round(post.y),
+    '--team-scale': scale,
   } as CSSProperties
+}
+
+/**
+ * The delivery currently being carried across the room. One message keeps its
+ * carrier away from its own desk for a while and then lets it walk back: the
+ * room shows what just happened, not the whole history at once.
+ * @param latest - the newest mailbox row.
+ * @returns the row while its errand is running.
+ */
+function useVisit(latest: TeamMessageView | undefined): TeamMessageView | undefined {
+  const [live, setLive] = useState<string | undefined>(undefined)
+  // A settlement is the runtime's own account of an activation ending; nobody
+  // walks across the room to deliver it.
+  const id = latest !== undefined && latest.kind !== 'settled' ? latest.messageId : undefined
+  useEffect(() => {
+    if (id === undefined) return undefined
+    setLive(id)
+    const timer = setTimeout(() => { setLive(undefined) }, ERRAND_MS)
+    return () => { clearTimeout(timer) }
+  }, [id])
+  return live !== undefined && live === id ? latest : undefined
 }
 
 /**
@@ -156,26 +194,20 @@ function at(slot: Slot): CSSProperties {
  * grows a tab it cannot fill.
  */
 export function TeamStage(props: TeamStageProps) {
-  const { useTeam, useSessions, openMember, openLeader, t } = props
+  const { useTeam, useSessions, openMember, openLeader, holdComposer, t } = props
   const state = useTeam(snapshot => snapshot)
   const sessions: SessionListState = useSessions(snapshot => snapshot)
   /** The member the pointer is over, anywhere on the stage. */
   const [focus, setFocus] = useState<string | undefined>(undefined)
   /** Which ledger the drawer is showing; the room stands alone by default. */
   const [panel, setPanel] = useState<PanelId | undefined>(undefined)
-  /** Theater mode: the room covers the whole window, composer included. */
-  const [wide, setWide] = useState(false)
-
-  useEffect(() => {
-    if (!wide) return undefined
-    const onKey = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') setWide(false)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => { window.removeEventListener('keydown', onKey) }
-  }, [wide])
 
   const { leaderId, currentId, members, tasks, messages, board, boardAt } = state
+  const visit = useVisit(messages[messages.length - 1])
+
+  // The room is the whole tab: the composer seat stays ours until the reader
+  // leaves this view, and the plugin body gives it straight back.
+  useEffect(() => holdComposer?.(), [holdComposer])
 
   const running = useMemo(
     () => new Set(members
@@ -218,46 +250,94 @@ export function TeamStage(props: TeamStageProps) {
   const openOf = (memberId: string): number =>
     tasks.filter(task => task.assigneeId === memberId && task.status !== 'done').length
 
-  // The leader anchors the workstations; every teammate stands where its own
-  // state puts it. Slots are handed out per area, in roster order.
-  const filling: Record<ZoneId, string[]> = { work: [], lounge: [], pool: [], snack: [] }
-  const zoneById = new Map<string, ZoneId>()
-  const admit = (id: string, zone: ZoneId): ZoneId => {
-    filling[zone].push(id)
-    zoneById.set(id, zone)
-    return zone
-  }
-  admit(leaderId, 'work')
-  for (const member of members) {
-    admit(
-      member.memberId,
-      zoneFor(running.has(member.memberId), touched.get(member.memberId), openOf(member.memberId)),
-    )
-  }
-  const points = new Map<string, Slot>()
-  for (const zone of ZONE_ORDER) {
-    filling[zone].forEach((id, index) => { points.set(id, slotOf(zone, index, filling[zone].length)) })
+  // The leader takes the first desk and every teammate the next, in roster
+  // order — a member keeps the same desk for as long as it is on the team.
+  const roster = [leaderId, ...members.map(member => member.memberId)]
+  const desks = new Map<string, Desk>(roster.map((id, index) => [id, deskOf(index, roster.length)]))
+
+  /** Where each member is standing right now: its own desk, or the break corner. */
+  const homes = new Map<string, Post>()
+  /** Who is away from its own desk, so the desk can be drawn empty. */
+  const away = new Set<string>()
+  let breaks = 0
+  for (const id of roster) {
+    const desk = desks.get(id) ?? deskOf(0, roster.length)
+    const station = id === leaderId
+      ? 'desk'
+      : stationFor(running.has(id), touched.get(id), openOf(id))
+    if (station === 'break') away.add(id)
+    homes.set(id, station === 'break' ? breakAt(breaks++) : desk)
   }
 
   const peers = members.filter(member => member.relation === 'peer')
   const openTasks = tasks.filter(task => task.status !== 'done').length
   const leaderRunning = sessions.byId[leaderId as SessionId]?.running === true
 
-  /** The newest delivery, as a whale on its way across the room. */
-  const latest = messages[messages.length - 1]
-  const errand = errandOf(latest, leaderId, points)
-  const talking = new Map<string, 'from' | 'to'>()
-  if (errand !== undefined) {
-    talking.set(errand.fromId, 'from')
-    talking.set(errand.toId, 'to')
+  /** The delivery on its feet: who carries it, to whom, and where they meet. */
+  const errand = errandOf(visit, leaderId, homes)
+  const spotOf = (id: string): Point => {
+    if (errand !== undefined && errand.fromId === id) return errand.meet
+    return homes.get(id) ?? { x: 50, y: 50 }
+  }
+  /** Which way the two ends of a delivery turn while they talk. */
+  const turnOf = (id: string): Facing | undefined => {
+    if (errand === undefined) return undefined
+    if (errand.fromId === id) return errand.meet.x < errand.host.x ? 'right' : 'left'
+    if (errand.toId === id) return errand.meet.x < errand.host.x ? 'left' : 'right'
+    return undefined
   }
 
   const toggle = (id: PanelId): void => { setPanel(current => current === id ? undefined : id) }
   const titleOf = (id: PanelId): string =>
     id === 'feed' ? t('stage.feed') : id === 'workspace' ? t('stage.workspace') : t('stage.board')
 
+  const tileOf = (id: string, seat: number, member?: TeamMemberView) => {
+    const desk = desks.get(id) ?? deskOf(0, roster.length)
+    const home = homes.get(id) ?? desk
+    const live = seat < 0 ? leaderRunning : running.has(id)
+    const name = member?.name ?? t('member.leader')
+    return (
+      <MemberTile
+        key={id}
+        id={id}
+        name={name}
+        seat={seat}
+        home={home}
+        spot={spotOf(id)}
+        scale={home.scale}
+        relation={member?.relation ?? 'lead'}
+        role={member?.role}
+        current={currentId === id}
+        running={live}
+        pose={poseFor(live, touched.get(id), openOf(id))}
+        away={away.has(id)}
+        focused={focus === id}
+        talking={errand === undefined ? undefined : errand.fromId === id ? 'from' : errand.toId === id ? 'to' : undefined}
+        turn={turnOf(id)}
+        speech={errand !== undefined && errand.fromId === id ? short(errand.message.text, SPEECH_CHARS) : undefined}
+        tasks={openOf(id)}
+        label={member === undefined ? t('member.openLeader') : t('member.open', { name })}
+        title={member === undefined
+          ? t('member.leader')
+          : meta(
+            member.name,
+            member.role,
+            member.model,
+            member.effort,
+            member.relation === 'peer' ? t('relation.peer') : t('relation.managed'),
+          )}
+        onOpen={() => {
+          if (member === undefined) openLeader(leaderId)
+          else openMember(leaderId, id)
+        }}
+        onFocus={setFocus}
+        t={t}
+      />
+    )
+  }
+
   return (
-    <div className={css.stage} data-agent-team-stage data-wide={wide ? 'true' : undefined}>
+    <div className={css.stage} data-agent-team-stage>
       <header className={css.bar}>
         <span className={css.barTitle}>
           <IconTeam16 size={15} className={css.barIcon} />
@@ -276,131 +356,49 @@ export function TeamStage(props: TeamStageProps) {
             <span className={css.stat}>{t('stage.tasks', { open: openTasks, total: tasks.length })}</span>
           )}
         </span>
-        <button
-          type="button"
-          className={css.barToggle}
-          aria-pressed={wide}
-          aria-label={t(wide ? 'stage.theaterExit' : 'stage.theater')}
-          title={t(wide ? 'stage.theaterExit' : 'stage.theater')}
-          onClick={() => { setWide(current => !current) }}
-        >
-          <IconTeamExpand16 size={14} />
-        </button>
       </header>
 
       <div className={css.scene}>
         <section className={css.roomPane} aria-label={t('stage.room')}>
           <div className={css.floor}>
-            <span className={css.wallBoard} data-prop="whiteboard" aria-hidden />
-            <span className={css.wallClock} data-prop="clock" aria-hidden />
-            {ZONE_ORDER.map(zone => (
-              <div
-                key={zone}
-                className={css.zone}
-                data-zone={zone}
-                data-occupied={filling[zone].length > 0 ? 'true' : undefined}
-                style={{
-                  left: `${ZONES[zone].x}%`,
-                  top: `${ZONES[zone].y}%`,
-                  width: `${ZONES[zone].w}%`,
-                  height: `${ZONES[zone].h}%`,
-                }}
-              >
-                <span className={css.zoneLabel} title={t(`zone.${zone}Hint` as TeamKey)}>
-                  {t(`zone.${zone}` as TeamKey)}
-                  {filling[zone].length > 0 && <span className={css.zoneCount}>{filling[zone].length}</span>}
-                </span>
-                {zone === 'lounge' && (
-                  <>
-                    <span className={css.sofa} data-prop="sofa" aria-hidden />
-                    <span className={css.plant} data-prop="plant" aria-hidden />
-                  </>
-                )}
-                {zone === 'snack' && <span className={css.vending} data-prop="vending" aria-hidden />}
-                {zone === 'pool' && (
-                  <>
-                    <span className={css.buoy} data-prop="buoy" aria-hidden />
-                    <span className={css.ladder} data-prop="ladder" aria-hidden />
-                  </>
-                )}
-              </div>
-            ))}
+            <span className={css.wall} aria-hidden>
+              <span className={css.window} data-prop="window" />
+              <span className={css.window} data-prop="window" />
+              <span className={css.whiteboard} data-prop="whiteboard" />
+              <span className={css.clockProp} data-prop="clock" />
+            </span>
 
-            <MemberTile
-              id={leaderId}
-              name={t('member.leader')}
-              seat={-1}
-              zone="work"
-              slot={points.get(leaderId) ?? { x: 50, y: 50, row: 0, rows: 1 }}
-              relation="lead"
-              role={undefined}
-              current={currentId === leaderId}
-              running={leaderRunning}
-              focused={focus === leaderId}
-              talking={talking.get(leaderId)}
-              screenLine={screenLineOf(leaderId, tasks, messages)}
-              tasks={0}
-              label={t('member.openLeader')}
-              title={t('member.leader')}
-              onOpen={() => { openLeader(leaderId) }}
-              onFocus={setFocus}
-              t={t}
-            />
+            <div
+              className={css.lounge}
+              aria-hidden
+              style={{ left: `${LOUNGE.x}%`, top: `${LOUNGE.y}%`, width: `${LOUNGE.w}%`, height: `${LOUNGE.h}%` }}
+            >
+              <span className={css.rug} data-prop="rug" />
+              <span className={css.sofa} data-prop="sofa" />
+              <span className={css.table} data-prop="table" />
+              <span className={css.plant} data-prop="plant" />
+              <span className={css.cooler} data-prop="cooler" />
+            </div>
 
-            {members.map((member, index) => (
-              <MemberTile
-                key={member.memberId}
-                id={member.memberId}
-                name={member.name}
-                seat={index}
-                zone={zoneById.get(member.memberId) ?? 'pool'}
-                slot={points.get(member.memberId) ?? { x: 50, y: 50, row: 0, rows: 1 }}
-                relation={member.relation}
-                role={member.role}
-                current={currentId === member.memberId}
-                running={running.has(member.memberId)}
-                focused={focus === member.memberId}
-                talking={talking.get(member.memberId)}
-                screenLine={screenLineOf(member.memberId, tasks, messages)}
-                tasks={openOf(member.memberId)}
-                label={t('member.open', { name: member.name })}
-                title={meta(
-                  member.name,
-                  member.role,
-                  member.model,
-                  member.effort,
-                  member.relation === 'peer' ? t('relation.peer') : t('relation.managed'),
-                )}
-                onOpen={() => { openMember(leaderId, member.memberId) }}
-                onFocus={setFocus}
-                t={t}
-              />
-            ))}
+            {roster.map((id, index) => {
+              const seat = index - 1
+              const desk = desks.get(id) ?? deskOf(index, roster.length)
+              const live = seat < 0 ? leaderRunning : running.has(id)
+              return (
+                <Workstation
+                  key={`desk-${id}`}
+                  id={id}
+                  desk={desk}
+                  seat={seat}
+                  pose={poseFor(live, touched.get(id), openOf(id))}
+                  line={screenLineOf(id, tasks, messages)}
+                  empty={away.has(id) || (errand !== undefined && errand.fromId === id)}
+                  t={t}
+                />
+              )
+            })}
 
-            {errand !== undefined && (
-              <div
-                key={errand.message.messageId}
-                className={css.courier}
-                data-courier={errand.message.messageId}
-                data-from={errand.fromId}
-                data-to={errand.toId}
-                data-direction={errand.to.x >= errand.from.x ? 'right' : 'left'}
-                style={{
-                  '--from-x': `${errand.from.x}%`,
-                  '--from-y': `${errand.from.y}%`,
-                  '--to-x': `${errand.to.x}%`,
-                  '--to-y': `${errand.to.y}%`,
-                  ...accentOf(seatOf(errand.fromId, leaderId, members)),
-                } as CSSProperties}
-                aria-label={t('stage.courier', {
-                  name: names.get(errand.fromId) ?? errand.fromId,
-                  to: names.get(errand.toId) ?? errand.toId,
-                })}
-              >
-                <span className={css.courierBubble}>{short(errand.message.text)}</span>
-                <Whale kind={kindOf(seatOf(errand.fromId, leaderId, members))} className={css.courierWhale} />
-              </div>
-            )}
+            {roster.map((id, index) => tileOf(id, index - 1, members[index - 1]))}
           </div>
         </section>
 
@@ -463,6 +461,13 @@ export function TeamStage(props: TeamStageProps) {
             <div className={css.drawerBody}>
               {panel === 'feed' && (
                 <MessageFeed
+                  roster={roster.map((id, index) => ({
+                    id,
+                    name: names.get(id) ?? id,
+                    seat: index - 1,
+                    running: index === 0 ? leaderRunning : running.has(id),
+                    open: openOf(id),
+                  }))}
                   messages={messages}
                   names={names}
                   seats={seats}
@@ -490,7 +495,6 @@ export function TeamStage(props: TeamStageProps) {
                           seats={seats}
                           focus={focus}
                           onFocus={onFocus => { setFocus(onFocus) }}
-                          t={t}
                         />
                       ))}
                     </div>
@@ -552,39 +556,33 @@ function DockButton(props: {
   )
 }
 
-/** The seat one id holds on the roster; the leader's seat is -1. */
-function seatOf(id: string, leaderId: string, members: readonly TeamMemberView[]): number {
-  if (id === leaderId) return -1
-  const index = members.findIndex(member => member.memberId === id)
-  return index < 0 ? -1 : index
-}
-
-/** One delivery in flight across the room. */
+/** One delivery being carried across the room. */
 interface Errand {
   readonly message: TeamMessageView
   readonly fromId: string
   readonly toId: string
-  readonly from: Point
-  readonly to: Point
+  /** Where the recipient is standing. */
+  readonly host: Post
+  /** Where the carrier stops to talk. */
+  readonly meet: Point
 }
 
 /**
- * The newest delivery as an errand between two places on the floor. Absent
- * when either end is off the roster (a dismissed sender) or when the message
- * never crossed the room.
+ * The delivery in flight as an errand between two members. Absent when either
+ * end is off the roster (a dismissed sender) or when nobody had to move.
  */
 function errandOf(
   message: TeamMessageView | undefined,
   leaderId: string,
-  points: ReadonlyMap<string, Point>,
+  homes: ReadonlyMap<string, Post>,
 ): Errand | undefined {
   if (message === undefined) return undefined
   const fromId = message.from ?? leaderId
   const toId = message.to ?? leaderId
-  const from = points.get(fromId)
-  const to = points.get(toId)
-  if (from === undefined || to === undefined || fromId === toId) return undefined
-  return { message, fromId, toId, from, to }
+  const from = homes.get(fromId)
+  const host = homes.get(toId)
+  if (from === undefined || host === undefined || fromId === toId) return undefined
+  return { message, fromId, toId, host, meet: visitAt(host, from.x) }
 }
 
 /**
@@ -603,20 +601,84 @@ function screenLineOf(
   return inbound === undefined ? undefined : short(inbound.text, 34)
 }
 
-/** One member of the team, standing in the area its own state puts it in. */
+/**
+ * One workstation: the desk, the computer on it, the keyboard and the mug. It
+ * belongs to the member whose desk it is and stays furnished while its owner
+ * is away — a member walks off, its screen keeps working.
+ */
+function Workstation(props: {
+  readonly id: string
+  readonly desk: Desk
+  readonly seat: number
+  readonly pose: Pose
+  readonly line: string | undefined
+  /** Whether the owner is somewhere else right now. */
+  readonly empty: boolean
+  readonly t: Translate
+}) {
+  const { id, desk, seat, pose, line, empty, t } = props
+  const screen = pose === 'working' ? 'working' : line !== undefined ? 'reading' : 'off'
+  return (
+    <>
+      <div
+        className={css.desk}
+        style={{ ...at(desk, desk.scale), ...accentOf(seat) }}
+        data-desk={id}
+        data-screen={screen}
+        data-empty={empty ? 'true' : undefined}
+        aria-hidden
+      >
+        <span className={css.deskTop} data-prop="desk" />
+        <span className={css.monitor} data-prop="monitor" title={line}>
+          {/* The machine is never blank: an idle seat still shows its own
+              preset picture, only dimmer. A dark rectangle would read as a
+              broken screen rather than as a member with nothing to do. */}
+          <span className={css.screen}>
+            <ScreenApp app={appOf(seat)} />
+            <span className={css.screenText}>{line ?? t('screen.working')}</span>
+            <span className={css.glare} />
+          </span>
+          <span className={css.neck} />
+          <span className={css.base} />
+        </span>
+        {/* Drawn after the computer, because they sit on the near edge of the
+            desk while it stands at the back of it. */}
+        <span className={css.keyboard} data-prop="keyboard" />
+        <span className={css.mug} data-prop="mug" />
+        <span className={css.papers} data-prop="papers" />
+      </div>
+      {/* The chair stands behind its own occupant: a member seen from behind
+          covers most of it, which is exactly what sitting in one looks like. */}
+      <span
+        className={css.chair}
+        style={at(desk, desk.scale)}
+        data-chair={id}
+        data-prop="chair"
+        aria-hidden
+      />
+    </>
+  )
+}
+
+/** One member of the team, standing — or walking — where its own state puts it. */
 function MemberTile(props: {
   readonly id: string
   readonly name: string
   readonly seat: number
-  readonly zone: ZoneId
-  readonly slot: Slot
+  readonly home: Post
+  readonly spot: Point
+  readonly scale: number
   readonly relation: 'peer' | 'managed' | 'lead'
   readonly role: string | undefined
   readonly current: boolean
   readonly running: boolean
+  readonly pose: Pose
+  /** Whether the member is away from its own desk. */
+  readonly away: boolean
   readonly focused: boolean
   readonly talking: 'from' | 'to' | undefined
-  readonly screenLine: string | undefined
+  readonly turn: Facing | undefined
+  readonly speech: string | undefined
   readonly tasks: number
   readonly label: string
   readonly title: string
@@ -625,60 +687,52 @@ function MemberTile(props: {
   readonly t: Translate
 }) {
   const {
-    id, name, seat, zone, slot, relation, role, current, running, focused, talking,
-    screenLine, tasks, label, title, onOpen, onFocus, t,
+    id, name, seat, home, spot, scale, relation, role, current, running, pose, away,
+    focused, talking, turn, speech, tasks, label, title, onOpen, onFocus, t,
   } = props
-  const kind = kindOf(seat)
-  const screen = running ? 'working' : screenLine !== undefined ? 'reading' : 'off'
+  const walk = useWalk(home, spot)
+  const mask = maskOf(seat)
+  // At its own desk a member faces its own computer, so you see it from
+  // behind; on its feet or away from its desk it turns back around.
+  const back = !walk.walking && !away && talking === undefined
   const relationLabel = relation === 'lead'
     ? undefined
     : relation === 'peer' ? t('relation.peer') : t('relation.managed')
   return (
     <button
       type="button"
-      className={css.tile}
-      style={{ ...at(slot), ...accentOf(seat), ...stagger(seat + 1) }}
+      className={css.person}
+      style={{
+        ...at(walk, scale),
+        ...accentOf(seat),
+        ...stagger(seat + 1),
+        transitionDuration: `${walk.ms}ms`,
+      }}
       onClick={onOpen}
       onMouseEnter={() => { onFocus(id) }}
       onMouseLeave={() => { onFocus(undefined) }}
       aria-label={label}
       aria-current={current}
       title={title}
-      data-desk={id}
-      data-zone={zone}
+      data-member={id}
       data-relation={relation}
-      data-species={kind}
+      data-species={mask}
+      data-pose={pose}
+      data-away={away ? 'true' : undefined}
+      data-walk={walk.walking ? 'true' : undefined}
+      data-facing={walk.walking ? walk.facing : turn ?? (back ? 'back' : 'front')}
       data-running={running ? 'true' : undefined}
       data-focus={focused ? 'true' : undefined}
       data-talking={talking}
     >
-      {zone === 'work' && (
-        <span className={css.monitor} data-screen={screen} title={screenLine} aria-hidden>
-          <span className={css.screen}>
-            {screen === 'off'
-              ? <span className={css.screenOff} />
-              : (
-                <>
-                  <ScreenApp app={appOf(seat)} />
-                  <span className={css.screenText}>{screenLine ?? t('screen.working')}</span>
-                </>
-              )}
-          </span>
-          <span className={css.stand} />
-        </span>
+      {speech !== undefined && !walk.walking && (
+        <span className={css.speech} data-speech={id}>{speech}</span>
       )}
-      {zone === 'lounge' && <span className={css.zzz} aria-hidden>zZ</span>}
-      {zone === 'snack' && <span className={css.snack} aria-hidden />}
+      {talking === 'to' && !walk.walking && <span className={css.listening} aria-hidden>···</span>}
+      {pose === 'idle' && !away && talking === undefined && <span className={css.doze} aria-hidden>zZ</span>}
 
-      <span className={css.seat} data-zone={zone} aria-hidden>
-        {zone === 'pool' && <span className={css.water} />}
-        <Whale kind={kind} className={css.tileWhale} asleep={zone === 'lounge'} />
-        {zone === 'work' && (
-          <>
-            <span className={css.keyboard} data-prop="keyboard" />
-            <span className={css.mug} data-prop="mug" />
-          </>
-        )}
+      <span className={css.body}>
+        <Crew kind={mask} back={back} className={css.figure} />
         {relation === 'lead' && (
           <span className={css.crown} aria-hidden>
             <IconTeamLeader16 size={12} />
@@ -700,8 +754,24 @@ function MemberTile(props: {
   )
 }
 
-/** The mailbox as a conversation: bubbles, oriented from the leader's side. */
+/** One member's line in the roster strip: what it is doing, and its latest word. */
+interface CrewRow {
+  readonly id: string
+  readonly name: string
+  readonly seat: number
+  readonly running: boolean
+  readonly open: number
+}
+
+/**
+ * The mailbox, as a log rather than a chat: a roster strip that keeps one
+ * refreshed line per member — the newest thing it said or was told, truncated
+ * so a long turn cannot push the room's cast off the pane — over the traffic
+ * itself, newest last. Every member of the team writes on the same side; the
+ * right-hand side belongs to the reader, and the reader does not post here.
+ */
 function MessageFeed(props: {
+  readonly roster: readonly CrewRow[]
   readonly messages: readonly TeamMessageView[]
   readonly names: ReadonlyMap<string, string>
   readonly seats: ReadonlyMap<string, number>
@@ -710,42 +780,89 @@ function MessageFeed(props: {
   readonly onFocus: (memberId: string | undefined) => void
   readonly t: Translate
 }) {
-  const { messages, names, seats, leaderLabel, focus, onFocus, t } = props
+  const { roster, messages, names, seats, leaderLabel, focus, onFocus, t } = props
   const scroller = useRef<HTMLDivElement>(null)
 
-  // A new delivery is the point of the feed: keep the newest row in view.
+  // A new delivery is the point of the log: keep the newest row in view.
   useEffect(() => {
     const node = scroller.current
     if (node !== null) node.scrollTop = node.scrollHeight
   }, [messages.length])
 
-  if (messages.length === 0) return <p className={css.empty}>{t('stage.noMessages')}</p>
-
   return (
-    <div className={css.stream} ref={scroller}>
-      {messages.map((message, index) => (
-        <MessageBubble
-          key={message.messageId}
-          message={message}
-          index={index}
-          grouped={index > 0 && messages[index - 1]?.from === message.from && messages[index - 1]?.to === message.to}
-          names={names}
-          seats={seats}
-          leaderLabel={leaderLabel}
-          focus={focus}
-          onFocus={onFocus}
-          t={t}
-        />
-      ))}
+    <div className={css.feed}>
+      <div className={css.crewList} aria-label={t('feed.crew')}>
+        {roster.map(row => {
+          const latest = latestOf(row.id, messages)
+          return (
+            <div
+              key={row.id}
+              className={css.crewRow}
+              data-crew-row={row.id}
+              data-focus={focus === row.id ? 'true' : undefined}
+              onMouseEnter={() => { onFocus(row.id) }}
+              onMouseLeave={() => { onFocus(undefined) }}
+            >
+              <span className={css.cameoDot} aria-hidden>
+                <Cameo seat={row.seat} name={row.name} />
+              </span>
+              <span className={css.crewName}>{row.name}</span>
+              <span className={css.crewState} data-state={row.running ? 'running' : 'idle'}>
+                {t(row.running ? 'status.running' : 'status.idle')}
+              </span>
+              {row.open > 0 && <span className={css.crewOpen}>{t('feed.open', { count: row.open })}</span>}
+              <span className={css.crewLine} title={latest?.text}>
+                {latest === undefined
+                  ? t('feed.quiet')
+                  : `${latest.way === 'got' ? '←' : '→'} ${short(latest.text, 40)}`}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
+      <h4 className={css.feedTitle}>{t('feed.log')}</h4>
+      {messages.length === 0
+        ? <p className={css.empty}>{t('stage.noMessages')}</p>
+        : (
+          <div className={css.log} ref={scroller}>
+            {messages.map((message, index) => (
+              <LogRow
+                key={message.messageId}
+                message={message}
+                index={index}
+                names={names}
+                seats={seats}
+                leaderLabel={leaderLabel}
+                focus={focus}
+                onFocus={onFocus}
+                t={t}
+              />
+            ))}
+          </div>
+        )}
     </div>
   )
 }
 
-/** One mailbox row as a chat bubble; the leader's own sends sit on the right. */
-function MessageBubble(props: {
+/** The newest traffic naming one member, and which way it went. */
+function latestOf(
+  memberId: string,
+  messages: readonly TeamMessageView[],
+): { readonly text: string, readonly way: 'got' | 'sent' } | undefined {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index]
+    if (message === undefined) continue
+    if (message.from === memberId) return { text: message.text, way: 'sent' }
+    if (message.to === memberId) return { text: message.text, way: 'got' }
+  }
+  return undefined
+}
+
+/** One row of the log: who said what to whom, on one line, cut to fit. */
+function LogRow(props: {
   readonly message: TeamMessageView
   readonly index: number
-  readonly grouped: boolean
   readonly names: ReadonlyMap<string, string>
   readonly seats: ReadonlyMap<string, number>
   readonly leaderLabel: string
@@ -753,47 +870,45 @@ function MessageBubble(props: {
   readonly onFocus: (memberId: string | undefined) => void
   readonly t: Translate
 }) {
-  const { message, index, grouped, names, seats, leaderLabel, focus, onFocus, t } = props
+  const { message, index, names, seats, leaderLabel, focus, onFocus, t } = props
   const label = (id: string | undefined): string =>
     id === undefined ? leaderLabel : names.get(id) ?? id.slice(0, 6)
-  const outbound = message.from === undefined
-  const partner = outbound ? message.to : message.from
+  const partner = message.from ?? message.to
   const author = label(message.from)
   return (
     <div
-      className={css.bubbleRow}
+      className={css.logRow}
       data-message-kind={message.kind}
       data-hop={message.hop === undefined ? undefined : String(message.hop)}
-      data-outbound={outbound ? 'true' : undefined}
       data-focus={partner !== undefined && focus === partner ? 'true' : undefined}
       style={stagger(index)}
       onMouseEnter={() => { onFocus(partner) }}
       onMouseLeave={() => { onFocus(undefined) }}
     >
-      <span className={css.bubbleAvatar} aria-hidden data-hidden={grouped ? 'true' : undefined}>
+      <span className={css.logAvatar} aria-hidden>
         <Cameo seat={message.from === undefined ? -1 : seats.get(message.from)} name={author} />
       </span>
-      <div className={css.bubble}>
-        <span className={css.bubbleHead}>
-          <span className={css.bubbleAuthor}>{author}</span>
-          <span className={css.bubbleArrow}>→</span>
-          <span className={css.bubbleTo}>{label(message.to)}</span>
+      <div className={css.logBody}>
+        <span className={css.logHead}>
+          <span className={css.logAuthor}>{author}</span>
+          <span className={css.logArrow}>→</span>
+          <span className={css.logTo}>{label(message.to)}</span>
           {message.kind !== 'message' && (
-            <span className={css.bubbleKind}>
+            <span className={css.logKind}>
               {message.kind === 'report' ? t('message.report') : t('message.settled')}
             </span>
           )}
           {message.hop !== undefined && message.hop > 0 && (
-            <span className={css.bubbleHop} title={t('message.hopHint')}>
+            <span className={css.logHop} title={t('message.hopHint')}>
               {t('message.hop', { hop: message.hop })}
             </span>
           )}
-          <span className={css.bubbleTime}>{clock(message.time)}</span>
+          <span className={css.logTime}>{clock(message.time)}</span>
         </span>
-        <span className={css.bubbleText} title={message.text}>{message.text}</span>
+        <span className={css.logText} title={message.text}>{short(message.text, LOG_CHARS)}</span>
       </div>
-      <span className={css.bubbleTail} aria-hidden>
-        {outbound ? <IconTeamSend16 size={12} /> : <IconTeamMessage16 size={12} />}
+      <span className={css.logTail} aria-hidden>
+        {message.from === undefined ? <IconTeamSend16 size={12} /> : <IconTeamMessage16 size={12} />}
       </span>
     </div>
   )
@@ -806,7 +921,6 @@ function NoteCard(props: {
   readonly seats: ReadonlyMap<string, number>
   readonly focus: string | undefined
   readonly onFocus: (memberId: string | undefined) => void
-  readonly t: Translate
 }) {
   const { entry, index, seats, focus, onFocus } = props
   return (

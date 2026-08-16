@@ -99,6 +99,7 @@ interface Injected {
   readonly hooks: { readonly team: { getSnapshot(): TeamPanelState } }
   readonly openMember: (leaderId: string, memberId: string) => void
   readonly openLeader: (leaderId: string) => void
+  readonly holdComposer: () => () => void
 }
 
 /** One live `conversation.view` contribution, as the slot ledger holds it. */
@@ -109,15 +110,24 @@ interface Tab {
   readonly face: Injected
 }
 
+/** One live `conversation.composer` contribution: the chain entry and its rank. */
+interface Seat {
+  readonly priority: number
+  readonly select: () => unknown
+}
+
 let sessions: FakeSessions
 /** The view-ring contributions currently registered. */
 let tabs: Tab[]
+/** The composer-chain contributions currently registered. */
+let seats: Seat[]
 let teardown: () => void
 
 /** Mount the plugin body over the doubles and watch what it contributes. */
 function mount(): void {
   sessions = new FakeSessions()
   tabs = []
+  seats = []
   const disposers: Array<() => void> = []
   const ctx = {
     effect: (run: () => unknown, _label: string) => {
@@ -132,8 +142,29 @@ function mount(): void {
         disposers.push(dispose)
         return dispose
       },
-      register: (spec: { id: string; order: number; label: () => string; inject: () => Injected }) => {
-        const tab: Tab = { id: spec.id, order: spec.order, label: spec.label, face: spec.inject() }
+      register: (spec: {
+        name: string
+        id?: string
+        order?: number
+        priority?: number
+        label?: () => string
+        select?: () => unknown
+        inject?: () => Injected
+      }) => {
+        if (spec.name === 'conversation.composer') {
+          const seat: Seat = { priority: spec.priority ?? 0, select: spec.select ?? (() => null) }
+          seats.push(seat)
+          return () => {
+            const at = seats.indexOf(seat)
+            if (at >= 0) seats.splice(at, 1)
+          }
+        }
+        const tab: Tab = {
+          id: spec.id ?? '',
+          order: spec.order ?? 0,
+          label: spec.label ?? (() => ''),
+          face: spec.inject?.() as Injected,
+        }
         tabs.push(tab)
         return () => {
           const at = tabs.indexOf(tab)
@@ -228,6 +259,58 @@ describe('following the current session', () => {
   })
 })
 
+describe('following the leader from inside a teammate', () => {
+  const bob: TeamMemberView = { memberId: 'child-2', name: 'Bob', relation: 'managed', joinedAt: 2 }
+
+  /** Seed a leader with a team, then go read one of its teammates. */
+  function readTeammate(): void {
+    seedTeam()
+    sessions.seed('child-1', teamOf([]))
+    sessions.list.set({ current: 'child-1' })
+  }
+
+  it('keeps the roster live: the leader is folding, the teammate is on screen', () => {
+    readTeammate()
+    sessions.faces.get('leader-1')!.set(teamOf([alice, bob]))
+    expect(panel()).toMatchObject({ leaderId: 'leader-1', currentId: 'child-1', members: [alice, bob] })
+  })
+
+  it('closes the room, and its tab, when the leader disbands the team', () => {
+    readTeammate()
+    expect(panel().members).toEqual([alice])
+
+    sessions.faces.get('leader-1')!.set(teamOf([]))
+    expect(tabs).toEqual([])
+  })
+
+  it('holds what it last saw while the leader itself is unloaded', () => {
+    seedTeam()
+    sessions.seed('child-1', teamOf([]))
+    sessions.bound.delete('leader-1')
+    sessions.list.set({ current: 'child-1' })
+
+    expect(panel()).toMatchObject({ leaderId: 'leader-1', currentId: 'child-1', members: [alice] })
+  })
+
+  it('watches the leader once, and lets go on the way back to it', () => {
+    readTeammate()
+    expect(sessions.faces.get('leader-1')!.watchers).toBe(1)
+
+    sessions.list.set({ current: 'leader-1' })
+    expect(sessions.faces.get('leader-1')!.watchers).toBe(1)
+    expect(sessions.faces.get('child-1')!.watchers).toBe(0)
+  })
+
+  it('drops both subscriptions when the row unloads under a teammate', () => {
+    readTeammate()
+
+    teardown()
+    expect(sessions.faces.get('leader-1')!.watchers).toBe(0)
+    expect(sessions.faces.get('child-1')!.watchers).toBe(0)
+    expect(tabs).toEqual([])
+  })
+})
+
 describe('navigation', () => {
   beforeEach(() => { seedTeam() })
 
@@ -303,5 +386,52 @@ describe('the view tab', () => {
     sessions.seed('child-1', teamOf([]))
     sessions.list.set({ current: 'child-1' })
     expect(tab().face.hooks.team.getSnapshot().currentId).toBe('child-1')
+  })
+})
+
+describe('the composer seat', () => {
+  beforeEach(() => { seedTeam() })
+
+  it('leaves the composer alone until a room says it is on screen', () => {
+    expect(seats).toEqual([])
+  })
+
+  it('empties the composer seat while a room holds it, and gives it back after', () => {
+    const release = tab().face.holdComposer()
+    expect(seats).toHaveLength(1)
+    expect(seats[0]!.select()).not.toBeNull()
+
+    release()
+    expect(seats).toEqual([])
+  })
+
+  it('is tried last, so a pending takeover keeps the seat', () => {
+    tab().face.holdComposer()
+    expect(seats[0]!.priority).toBeGreaterThan(0)
+  })
+
+  it('holds one seat for two overlapping rooms and frees it with the last', () => {
+    const first = tab().face.holdComposer()
+    const second = tab().face.holdComposer()
+    expect(seats).toHaveLength(1)
+
+    first()
+    expect(seats).toHaveLength(1)
+    second()
+    expect(seats).toEqual([])
+  })
+
+  it('ignores a disposer called twice, so the seat is not freed under a live room', () => {
+    const release = tab().face.holdComposer()
+    tab().face.holdComposer()
+    release()
+    release()
+    expect(seats).toHaveLength(1)
+  })
+
+  it('gives the composer back when the row unloads', () => {
+    tab().face.holdComposer()
+    teardown()
+    expect(seats).toEqual([])
   })
 })

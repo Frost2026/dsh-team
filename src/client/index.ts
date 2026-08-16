@@ -14,6 +14,7 @@ import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { TeamView } from '../contract.ts'
 import { TeamStage, type TeamInjected, type TeamPanelState } from './TeamStage.tsx'
+import { ComposerAway } from './composer.tsx'
 import { en, NS, zh, type TeamKey } from './locales.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
@@ -31,6 +32,13 @@ const EMPTY: TeamPanelState = { members: [], tasks: [], messages: [], board: [] 
 
 /** View-ring position: after the shipped chat and trajectory tabs. */
 const VIEW_ORDER = 20
+
+/**
+ * Chain position of the empty composer: tried after everything else, so a
+ * pending approval — or any other takeover — keeps the seat and the blocked
+ * agent can still be answered from this tab.
+ */
+const COMPOSER_LAST = 100
 
 /** Project one session's folded team value into the stage state. */
 function panelState(leaderId: SessionId, currentId: SessionId, team: TeamView): TeamPanelState {
@@ -66,18 +74,65 @@ export function apply(ctx: ClientContext): void {
 
   let followed: SessionId | undefined
   let disposeFace: (() => void) | null = null
+  /**
+   * The leader's own projection, watched while somebody else's transcript is
+   * the one on screen. Reading a teammate attaches the follower to a session
+   * that folds no team of its own, so without this the room would freeze at the
+   * last value it saw — and would go on drawing a team that had already been
+   * disbanded. Watching the leader keeps the room live, and lets it close.
+   */
+  let disposeLeader: (() => void) | null = null
+
+  const dropLeader = (): void => {
+    disposeLeader?.()
+    disposeLeader = null
+  }
+
+  /** No team on screen: the room, and the tab it lives in, both go. */
+  const clear = (): void => {
+    dropLeader()
+    store.set(EMPTY)
+  }
+
+  /**
+   * Follow the leader of the team on screen while its own transcript is not.
+   * @param leaderId - the session whose log owns the team.
+   * @param current - the session being read, kept as the "you are here" marker.
+   */
+  const watchLeader = (leaderId: SessionId, current: SessionId): void => {
+    dropLeader()
+    const binding = sessions.binding(leaderId)
+    // The leader is unloaded: the team is still there, only nobody is folding
+    // it right now. The room holds what it last saw until the leader is back.
+    if (binding === undefined) return
+    const face = binding.session.projections.faceOf('team')
+    const pull = (): void => {
+      const team = face.getSnapshot() as TeamView | undefined
+      // Disbanded, or down to its last dismissed teammate: nothing to draw.
+      if (team === undefined || team.members.length === 0) {
+        clear()
+        return
+      }
+      store.set(panelState(leaderId, current, team))
+    }
+    disposeLeader = face.subscribe(pull)
+    pull()
+  }
 
   /**
    * The session in view folds no team of its own. While it belongs to the team
    * already on screen, keep showing that team and just move the "you are here"
    * marker — navigating into a member must not make the stage vanish under the
-   * cursor.
+   * cursor — and follow the leader from there, so the room closes with the team.
    */
   const holdOrClear = (current: SessionId): void => {
     const held = store.getSnapshot()
-    store.set(held.leaderId !== undefined && held.members.some(member => member.memberId === current)
-      ? { ...held, currentId: current }
-      : EMPTY)
+    if (held.leaderId === undefined || !held.members.some(member => member.memberId === current)) {
+      clear()
+      return
+    }
+    store.set({ ...held, currentId: current })
+    watchLeader(held.leaderId as SessionId, current)
   }
 
   const follow = (): void => {
@@ -89,7 +144,7 @@ export function apply(ctx: ClientContext): void {
     disposeFace?.()
     disposeFace = null
     if (current === undefined) {
-      store.set(EMPTY)
+      clear()
       return
     }
     const binding = sessions.binding(current)
@@ -101,6 +156,8 @@ export function apply(ctx: ClientContext): void {
     const pull = (): void => {
       const team = face.getSnapshot() as TeamView | undefined
       if (team !== undefined && team.members.length > 0) {
+        // This session folds the team itself; no second subscription needed.
+        dropLeader()
         store.set(panelState(current, current, team))
         return
       }
@@ -116,6 +173,7 @@ export function apply(ctx: ClientContext): void {
     disposeList()
     disposeFace?.()
     disposeFace = null
+    dropLeader()
     followed = undefined
     store.set(EMPTY)
   }, 'dsh-team: session follower')
@@ -140,10 +198,60 @@ export function apply(ctx: ClientContext): void {
     }
   }
 
+  /**
+   * How many stages are on screen. A view tab renders once, but the seat is
+   * keyed on the count: a re-mount that overlaps its own teardown must not
+   * hand the composer back under a live room.
+   */
+  const rooms = createSnapshotStore<number>(0)
+
+  /** Take the composer seat for one mounted stage; the disposer gives it back. */
+  const holdComposer = (): (() => void) => {
+    rooms.set(rooms.getSnapshot() + 1)
+    let held = true
+    return () => {
+      if (!held) return
+      held = false
+      rooms.set(Math.max(0, rooms.getSnapshot() - 1))
+    }
+  }
+
   const injectFace = (): TeamInjected & { readonly hooks: { readonly team: typeof store } } => ({
     hooks: { team: store },
     openMember,
     openLeader: (leaderId: string) => { sessions.open(leaderId as SessionId) },
+    holdComposer,
+  })
+
+  /**
+   * The composer chain entry that empties the composer seat while a room is on
+   * screen. Registering and withdrawing it is what re-runs the election — the
+   * selector itself cannot see the active view — so the seat follows the tab
+   * without the stage ever touching a node it does not own.
+   */
+  ctx.slots.inject('conversation.composer', () => {
+    let disposeSeat: (() => void) | null = null
+    const sync = (): void => {
+      const wanted = rooms.getSnapshot() > 0
+      if (wanted === (disposeSeat !== null)) return
+      if (!wanted) {
+        disposeSeat?.()
+        disposeSeat = null
+        return
+      }
+      disposeSeat = ctx.slots.register({
+        name: 'conversation.composer',
+        priority: COMPOSER_LAST,
+        select: () => ({}),
+      }, ComposerAway)
+    }
+    sync()
+    const disposeStore = rooms.subscribe(sync)
+    return () => {
+      disposeStore()
+      disposeSeat?.()
+      disposeSeat = null
+    }
   })
 
   /**
