@@ -1,28 +1,30 @@
 /**
- * The team's cast: one crew member per seat, and a different whale hood per
- * seat, so a member is recognizable in the room before its nameplate is read.
+ * The team's cast: one crew member per seat, and a different sea-creature
+ * hood per seat, so a member is recognizable in the room before its nameplate
+ * is read.
  *
  * Every character is a person — shoes, trousers, a shirt, arms at its sides —
- * wearing a whale as a hood: the whale is drawn in profile, snout forward and
- * flukes over the back of the head, because a whale reads as a whale from the
- * side and as a blob from the front. The face looks out from under its chin. A
- * kind is what the hood adds (a dorsal fin, a tusk, a blowhole spout, a blocky
- * brow), never a different body: one figure, six whales. Legs and arms are
- * their own groups so the stylesheet can swing them while the member walks.
+ * wearing a whale or shark as a hood: the hood is drawn in profile, snout
+ * forward and flukes over the back of the head, because a whale reads as a
+ * whale from the side and as a blob from the front. The face looks out from
+ * under its chin. A kind is what the hood adds (a dorsal fin, a tusk, a
+ * blowhole spout, a blocky brow, gill slits), never a different body: one
+ * figure, seven hoods. Legs and arms are their own groups so the stylesheet
+ * can swing them while the member walks.
  *
  * A member at work is drawn from BEHIND: the screen faces the room, so its
  * owner faces the screen. The back view keeps the same figure and turns the
- * hood the other way — snout toward the monitor on its left — so the whale is
+ * hood the other way — snout toward the monitor on its left — so the hood is
  * still read in profile while the human face, which nobody needs while somebody
  * is typing, is simply not there to draw.
  */
 import type { CSSProperties } from 'react'
 import css from './TeamStage.module.css'
 
-/** The whales a seat can wear, in the order seats take them. */
-export const MASKS = ['blue', 'orca', 'humpback', 'narwhal', 'beluga', 'sperm'] as const
+/** The sea-creature hoods a seat can wear, in the order seats take them. */
+export const MASKS = ['blue', 'orca', 'humpback', 'narwhal', 'beluga', 'sperm', 'shark'] as const
 
-/** One kind of whale hood. */
+/** One kind of sea-creature hood. */
 export type MaskKind = typeof MASKS[number]
 
 /** Hue shifts of the room's colour, one per seat: stable, distinct, theme-owned. */
@@ -42,7 +44,7 @@ export function accentOf(seat: number): CSSProperties {
 }
 
 /**
- * The whale one seat wears: the leader takes the blue whale the room is built
+ * The hood one seat wears: the leader takes the blue whale the room is built
  * around, teammates take the rest in roster order.
  * @param seat - the member's index on the roster; the leader passes -1.
  * @returns the kind.
@@ -78,6 +80,16 @@ const HAIR = 'M18 30 C18 18 23 11.5 32 11.5 C41 11.5 46 18 46 30 C46 34 44.5 36.
   + 'C39 36.5 38 33.5 35 33.5 C32 33.5 31 36.5 28 36.5 C25 36.5 24 33.5 22 33.5 '
   + 'C20 33.5 19 35 18 35 Z'
 
+/** A soft highlight across the crown of the hair. */
+const HAIR_SHINE = 'M24 21 C26 16 29 13.5 33 13 C30.5 16.5 28.5 20 27.5 24 Z'
+
+/** A cool highlight along the whale hood's back, so it reads as a smooth hood. */
+const HOOD_SHEEN = 'M17 -3 C18 -10 23 -15 30 -16 C25 -12 21 -8 19 -2 Z'
+
+/** A soft shadow under the whale's jaw, where the hood meets the collar. */
+const HOOD_SHADE = 'M14 21 C20 24.5 28 24.5 35 21.5 C42 18.5 50 14 59 11 '
+  + 'C52 15.5 45 18.5 38 21 C30 23.8 21 24.5 14 21 Z'
+
 /** What one kind wears behind the whale, so its base merges into the hood. */
 function behind(kind: MaskKind) {
   switch (kind) {
@@ -92,6 +104,9 @@ function behind(kind: MaskKind) {
       return <path className={css.crewTusk} d="M63 6 L81 -2" />
     case 'sperm':
       return <path className={css.crewHood} d="M40 -15 L58 -15 C62 -15 65 -12 65 -8 L65 9.5 C56 10.5 47 14 40 17 Z" />
+    case 'shark':
+      // A taller, swept-back dorsal fin: the silhouette that says "shark".
+      return <path className={css.crewHood} d="M36 -20 C38 -27 43 -32 51 -34 C48 -25 44 -18 40 -11 Z" />
     case 'beluga':
     case 'blue':
     default:
@@ -114,6 +129,14 @@ function front(kind: MaskKind) {
       )
     case 'beluga':
       return <path className={css.crewMelon} d="M22 -9 C28 -18 42 -18 50 -11 C40 -12.5 29 -11.5 22 -9 Z" />
+    case 'shark':
+      return (
+        <>
+          <path className={css.crewGill} d="M39 5 C41.5 6.5 41.5 9.5 39 11" />
+          <path className={css.crewGill} d="M43 4 C45.5 5.5 45.5 8.5 43 10" />
+          <path className={css.crewGill} d="M47 3.5 C49 5 49 7.5 47 9" />
+        </>
+      )
     case 'blue':
       return (
         <>
@@ -143,12 +166,23 @@ function head(kind: MaskKind, back: boolean) {
         d="M32 12 C41.5 12 46 20 46 29 C46 38.5 40 44 32 44 C24 44 18 38.5 18 29 C18 20 22.5 12 32 12 Z"
       />
       {back
-        ? <path className={css.crewHair} d={HAIR} />
+        ? (
+          <>
+            <path className={css.crewHair} d={HAIR} />
+            <path className={css.crewHairShine} d={HAIR_SHINE} />
+          </>
+        )
         : (
           <>
+            <path className={css.crewBrow} d="M22 25.5 Q26 23 30.2 24.6" />
+            <path className={css.crewBrow} d="M33.8 24.6 Q38 23 42 25.5" />
             <circle className={css.crewPupil} cx="27" cy="30" r="1.5" />
             <circle className={css.crewPupil} cx="37" cy="30" r="1.5" />
+            <circle className={css.crewEyeGlint} cx="27.6" cy="29.4" r="0.55" />
+            <circle className={css.crewEyeGlint} cx="37.6" cy="29.4" r="0.55" />
             <path className={css.crewSmile} d="M28.5 35.5 Q32 38.5 35.5 35.5" />
+            <circle className={css.crewBlush} cx="21.5" cy="33" r="1.9" />
+            <circle className={css.crewBlush} cx="42.5" cy="33" r="1.9" />
           </>
         )}
       {/* The whale is worn in profile either way, pulled down over the brow so
@@ -160,8 +194,11 @@ function head(kind: MaskKind, back: boolean) {
         <path className={css.crewHood} d={FLUKES} />
         <path className={css.crewBelly} d={BELLY} />
         {front(kind)}
+        <path className={css.crewHoodSheen} d={HOOD_SHEEN} />
+        <path className={css.crewHoodShade} d={HOOD_SHADE} />
         <circle className={css.crewEye} cx="53" cy="0" r="2.6" />
         <circle className={css.crewPupil} cx="53.7" cy="0.4" r="1.2" />
+        <circle className={css.crewEyeGlint} cx="54.2" cy="-0.1" r="0.45" />
         <path className={css.crewMouth} d="M49 9.6 C54 7.7 59 6.1 63 5.7" />
       </g>
     </>
@@ -213,8 +250,21 @@ export function Crew(props: {
           <rect className={css.crewNeck} x="28.2" y="40" width="7.6" height="11" rx="3.2" />
           <path className={css.crewShirt} d={SHIRT} />
           {back
-            ? <path className={css.crewCollar} d="M25 49 L39 49" />
-            : <path className={css.crewCollar} d="M25.5 48.5 C28 52.5 36 52.5 38.5 48.5" />}
+            ? (
+              <>
+                <path className={css.crewCollar} d="M25 49 L39 49" />
+                <path className={css.crewStitch} d="M26 57 C29 60 35 60 38 57" />
+              </>
+            )
+            : (
+              <>
+                <path className={css.crewCollar} d="M25.5 48.5 C28 52.5 36 52.5 38.5 48.5" />
+                <path className={css.crewPlacket} d="M32 50 L32 79" />
+                <circle className={css.crewButton} cx="32" cy="55" r="0.8" />
+                <circle className={css.crewButton} cx="32" cy="63" r="0.8" />
+                <circle className={css.crewButton} cx="32" cy="71" r="0.8" />
+              </>
+            )}
         </>
       )}
       {head(kind, back)}
