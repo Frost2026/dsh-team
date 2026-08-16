@@ -39,10 +39,10 @@ export interface Desk extends Post {
 }
 
 /** The floor the desks are laid out on. */
-export const FIELD: Rect = { x: 7, y: 30, w: 60, h: 62 }
+export const FIELD: Rect = { x: 7, y: 32, w: 60, h: 60 }
 
 /** The break corner, in the near right of the room. */
-export const LOUNGE: Rect = { x: 69, y: 38, w: 29, h: 50 }
+export const LOUNGE: Rect = { x: 69, y: 40, w: 29, h: 46 }
 
 /** The walkway across the front of the room: every cross-row trip uses it. */
 export const CORRIDOR = 91
@@ -123,9 +123,9 @@ export function deskOf(index: number, count: number): Desk {
  */
 export function breakAt(index: number): Post {
   const spots: readonly Point[] = [
-    { x: LOUNGE.x + 8, y: LOUNGE.y + 31 },
-    { x: LOUNGE.x + 20, y: LOUNGE.y + 36 },
-    { x: LOUNGE.x + 14, y: LOUNGE.y + 25 },
+    { x: LOUNGE.x + 8, y: LOUNGE.y + 29 },
+    { x: LOUNGE.x + 20, y: LOUNGE.y + 34 },
+    { x: LOUNGE.x + 14, y: LOUNGE.y + 23 },
   ]
   const spot = spots[index % spots.length] ?? spots[0]!
   return { x: round(spot.x), y: round(spot.y), gap: 7, scale: 0.9 }
