@@ -4,25 +4,23 @@
 
 整个能力是**一个包、一行装配**：宿主半边（`dsh-team`）与浏览器半边（`dsh-team/client`）从同一个 `package.json` 构建。
 
-## 0.2 重写要点
+## 能力一览
 
-| 旧实现的问题 | 现在 |
-|---|---|
-| 拆成 6 个包（服务 / provider / 两个工具包 / UI / bundle），跨包只为一条能力 | **一个包**：`ctx.team` 服务 + 工具 + 队友作用域 + 投影 + 浏览器协作室 |
-| 队友用 `ctx.agents.create()` 自建会话 → 会话树里多出一堆条目 | 队友是 **`ctx.subagents` 的 continuable 子代**，会话头被打上 `origin: 'subagent'`，工作区会话树按此过滤（`tree.ts` 的 `sessionVisible`），**不再出现在会话树里** |
-| 团队状态折叠两遍（宿主一份、浏览器会话视图一份），两边容易走偏 | **只折叠一次**：宿主的 `team` session projection，框架把值推给浏览器，客户端零折叠 |
-| 队友生命周期、冷恢复、驻留、中断全部自己实现 | 全部交给 subagent 缝：重启后**冷恢复**、活动驻留、`interrupt`、结算通知都是现成的 |
-| 工具注册在全局，普通 subagent 也能看到用不了的团队工具 | leader 工具注册在**该会话自己的 agent scope**，队友工具注册在**该子代的 scope**，谁都不会看到自己用不了的工具 |
+- **具名常驻队友**：`team_spawn` 把一个 `ctx.subagents` 的 continuable 子代变成团队成员——会话、日志、冷恢复、活动驻留与中断都由 harness 负责，队友不占会话树。
+- **成员邮箱**：`team_send` 把消息变成收件人的下一个 turn；投递由 leader 权威执行，队友之间的转发有会话预算。
+- **共享任务列表**：`team_task` 建 / 改 / 结案，`team_list` 看花名册、任务与最近流量。
+- **虚拟工作区**：共享黑板 + 每人一块私有便笺（`team_note` / `team_board`），落进 storage domain，跨重启、不占 turn。
+- **协作室页签**：会话视图环里的第三个页签，实时展示成员座位、走动、消息流、工作区与任务板。
 
 ## 设计
 
 ### 队友 = continuable subagent
 
-队友必须有会话（要记忆、要日志、要能恢复），所以问题不是"别建会话"，而是"**别建一个普通会话**"。`ctx.subagents.startContinuable()` 建的子代天然满足：
+队友必须有会话（要记忆、要日志、要能恢复），所以问题不是"别建会话"，而是"别建一个普通会话"。`ctx.subagents.startContinuable()` 建的子代天然满足：
 
 - `childSessionMeta` 打上 `origin: 'subagent'` → 会话树不展示，也不参与通用 Host 路由；
 - durable child id + descriptor 由缝持有 → dsh 重启后队友**冷恢复**，团队不丢；
-- 队友的 transcript 仍可读：内置的 subagent 目录里它们是 `continuable` 子代，标签是 `名字 (角色)`，协作室里点一头鲸就打开。
+- 队友的 transcript 仍可读：内置的 subagent 目录里它们是 `continuable` 子代，标签是 `名字 (角色)`，协作室里点一个成员就打开。
 
 本插件在这之上只补三样 subagent 缝故意不提供的东西：**具名成员**、**成员之间的投递**、**一份共享任务列表**。
 
@@ -70,8 +68,8 @@
 
 主会话被卸载（用户关掉、进程重启、residency 回收）而队友还在跑，是常态而不是异常。**投递确实停了**——每次投递都跑在 leader 的父级权威上，没有 live 的 leader 就没有权威——但"投递停了"不等于"你没有团队"：
 
-- **拒绝语分得清两件事**：`LEADER_AWAY`（"团队还在，只是主会话没加载，把结果写进 `team_note`，leader 回来会读到"）与 `NO_TEAM`（"这里还没有团队，用 `team_spawn` 开一支"）。以前两种都报后者——那是在让一个**开不了团队**的队友去开团队。
-- **身份提示段落同样分得清**：花名册读不到时，段落会说"团队还在、主会话没加载、把活收个尾写进黑板"，而不是笼统的"团队已经不在了"（后者留给真正被解雇的成员）。段落每次组装都重算，所以 leader 一回来，下一步就自动恢复成完整花名册。
+- **拒绝语分得清两件事**：`LEADER_AWAY`（"团队还在，只是主会话没加载，把结果写进 `team_note`，leader 回来会读到"）与 `NO_TEAM`（"这里还没有团队，用 `team_spawn` 开一支"）。
+- **身份提示段落同样分得清**：花名册读不到时，段落会说"团队还在、主会话没加载、把活收个尾写进黑板"；真正被解雇的成员才会看到"团队已经不在了"。段落每次组装都重算，所以 leader 一回来，下一步就自动恢复成完整花名册。
 - **工作区不受影响**：队友的席位（`leaderId` / `memberId` / 名字）是**组装时就捕获**的，不需要每次调用回去问 leader。所以 `team_note` / `team_board` 在 leader 不在场时照常可写可读——这正是把它做成 durable 而不是会话日志的收益。
 
 ### 只折叠一次
@@ -101,7 +99,7 @@ rc.6 的 `Session.append` 无法把事件标成 `ignorable`，因此**仓库外�
 | `team_note` | leader + 队友 | 往共享黑板（或 `private: true` 的私有便笺）写一条笔记；不给 `text` 即删除 |
 | `team_board` | leader + 队友 | 读工作区：不带 `key` 是索引，带 `key` 是全文 |
 
-队友汇报用的是 harness 内置的 `report`（`@deepseek-ai/dsh-tool-subagent-report` 在子代作用域里注册，且不受 `toolFilter` 影响）——本插件不再重复造一个 `team_report`，汇报会以 `subagent-report` 源落进 leader 日志，被同一份折叠记进消息流。
+队友汇报用的是 harness 内置的 `report`（`@deepseek-ai/dsh-tool-subagent-report` 在子代作用域里注册，且不受 `toolFilter` 影响）——汇报会以 `subagent-report` 源落进 leader 日志，被同一份折叠记进消息流。
 
 每个写操作的工具卡片都有自己的标题（`Spawn teammate Alice` / `Alice joined the team` / `Message Alice` / `New task: …` / `Team disbanded`），失败时直接把拒绝原因写在卡片上；写操作一律 `isConcurrencySafe: () => false`，不会被并行调度打散。
 
@@ -113,7 +111,7 @@ rc.6 的 `Session.append` 无法把事件标成 `ignorable`，因此**仓库外�
 
 ## 团队协作室（视图页签）
 
-团队不再是右下角的悬浮按钮，而是**会话视图环里的第三个页签**：`对话 / 轨迹 / Agent 团队`（`src/client/`）。点开是一间**占满整个标签页的办公室**：每个成员有自己的工位、自己的电脑，坐在自己的椅子上；要跟谁说话就**站起来走过去**。消息流、共享工作区、任务板收在**右侧竖排的三扇门（dock）**后面，点开哪扇，哪份账本就以一块**磨砂玻璃抽屉**盖在房间右侧展开。
+团队协作室是**会话视图环里的第三个页签**：`对话 / 轨迹 / Agent 团队`（`src/client/`）。点开是一间**占满整个标签页的办公室**：每个成员有自己的工位、自己的电脑，坐在自己的椅子上；要跟谁说话就**站起来走过去**。消息流、共享工作区、任务板收在**右侧竖排的三扇门（dock）**后面，点开哪扇，哪份账本就以一块**磨砂玻璃抽屉**盖在房间右侧展开。
 
 - **有团队才有页签**：客户端跟随器发现当前会话的 `team` 投影里有成员，才把这一条 `conversation.view` 注册进去；团队解散就把注册撤回（未知的 view id 会回落到对话页，撤回不会把读者卡住）。普通会话的视图环完全不变。
 - **房间就是整个页面**：协作室在屏幕上时，插件在 `conversation.composer` 链的**最后一位**交出一个空的输入区——房间不跟一张输入卡片分屏，也就不需要什么"剧场模式"。座位是引用计数的：离开页签立刻还回去，两次挂载重叠也只占一个。
@@ -147,21 +145,32 @@ rc.6 的 `Session.append` 无法把事件标成 `ignorable`，因此**仓库外�
 
 ## 安装
 
+克隆、构建，然后挂进 web profile：
+
 ```sh
-cd ~/projects/dsh-team
-./scripts/install-profile.sh web        # 构建 + 链接进 ~/.dsh/profiles/web（会先摘掉 0.1 的六行旧装配）
+git clone https://github.com/huxint/dsh-team.git
+cd dsh-team
+pnpm install
+pnpm run build
+dsh plugin --profile web add link:$PWD
+```
+
+包自带 `cordis.patch.yml`（`package.json` 里的 `dsh.bundle.patch` 指向它），`plugin add` 装进去即生效。web profile 的 base bundle（`@deepseek-ai/dsh-base`）已经带齐所需的 continuable subagent provider、session projection 与持久化；虚拟工作区还需要挂载 storage-domain（`@deepseek-ai/dsh-web-app` 已组合），没有它团队其余能力照常，只是 `team_note` / `team_board` 不会注册。
+
+验证装配与启动：
+
+```sh
 dsh --profile web --dump-config | grep 'id: team'
 dsh --profile web
 ```
 
-手动等价物：
+在会话里让主会话调用 `team_spawn` 派生第一名队友，视图环里就会出现 `Agent 团队` 页签。
+
+改完源码重跑 `pnpm run build`：宿主行要重启 dsh，客户端 bundle 刷新页面即可。卸载：
 
 ```sh
-pnpm install && pnpm run build
-dsh plugin --profile web add link:$PWD   # 包自带 dsh.bundle.patch，加进去即生效
+dsh plugin --profile web remove dsh-team
 ```
-
-改完源码重跑 `pnpm run build`：宿主行要重启 dsh，客户端 bundle 刷新页面即可。
 
 ## 配置（`cordis.patch.yml` 可覆写）
 
@@ -191,9 +200,13 @@ dsh plugin --profile web add link:$PWD   # 包自带 dsh.bundle.patch，加进�
 
 ```sh
 pnpm run typecheck   # 源码 + 测试
-pnpm run test        # 214 个单测：折叠 / 投影 / 服务授权矩阵 / 工具契约 / 队友组装 / 会话预算 / 虚拟工作区 / 房间几何与走路 / 客户端跟随与页签 / 协作室与抽屉
+pnpm run test        # 折叠 / 投影 / 服务授权矩阵 / 工具契约 / 队友组装 / 会话预算 / 虚拟工作区 / 房间几何与走路 / 客户端跟随与页签 / 协作室与抽屉
 pnpm run build       # 宿主 ESM + 浏览器闭包工厂（构建期强制客户端 bundle 纯净性）
 pnpm run check       # 三件一起
 ```
 
 构建与类型针对 npm 上的 `@deepseek-ai/dsh@0.1.0-rc.6`。遵循 harness 的插件纪律：注册即 effect、能力缝三角色、事件全 JSON 整值、模型可见即落日志、配置无硬编码。
+
+## License
+
+[MIT](./LICENSE)

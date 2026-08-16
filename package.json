@@ -1,7 +1,7 @@
 {
   "name": "dsh-team",
   "version": "0.2.0",
-  "description": "Agent teams for DeepSeek Harness: named long-lived teammates over ctx.subagents, a shared task list, a member-to-member mailbox, and a floating team panel",
+  "description": "Agent teams for DeepSeek Harness: named long-lived teammates over ctx.subagents, a shared task list, a member-to-member mailbox, virtual workspaces, and a live team room in the conversation view",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
