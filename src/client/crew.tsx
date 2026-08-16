@@ -89,6 +89,18 @@ export function shoeOf(seat: number): ShoeKind {
   return SHOE_KINDS[(seat + 1) % SHOE_KINDS.length] ?? 'sneaker'
 }
 
+/** One shoe path, mirrored per side. */
+function shoePath(kind: ShoeKind, side: 'left' | 'right'): string {
+  if (side === 'left') {
+    if (kind === 'boot') return 'M22.5 79 H31.1 V95 Q31.1 100 27.6 100 H20.4 Q18.8 100 18.8 98.4 L18.8 94 L20.8 92.6 L22.5 91 Z'
+    if (kind === 'loafer') return 'M22.5 94 H31.1 V97 Q31.1 100 27.6 100 H20.4 Q18.8 100 18.8 98.4 Q18.8 96.8 20.8 95.9 L22.5 94.8 Z'
+    return 'M22.5 91 H31.1 V97 Q31.1 100 27.6 100 H20.4 Q18.8 100 18.8 98.4 Q18.8 96.6 20.8 95.6 L22.5 94.6 Z'
+  }
+  if (kind === 'boot') return 'M41.5 79 H32.9 V95 Q32.9 100 36.4 100 H43.6 Q45.2 100 45.2 98.4 L45.2 94 L43.2 92.6 L41.5 91 Z'
+  if (kind === 'loafer') return 'M41.5 94 H32.9 V97 Q32.9 100 36.4 100 H43.6 Q45.2 100 45.2 98.4 Q45.2 96.8 43.2 95.9 L41.5 94.8 Z'
+  return 'M41.5 91 H32.9 V97 Q32.9 100 36.4 100 H43.6 Q45.2 100 45.2 98.4 Q45.2 96.6 43.2 95.6 L41.5 94.6 Z'
+}
+
 /** The whale worn as a hood: flukes at the left, snout out to the right. */
 const WHALE = 'M10 10 C10 -6 21 -16 37 -16 C51 -16 61 -8 65 2 '
   + 'C66.5 5 65 9 61 9.5 C52 11 44 15 36 20 C28 25 19 26 14 24 '
@@ -263,14 +275,20 @@ export function Crew(props: {
   readonly back?: boolean
   /** A portrait: the hooded head alone, framed for a small round avatar. */
   readonly portrait?: boolean
+  /** The outfit the member wears; teammates rotate through the wardrobe. */
+  readonly outfit?: OutfitKind
+  /** The shoes the member wears; teammates rotate through the shoe rack. */
+  readonly shoes?: ShoeKind
 }) {
-  const { kind, className, back = false, portrait = false } = props
+  const { kind, className, back = false, portrait = false, outfit = 'shirt', shoes = 'sneaker' } = props
   return (
     <svg
       className={`${css.crew} ${className ?? ''}`}
       viewBox={portrait ? '-1 -20 70 70' : '-6 -26 80 134'}
       data-kind={kind}
       data-back={back ? 'true' : undefined}
+      data-outfit={outfit}
+      data-shoes={shoes}
       aria-hidden
       focusable="false"
     >
@@ -278,11 +296,11 @@ export function Crew(props: {
         <>
           <g className={css.crewLimbBack}>
             <rect className={css.crewTrouser} x="22.5" y="70" width="8.6" height="27" rx="3.8" />
-            <path className={css.crewShoe} d="M22.5 91 H31.1 V97 Q31.1 100 27.6 100 H20.4 Q18.8 100 18.8 98.4 Q18.8 96.6 20.8 95.6 L22.5 94.6 Z" />
+            <path className={css.crewShoe} d={shoePath(shoes, 'left')} />
           </g>
           <g className={css.crewLimbFront}>
             <rect className={css.crewTrouser} x="32.9" y="70" width="8.6" height="27" rx="3.8" />
-            <path className={css.crewShoe} d="M41.5 91 H32.9 V97 Q32.9 100 36.4 100 H43.6 Q45.2 100 45.2 98.4 Q45.2 96.6 43.2 95.6 L41.5 94.6 Z" />
+            <path className={css.crewShoe} d={shoePath(shoes, 'right')} />
           </g>
           <g className={css.crewArmBack}>
             <rect className={css.crewSleeve} x="12" y="53" width="7.8" height="22" rx="3.9" />
@@ -294,20 +312,59 @@ export function Crew(props: {
           </g>
           <rect className={css.crewNeck} x="28.2" y="40" width="7.6" height="11" rx="3.2" />
           <path className={css.crewShirt} d={SHIRT} />
+          {outfit === 'hoodie' && <path className={css.crewHoodFabric} d={HOOD_FABRIC} />}
           {back
             ? (
               <>
-                <path className={css.crewCollar} d="M25 49 L39 49" />
-                <path className={css.crewStitch} d="M26 57 C29 60 35 60 38 57" />
+                {(outfit === 'shirt' || outfit === 'polo') && (
+                  <>
+                    <path className={css.crewCollar} d="M25 49 L39 49" />
+                    <path className={css.crewStitch} d="M26 57 C29 60 35 60 38 57" />
+                  </>
+                )}
+                {outfit === 'sweater' && <path className={css.crewRib} d={RIB_HEM} />}
               </>
             )
             : (
               <>
-                <path className={css.crewCollar} d="M25.5 48.5 C28 52.5 36 52.5 38.5 48.5" />
-                <path className={css.crewPlacket} d="M32 50 L32 79" />
-                <circle className={css.crewButton} cx="32" cy="55" r="0.8" />
-                <circle className={css.crewButton} cx="32" cy="63" r="0.8" />
-                <circle className={css.crewButton} cx="32" cy="71" r="0.8" />
+                {(outfit === 'shirt' || outfit === 'polo') && (
+                  <path className={css.crewCollar} d="M25.5 48.5 C28 52.5 36 52.5 38.5 48.5" />
+                )}
+                {outfit === 'shirt' && (
+                  <>
+                    <path className={css.crewPlacket} d="M32 50 L32 79" />
+                    <circle className={css.crewButton} cx="32" cy="55" r="0.8" />
+                    <circle className={css.crewButton} cx="32" cy="63" r="0.8" />
+                    <circle className={css.crewButton} cx="32" cy="71" r="0.8" />
+                  </>
+                )}
+                {outfit === 'polo' && (
+                  <>
+                    <path className={css.crewPlacket} d="M32 49 L32 60" />
+                    <circle className={css.crewButton} cx="32" cy="54" r="0.8" />
+                    <circle className={css.crewButton} cx="32" cy="58.5" r="0.8" />
+                  </>
+                )}
+                {outfit === 'tee' && <path className={css.crewNeckBand} d="M25 48 C28 51.5 36 51.5 39 48 C38 53 26 53 25 48 Z" />}
+                {outfit === 'sweater' && (
+                  <>
+                    <path className={css.crewNeckBand} d="M24.5 46.5 C28 51 36 51 39.5 46.5 C38 53.5 26 53.5 24.5 46.5 Z" />
+                    <path className={css.crewRib} d={RIB_HEM} />
+                  </>
+                )}
+                {outfit === 'hoodie' && (
+                  <>
+                    <path className={css.crewDraw} d="M29 47 L30.5 55" />
+                    <path className={css.crewDraw} d="M35 47 L33.5 55" />
+                    <path className={css.crewPocket} d={POCKET} />
+                  </>
+                )}
+                {outfit === 'tunic' && (
+                  <>
+                    <path className={css.crewStitch} d="M21 50 L21 78 M43 50 L43 78" />
+                    <path className={css.crewBelt} d="M18 68 Q32 72 46 68" />
+                  </>
+                )}
               </>
             )}
         </>

@@ -503,6 +503,60 @@
   transform: translate(-50%, -100%) rotate(-50deg);
 }
 
+/* A little wall shelf between the whiteboard and the first window, holding
+   five coloured books and a metal bookend — the office reads lived-in without
+   any labels. */
+.shelf {
+  position: absolute;
+  left: 22%;
+  top: 36%;
+  width: calc(var(--team-unit) * 0.34);
+  height: calc(var(--team-unit) * 0.06);
+  border-radius: 2px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-warm) 34%, var(--dsw-static-neutral-300)) 0 40%,
+      color-mix(in srgb, var(--team-warm) 46%, var(--dsw-static-neutral-500)) 40% 100%
+    );
+  box-shadow:
+    0 2px 4px var(--dsw-alias-bg-mask-2),
+    inset 0 1px 0 color-mix(in srgb, var(--dsw-static-neutral-00) 36%, transparent);
+}
+
+.shelf::before {
+  content: '';
+  position: absolute;
+  left: 4%;
+  right: 8%;
+  bottom: 100%;
+  height: calc(var(--team-unit) * 0.13);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--team-hue) 70%, var(--dsw-static-neutral-600)) 0 16%,
+      transparent 16% 20%,
+      color-mix(in srgb, var(--dsw-alias-state-warn-primary) 72%, var(--dsw-static-neutral-500)) 20% 38%,
+      transparent 38% 42%,
+      color-mix(in srgb, var(--team-leaf) 74%, var(--dsw-static-neutral-500)) 42% 58%,
+      transparent 58% 62%,
+      color-mix(in srgb, var(--dsw-alias-state-error-primary) 64%, var(--dsw-static-neutral-600)) 62% 78%,
+      transparent 78% 82%,
+      color-mix(in srgb, var(--dsw-static-neutral-00) 76%, var(--dsw-static-neutral-400)) 82% 98%
+    );
+}
+
+.shelf::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  width: 9%;
+  height: calc(var(--team-unit) * 0.13);
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--team-ink) 30%, var(--team-page));
+}
+
 /* -------------------------------------------------------- the break corner */
 
 /* No label anywhere: a sofa, a low table, a plant and a cooler say what this
@@ -619,6 +673,11 @@
   height: calc(var(--team-unit) * 0.07);
   border-radius: 3px;
   background:
+    radial-gradient(
+      ellipse at 74% 32%,
+      color-mix(in srgb, var(--dsw-alias-state-warn-primary) 74%, var(--dsw-static-neutral-600)) 0 52%,
+      transparent 56%
+    ) no-repeat 68% 20% / 16% 18%,
     linear-gradient(color-mix(in srgb, var(--dsw-static-neutral-00) 62%, transparent) 0 0)
       no-repeat 16% 22% / 20% 26%,
     linear-gradient(
@@ -659,6 +718,57 @@
       var(--dsw-static-neutral-00) 0 26%,
       color-mix(in srgb, var(--team-hue) 62%, var(--dsw-static-neutral-00)) 26% 100%
     );
+}
+
+/* A floor lamp at the edge of the break corner: a warm shade on a slim
+   stand, with a pool of light on the floor. */
+.lamp {
+  position: absolute;
+  left: 1.5%;
+  top: 8%;
+  width: calc(var(--team-unit) * 0.07);
+  height: calc(var(--team-unit) * 0.34);
+  pointer-events: none;
+}
+
+.lamp::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--team-ink) 38%, var(--team-page)) 0 30%,
+      color-mix(in srgb, var(--team-page) 30%, var(--team-ink)) 30% 60%,
+      color-mix(in srgb, var(--team-ink) 38%, var(--team-page)) 60% 100%
+    ) no-repeat 50% 22% / 16% 70%,
+    radial-gradient(
+      ellipse at 50% 100%,
+      color-mix(in srgb, var(--team-ink) 30%, var(--team-page)) 0 54%,
+      transparent 58%
+    ) no-repeat 50% 100% / 92% 13%;
+}
+
+.lamp::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 34%;
+  border-radius: 50% 50% 10% 10% / 72% 72% 8% 8%;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-warm) 38%, var(--dsw-static-neutral-300)) 0 52%,
+      color-mix(in srgb, var(--team-warm) 62%, var(--dsw-static-neutral-600)) 52% 100%
+    );
+  box-shadow:
+    inset 0 -2px 4px color-mix(in srgb, var(--team-warm) 70%, transparent),
+    0 0 14px color-mix(in srgb, var(--team-warm) 46%, transparent);
 }
 
 /* The plant standing beside the sofa: a shaded terracotta pot with a rolled
@@ -946,6 +1056,9 @@
   width: 100%;
   height: 100%;
   overflow: visible;
+  /* Every now and then a chair settles a few pixels, never all at once. */
+  animation: team-chair-bob 6.8s ease-in-out infinite;
+  animation-delay: var(--team-chair-delay, 0s);
 }
 
 .chairShell {
@@ -1401,6 +1514,28 @@
   filter: hue-rotate(var(--team-accent-shift, 0deg));
 }
 
+/* The wardrobe: one figure, six cuts. The seat's accent still owns the hue;
+   the outfit only changes the wash and the details drawn on top. */
+.crew[data-outfit='tee'] .crewShirt {
+  fill: color-mix(in srgb, var(--team-hue) 46%, var(--dsw-static-neutral-00));
+}
+
+.crew[data-outfit='polo'] .crewShirt {
+  fill: color-mix(in srgb, var(--team-hue) 36%, var(--dsw-static-neutral-00));
+}
+
+.crew[data-outfit='sweater'] .crewShirt {
+  fill: color-mix(in srgb, var(--team-hue) 50%, var(--dsw-static-neutral-00));
+}
+
+.crew[data-outfit='hoodie'] .crewShirt {
+  fill: color-mix(in srgb, var(--team-hue) 30%, var(--dsw-static-neutral-00));
+}
+
+.crew[data-outfit='tunic'] .crewShirt {
+  fill: color-mix(in srgb, var(--team-hue) 44%, var(--dsw-static-neutral-00));
+}
+
 .crewCollar {
   fill: none;
   stroke: var(--dsw-static-neutral-00);
@@ -1426,14 +1561,66 @@
   stroke-width: 0.4;
 }
 
-/* Denim and leather rather than black: a near-black leg reads as a gap in the
-   figure at the size the room draws it. */
-.crewTrouser {
-  fill: color-mix(in srgb, var(--team-hue) 34%, var(--dsw-static-neutral-600));
+/* The cuts' own details: ribbed hems, hood fabric, drawstrings, a kangaroo
+   pocket, round neckbands and a tunic belt. */
+.crewRib {
+  fill: color-mix(in srgb, var(--team-hue) 58%, var(--dsw-static-neutral-00));
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
 }
 
+.crewHoodFabric {
+  fill: color-mix(in srgb, var(--team-hue) 34%, var(--dsw-static-neutral-00));
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+  opacity: 0.92;
+}
+
+.crewDraw {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-hue) 64%, var(--dsw-static-neutral-00));
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.crewPocket {
+  fill: color-mix(in srgb, var(--team-hue) 20%, var(--dsw-static-neutral-00));
+  stroke: color-mix(in srgb, var(--team-hue) 48%, var(--dsw-static-neutral-00));
+  stroke-width: 0.7;
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+.crewNeckBand {
+  fill: color-mix(in srgb, var(--team-hue) 54%, var(--dsw-static-neutral-00));
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+.crewBelt {
+  fill: none;
+  stroke: color-mix(in srgb, var(--dsw-static-neutral-800) 78%, var(--team-hue));
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+/* Denim and leather rather than black: a near-black leg reads as a gap in the
+   figure at the size the room draws it. Every seat rotates its own trouser
+   hue with the accent, so the team is not a row of identical blue jeans. */
+.crewTrouser {
+  fill: color-mix(in srgb, var(--team-hue) 34%, var(--dsw-static-neutral-600));
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+/* Three shoe silhouettes — sneaker, boot, loafer — each tinted by the seat's
+   own accent. */
 .crewShoe {
-  fill: color-mix(in srgb, var(--dsw-static-amber-600) 34%, var(--dsw-static-neutral-700));
+  fill: color-mix(in srgb, var(--team-hue) 34%, var(--dsw-static-neutral-600));
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+.crew[data-shoes='boot'] .crewShoe {
+  fill: color-mix(in srgb, var(--team-hue) 58%, var(--dsw-static-neutral-800));
+}
+
+.crew[data-shoes='loafer'] .crewShoe {
+  fill: color-mix(in srgb, var(--team-hue) 16%, var(--dsw-static-neutral-500));
 }
 
 /* Limbs swing from the hip and the shoulder while the member walks. */
@@ -2285,6 +2472,12 @@
 
 /* ---------------------------------------------------------------- motion */
 
+@keyframes team-chair-bob {
+  0%, 100% { transform: translateY(0); }
+  5%, 9% { transform: translateY(-4%); }
+  13% { transform: translateY(0); }
+}
+
 @keyframes team-stage-in {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
@@ -2371,6 +2564,7 @@
     animation: none;
   }
 
+  .chairSvg,
   .person[data-walk='true'] .body,
   .person[data-walk='true'] .crewLimbBack,
   .person[data-walk='true'] .crewLimbFront,

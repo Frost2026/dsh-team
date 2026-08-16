@@ -30,7 +30,7 @@ import {
   type Desk, type Point, type Pose, type Post, type Touch,
 } from './room.ts'
 import { useWalk, type Facing } from './walk.ts'
-import { Crew, accentOf, maskOf } from './crew.tsx'
+import { Crew, accentOf, maskOf, outfitOf, shoeOf } from './crew.tsx'
 import css from './TeamStage.module.css'
 
 /** What the plugin's session follower publishes to this entry. */
@@ -165,6 +165,11 @@ function at(post: Post | Point, scale: number): CSSProperties {
     '--team-depth': Math.round(post.y),
     '--team-scale': scale,
   } as CSSProperties
+}
+
+/** Stagger each chair's occasional settle, so the office does not bounce in unison. */
+function chairDelay(seat: number): CSSProperties {
+  return { '--team-chair-delay': `${-((seat + 1) % 5) * 1.35}s` } as CSSProperties
 }
 
 /**
@@ -366,6 +371,7 @@ export function TeamStage(props: TeamStageProps) {
               <span className={css.window} data-prop="window" />
               <span className={css.whiteboard} data-prop="whiteboard" />
               <span className={css.clockProp} data-prop="clock" />
+              <span className={css.shelf} data-prop="shelf" />
             </span>
 
             <div
@@ -376,6 +382,7 @@ export function TeamStage(props: TeamStageProps) {
               <span className={css.rug} data-prop="rug" />
               <span className={css.sofa} data-prop="sofa" />
               <span className={css.table} data-prop="table" />
+              <span className={css.lamp} data-prop="lamp" />
               <span className={css.plant} data-prop="plant" />
               <span className={css.cooler} data-prop="cooler" aria-hidden>
                 <CoolerFigure />
@@ -777,7 +784,7 @@ function Workstation(props: {
           front of the member, and the SVG keeps its edges crisp at any size. */}
       <span
         className={css.chair}
-        style={at(desk, desk.scale)}
+        style={{ ...at(desk, desk.scale), ...chairDelay(seat) }}
         data-chair={id}
         data-prop="chair"
         aria-hidden
@@ -820,6 +827,8 @@ function MemberTile(props: {
   } = props
   const walk = useWalk(home, spot)
   const mask = maskOf(seat)
+  const outfit = outfitOf(seat)
+  const shoes = shoeOf(seat)
   // At its own desk a member faces its own computer, so you see it from
   // behind; on its feet or away from its desk it turns back around.
   const back = !walk.walking && !away && talking === undefined
@@ -860,7 +869,7 @@ function MemberTile(props: {
       {pose === 'idle' && !away && talking === undefined && <span className={css.doze} aria-hidden>zZ</span>}
 
       <span className={css.body}>
-        <Crew kind={mask} back={back} className={css.figure} />
+        <Crew kind={mask} back={back} outfit={outfit} shoes={shoes} className={css.figure} />
         {relation === 'lead' && (
           <span className={css.crown} aria-hidden>
             <IconTeamLeader16 size={12} />
