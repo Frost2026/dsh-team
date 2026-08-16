@@ -696,24 +696,29 @@ function ChairFigure() {
           <stop offset="1" style={{ stopColor: 'var(--team-chair-dark)' }} />
         </linearGradient>
       </defs>
-      <path
-        className={css.chairShell}
-        d="M12 12 C12 4 20 1.5 32 1.5 C44 1.5 52 4 52 12 L52 44 C52 51 45 53.5 32 53.5 C19 53.5 12 51 12 44 Z"
-        fill={`url(#${uid}-shell)`}
-      />
-      <path
-        className={css.chairShellEdge}
-        d="M12 12 C12 4 20 1.5 32 1.5 C44 1.5 52 4 52 12 L52 44 C52 51 45 53.5 32 53.5 C19 53.5 12 51 12 44 Z"
-      />
-      <path
-        className={css.chairMesh}
-        d="M18 14 C18 10.5 23 8 32 8 C41 8 46 10.5 46 14 L46 40 C46 45.5 40 47.5 32 47.5 C24 47.5 18 45.5 18 40 Z"
-        fill={`url(#${uid}-mesh)`}
-      />
-      <path className={css.chairMeshLine} d="M19 17 L45 17 M19 22 L45 22 M19 27 L45 27 M19 32 L45 32 M19 37 L45 37 M19 42 L45 42" />
-      <path className={css.chairLumbar} d="M20 30 C24 27.5 40 27.5 44 30 L44 37 C40 40 24 40 20 37 Z" fill={`url(#${uid}-shell)`} />
-      <path className={css.chairSpine} d="M27 52 L37 52 L34.5 63 L29.5 63 Z" />
-      <rect className={css.chairMechanism} x="24" y="62" width="16" height="6" rx="2.5" />
+      <g className={css.chairRide}>
+        {/* The chrome piston rides with the upper chair, so the chair
+            telescopes out of the fixed gas lift instead of bouncing whole. */}
+        <rect className={css.chairPiston} x="30.5" y="65" width="3" height="23" rx="1.5" />
+        <path
+          className={css.chairShell}
+          d="M12 12 C12 4 20 1.5 32 1.5 C44 1.5 52 4 52 12 L52 44 C52 51 45 53.5 32 53.5 C19 53.5 12 51 12 44 Z"
+          fill={`url(#${uid}-shell)`}
+        />
+        <path
+          className={css.chairShellEdge}
+          d="M12 12 C12 4 20 1.5 32 1.5 C44 1.5 52 4 52 12 L52 44 C52 51 45 53.5 32 53.5 C19 53.5 12 51 12 44 Z"
+        />
+        <path
+          className={css.chairMesh}
+          d="M18 14 C18 10.5 23 8 32 8 C41 8 46 10.5 46 14 L46 40 C46 45.5 40 47.5 32 47.5 C24 47.5 18 45.5 18 40 Z"
+          fill={`url(#${uid}-mesh)`}
+        />
+        <path className={css.chairMeshLine} d="M19 17 L45 17 M19 22 L45 22 M19 27 L45 27 M19 32 L45 32 M19 37 L45 37 M19 42 L45 42" />
+        <path className={css.chairLumbar} d="M20 30 C24 27.5 40 27.5 44 30 L44 37 C40 40 24 40 20 37 Z" fill={`url(#${uid}-shell)`} />
+        <path className={css.chairSpine} d="M27 52 L37 52 L34.5 63 L29.5 63 Z" />
+        <rect className={css.chairMechanism} x="24" y="62" width="16" height="6" rx="2.5" />
+      </g>
       <rect className={css.chairLift} x="30" y="68" width="4" height="15" rx="2" fill={`url(#${uid}-lift)`} />
       <ellipse className={css.chairHub} cx="32" cy="86" rx="6.5" ry="3" />
       <g className={css.chairSpokes}>
