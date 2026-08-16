@@ -697,9 +697,6 @@ function ChairFigure() {
         </linearGradient>
       </defs>
       <g className={css.chairRide}>
-        {/* The chrome piston rides with the upper chair, so the chair
-            telescopes out of the fixed gas lift instead of bouncing whole. */}
-        <rect className={css.chairPiston} x="30.5" y="65" width="3" height="23" rx="1.5" />
         <path
           className={css.chairShell}
           d="M12 12 C12 4 20 1.5 32 1.5 C44 1.5 52 4 52 12 L52 44 C52 51 45 53.5 32 53.5 C19 53.5 12 51 12 44 Z"
@@ -847,6 +844,7 @@ function MemberTile(props: {
       style={{
         ...at(walk, scale),
         ...accentOf(seat),
+        ...chairDelay(seat),
         ...stagger(seat + 1),
         transitionDuration: `${walk.ms}ms`,
       }}

@@ -1059,16 +1059,13 @@
 }
 
 /* The upper chair rides up and down a few pixels on its gas lift, while the
-   base, spokes and casters stay planted on the floor. */
+   base, spokes and casters stay planted on the floor. The lift itself
+   stretches by the same amount, so the mechanism never leaves the cylinder. */
 .chairRide {
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  animation: team-chair-bob 6.8s ease-in-out infinite;
+  animation: team-chair-rise 6.8s ease-in-out infinite;
   animation-delay: var(--team-chair-delay, 0s);
-}
-
-.chairPiston {
-  fill: color-mix(in srgb, var(--team-page) 24%, var(--dsw-static-neutral-400));
 }
 
 .chairShell {
@@ -1106,6 +1103,10 @@
 }
 
 .chairLift {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: team-chair-stretch 6.8s ease-in-out infinite;
+  animation-delay: var(--team-chair-delay, 0s);
   stroke: color-mix(in srgb, var(--team-ink) 20%, transparent);
   stroke-width: 0.5;
 }
@@ -1346,9 +1347,16 @@
 
 /* At its own desk a member is sitting at it: it draws a little shorter, its
    legs are under the desk where nobody sees them, and the chair drawn in front
-   of it carries the rest of the pose. */
+   of it carries the rest of the pose. The seated figure rides the same
+   telescoping motion as its chair. */
 .person[data-facing='back'] {
   --team-sit: 0.93;
+  animation:
+    team-person-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    team-person-sit 6.8s ease-in-out infinite;
+  animation-delay:
+    0s,
+    var(--team-chair-delay, 0s);
 }
 
 .person[data-facing='back'] .figure {
@@ -2482,10 +2490,28 @@
 
 /* ---------------------------------------------------------------- motion */
 
-@keyframes team-chair-bob {
+@keyframes team-chair-rise {
   0%, 100% { transform: translateY(0); }
-  5%, 9% { transform: translateY(-4%); }
+  5%, 9% { transform: translateY(-2.5%); }
   13% { transform: translateY(0); }
+}
+
+@keyframes team-chair-stretch {
+  0%, 100% { transform: scaleY(1); }
+  5%, 9% { transform: scaleY(1.14); }
+  13% { transform: scaleY(1); }
+}
+
+@keyframes team-person-sit {
+  0%, 100% {
+    transform: translate(-50%, -100%) scale(calc(var(--team-scale, 1) * var(--team-sit, 1)));
+  }
+  5%, 9% {
+    transform: translate(-50%, calc(-100% - 1.15%)) scale(calc(var(--team-scale, 1) * var(--team-sit, 1)));
+  }
+  13% {
+    transform: translate(-50%, -100%) scale(calc(var(--team-scale, 1) * var(--team-sit, 1)));
+  }
 }
 
 @keyframes team-stage-in {
@@ -2575,6 +2601,8 @@
   }
 
   .chairRide,
+  .chairLift,
+  .person[data-facing='back'],
   .person[data-walk='true'] .body,
   .person[data-walk='true'] .crewLimbBack,
   .person[data-walk='true'] .crewLimbFront,
