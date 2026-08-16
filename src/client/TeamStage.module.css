@@ -756,106 +756,103 @@
     );
 }
 
-/* The water cooler, against the wall behind the corner: a cabinet with a
-   lit side panel, a bottled jug with a visible water line, and a two-tap
-   spout over a drip tray. */
+/* The water cooler, against the wall behind the corner: a big bottled jug
+   on a crisp SVG cabinet, with its own water line and two taps. */
 .cooler {
+  --team-cooler: var(--team-surface-2);
+  --team-cooler-lit: color-mix(in srgb, var(--team-page) 22%, var(--team-cooler));
+  --team-cooler-dark: color-mix(in srgb, var(--team-ink) 16%, var(--team-page));
+  --team-cooler-bottle: color-mix(in srgb, var(--team-hue) 30%, var(--team-page));
+  --team-cooler-bottle-lit: color-mix(in srgb, var(--team-page) 26%, var(--team-cooler-bottle));
+  --team-cooler-bottle-dark: color-mix(in srgb, var(--team-hue) 62%, var(--team-page));
+  --team-cooler-water: color-mix(in srgb, var(--team-hue) 58%, var(--team-page));
+  --team-cooler-water-lit: color-mix(in srgb, var(--team-hue) 34%, var(--team-page));
   position: absolute;
-  right: 4%;
-  top: 36%;
-  width: calc(var(--team-unit) * 0.18);
-  height: calc(var(--team-unit) * 0.26);
-  border-radius: 3px 3px 6px 6px;
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--team-page) 50%, transparent) 0 9%,
-      transparent 9% 49%,
-      color-mix(in srgb, var(--team-ink) 7%, transparent) 49% 51%,
-      transparent 51% 91%,
-      color-mix(in srgb, var(--team-ink) 12%, transparent) 91% 100%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--team-ink) 3%, var(--team-page)) 0 12%,
-      var(--team-surface-2) 12% 62%,
-      color-mix(in srgb, var(--team-ink) 12%, var(--team-page)) 62% 100%
-    );
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--team-page) 72%, transparent),
-    inset -3px 0 4px color-mix(in srgb, var(--team-page) 26%, transparent),
-    inset 0 -6px 7px color-mix(in srgb, var(--team-ink) 12%, transparent),
-    0 6px 10px var(--dsw-alias-bg-mask-2);
+  right: 1.5%;
+  top: 29%;
+  width: calc(var(--team-unit) * 0.26);
+  height: calc(var(--team-unit) * 0.38);
+  pointer-events: none;
+  filter: drop-shadow(2px 5px 4px var(--dsw-alias-bg-mask-1));
 }
 
-/* The jug: a blue-tinted bottle with a cap, a water line, and a vertical
-   highlight that gives the plastic some roundness. */
-.cooler::before {
-  content: '';
-  position: absolute;
-  left: 10%;
-  right: 10%;
-  bottom: 100%;
-  height: 88%;
-  border-radius: 42% 42% 5px 5px;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--team-hue) 52%, var(--team-page)) 0 7%,
-      color-mix(in srgb, var(--team-hue) 74%, var(--team-page)) 7% 11%,
-      color-mix(in srgb, var(--team-hue) 42%, var(--team-page)) 11% 15%,
-      transparent 15%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--team-hue) 24%, var(--team-page)) 0 18%,
-      color-mix(in srgb, var(--team-hue) 48%, var(--team-page)) 18% 76%,
-      color-mix(in srgb, var(--team-hue) 66%, var(--team-page)) 76% 100%
-    ),
-    radial-gradient(
-      ellipse 76% 13% at 50% 20%,
-      color-mix(in srgb, var(--team-page) 64%, var(--team-hue)) 0 52%,
-      transparent 56%
-    ),
-    linear-gradient(
-      105deg,
-      transparent 0 22%,
-      color-mix(in srgb, var(--team-page) 48%, transparent) 22% 30%,
-      transparent 30%
-    ),
-    radial-gradient(circle at 34% 62%, color-mix(in srgb, var(--team-page) 55%, transparent) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 62% 56%, color-mix(in srgb, var(--team-page) 42%, transparent) 0 1px, transparent 1.6px);
-  box-shadow:
-    inset -3px 0 5px color-mix(in srgb, var(--team-hue) 30%, transparent),
-    0 3px 5px var(--dsw-alias-bg-mask-2);
+.coolerSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-/* Two taps — one warm, one cool — over a drip tray, with the shelf shadow
-   behind them. */
-.cooler::after {
-  content: '';
-  position: absolute;
-  left: 22%;
-  top: 18%;
-  width: 56%;
-  height: 24%;
-  border-radius: 2px;
-  background:
-    linear-gradient(
-      90deg,
-      transparent 0 10%,
-      color-mix(in srgb, var(--team-ink) 38%, var(--team-page)) 10% 13%,
-      transparent 13% 34%,
-      color-mix(in srgb, var(--team-ink) 38%, var(--team-page)) 34% 37%,
-      transparent 37%
-    ) no-repeat 0 22% / 100% 34%,
-    radial-gradient(circle at 33% 26%, var(--dsw-alias-state-error-primary) 0 1.7px, transparent 2.2px),
-    radial-gradient(circle at 56% 26%, var(--team-hue) 0 1.7px, transparent 2.2px),
-    linear-gradient(
-      180deg,
-      transparent 0 72%,
-      color-mix(in srgb, var(--team-ink) 26%, var(--team-page)) 72% 100%
-    ) no-repeat 50% 72% / 74% 28%;
+.coolerShadow {
+  fill: color-mix(in srgb, var(--team-ink) 10%, transparent);
+}
+
+.coolerCabinet {
+  stroke: none;
+}
+
+.coolerCabinetTop {
+  fill: color-mix(in srgb, var(--team-page) 28%, var(--team-cooler));
+}
+
+.coolerCabinetEdge {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-ink) 14%, transparent);
+  stroke-width: 1;
+}
+
+.coolerPanel {
+  fill: color-mix(in srgb, var(--team-ink) 5%, var(--team-page));
+  stroke: color-mix(in srgb, var(--team-ink) 10%, transparent);
+  stroke-width: 0.8;
+}
+
+.coolerDoorSeam {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-ink) 10%, transparent);
+  stroke-width: 0.8;
+  stroke-linecap: round;
+}
+
+.coolerTap {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-ink) 36%, var(--team-page));
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.coolerHandleWarm {
+  fill: var(--dsw-alias-state-error-primary);
+}
+
+.coolerHandleCool {
+  fill: var(--team-hue);
+}
+
+.coolerDrip {
+  fill: color-mix(in srgb, var(--team-ink) 18%, var(--team-page));
+  stroke: color-mix(in srgb, var(--team-ink) 22%, transparent);
+  stroke-width: 0.6;
+}
+
+.coolerBottle,
+.coolerNeck {
+  stroke: color-mix(in srgb, var(--team-hue) 42%, transparent);
+  stroke-width: 0.7;
+}
+
+.coolerCap {
+  fill: color-mix(in srgb, var(--team-hue) 66%, var(--team-page));
+  stroke: color-mix(in srgb, var(--team-ink) 16%, transparent);
+  stroke-width: 0.6;
+}
+
+.coolerShine {
+  fill: color-mix(in srgb, var(--team-page) 46%, transparent);
+}
+
+.coolerBubble {
+  fill: color-mix(in srgb, var(--team-page) 48%, transparent);
 }
 
 /* ------------------------------------------------------ the workstations */
@@ -926,14 +923,13 @@
       no-repeat 50% 100% / 100% 8%;
 }
 
-/* The chair is the nearest of the three seated layers: a curved, padded
-   backrest with side seams, over a polished gas lift and a five-star base
-   with casters. */
+/* The chair is the nearest of the three seated layers: a real little chair,
+   drawn as an SVG so every edge stays crisp. */
 .chair {
   --team-unit: clamp(72px, 24cqh, 182px);
   --team-figure: calc(var(--team-unit) * 0.6);
   --team-chair: color-mix(in srgb, var(--team-hue) 26%, var(--dsw-static-neutral-600));
-  --team-chair-lit: color-mix(in srgb, var(--team-hue) 16%, var(--dsw-static-neutral-300));
+  --team-chair-lit: color-mix(in srgb, var(--team-hue) 14%, var(--dsw-static-neutral-300));
   --team-chair-dark: color-mix(in srgb, var(--team-hue) 36%, var(--dsw-static-neutral-800));
   position: absolute;
   width: calc(var(--team-figure) * 0.56);
@@ -942,96 +938,81 @@
   transform-origin: 50% 100%;
   z-index: calc(12 + var(--team-depth, 0));
   pointer-events: none;
+  filter: drop-shadow(2px 4px 3px var(--dsw-alias-bg-mask-1));
 }
 
-/* The backrest: one padded shell with a rounded headrest, two side seams and
-   a small lumbar stitch across the middle. */
-.chair::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 48%;
-  border-radius: 14px 14px 7px 7px / 22px 22px 7px 7px;
-  background:
-    linear-gradient(
-      90deg,
-      transparent 0 42%,
-      color-mix(in srgb, var(--team-ink) 12%, transparent) 42% 44%,
-      transparent 44% 56%,
-      color-mix(in srgb, var(--team-ink) 12%, transparent) 56% 58%,
-      transparent 58%
-    ),
-    linear-gradient(
-      90deg,
-      transparent 0 62%,
-      color-mix(in srgb, var(--team-ink) 16%, transparent) 62% 64%,
-      transparent 64%
-    ) no-repeat 50% 76% / 100% 24%,
-    radial-gradient(
-      ellipse 82% 34% at 50% 0%,
-      color-mix(in srgb, var(--team-chair-lit) 76%, transparent) 0 56%,
-      transparent 60%
-    ),
-    linear-gradient(
-      180deg,
-      var(--team-chair-lit) 0 12%,
-      var(--team-chair) 12% 58%,
-      color-mix(in srgb, var(--team-ink) 12%, var(--team-chair)) 58% 82%,
-      var(--team-chair-dark) 82% 100%
-    );
-  box-shadow:
-    inset 0 0 0 1.5px color-mix(in srgb, var(--team-ink) 20%, transparent),
-    inset -3px 0 4px color-mix(in srgb, var(--team-chair-lit) 30%, transparent),
-    inset 3px 0 4px color-mix(in srgb, var(--team-ink) 14%, transparent),
-    0 5px 9px var(--dsw-alias-bg-mask-2);
+.chairSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-/* The post and the base: a metallic gas lift, a hub, five spokes, and a
-   caster at each end. */
-.chair::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 48%;
-  bottom: 0;
-  background:
-    linear-gradient(
-      90deg,
-      var(--team-chair-dark) 0 16%,
-      var(--team-chair-lit) 16% 38%,
-      var(--team-chair) 38% 64%,
-      var(--team-chair-lit) 64% 82%,
-      var(--team-chair-dark) 82% 100%
-    ) no-repeat 50% 3% / 15% 62%,
-    radial-gradient(
-      circle at 50% 84%,
-      var(--team-chair-dark) 0 10%,
-      transparent 11%
-    ),
-    repeating-conic-gradient(
-      from -90deg,
-      var(--team-chair-dark) 0 8deg,
-      transparent 8deg 72deg
-    ) no-repeat 50% 100% / 90% 42%,
-    radial-gradient(circle at 7% 92%, var(--team-chair-dark) 0 2.6px, transparent 3.2px)
-      no-repeat 50% 100% / 90% 42%,
-    radial-gradient(circle at 93% 92%, var(--team-chair-dark) 0 2.6px, transparent 3.2px)
-      no-repeat 50% 100% / 90% 42%;
+.chairShell {
+  stroke: none;
 }
 
-/* The computer stands on the desk off the member's left shoulder — the glass
-   faces the room, the member's back is to the room, and neither one covers
-   the other: the person owns the centre of the workstation, the monitor owns
-   the left of it. It is deliberately wide so the screen reads as a screen
-   even on a small tab. */
+.chairShellEdge {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-ink) 22%, transparent);
+  stroke-width: 1.2;
+}
+
+.chairMesh {
+  stroke: color-mix(in srgb, var(--team-ink) 16%, transparent);
+  stroke-width: 0.8;
+}
+
+.chairMeshLine {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-ink) 10%, transparent);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.chairLumbar {
+  stroke: color-mix(in srgb, var(--team-ink) 18%, transparent);
+  stroke-width: 0.9;
+}
+
+.chairSpine,
+.chairMechanism {
+  fill: var(--team-chair-dark);
+  stroke: color-mix(in srgb, var(--team-ink) 14%, transparent);
+  stroke-width: 0.7;
+}
+
+.chairLift {
+  stroke: color-mix(in srgb, var(--team-ink) 20%, transparent);
+  stroke-width: 0.5;
+}
+
+.chairHub {
+  fill: var(--team-chair-dark);
+}
+
+.chairSpokes path {
+  fill: none;
+  stroke: var(--team-chair-dark);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.chairCasters circle {
+  fill: var(--dsw-static-neutral-800);
+  stroke: color-mix(in srgb, var(--team-page) 42%, transparent);
+  stroke-width: 0.8;
+}
+
+/* The computer stands on the left half of the desk, fully on the slab, and
+   the seated member sits to its right: the screen faces the room and stays
+   big enough to read, while the person and chair sit in front of its right
+   edge instead of being covered by it. */
 .monitor {
   position: absolute;
-  left: -28%;
+  left: 0;
   bottom: calc(100% - 2px);
-  width: 62%;
+  width: 58%;
   display: flex;
   flex-direction: column;
   align-items: center;

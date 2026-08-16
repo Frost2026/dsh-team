@@ -12,7 +12,7 @@
  * the roster alone (no DOM measurement), so the picture is a function of the
  * durable state and nothing else.
  */
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useId } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { StateDot } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale, PropsRuntime, SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
@@ -377,7 +377,9 @@ export function TeamStage(props: TeamStageProps) {
               <span className={css.sofa} data-prop="sofa" />
               <span className={css.table} data-prop="table" />
               <span className={css.plant} data-prop="plant" />
-              <span className={css.cooler} data-prop="cooler" />
+              <span className={css.cooler} data-prop="cooler" aria-hidden>
+                <CoolerFigure />
+              </span>
             </div>
 
             {roster.map((id, index) => {
@@ -601,6 +603,130 @@ function screenLineOf(
   return inbound === undefined ? undefined : short(inbound.text, 34)
 }
 
+/** A water cooler drawn as one SVG: the bottle and the cabinet share real
+ *  edges and their own gradients, so the corner prop stays crisp at any size. */
+function CoolerFigure() {
+  const uid = useId().replaceAll(':', '')
+  return (
+    <svg className={css.coolerSvg} viewBox="0 0 64 96" aria-hidden focusable="false">
+      <defs>
+        <linearGradient id={`${uid}-cabinet`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style={{ stopColor: 'var(--team-cooler-lit)' }} />
+          <stop offset="0.2" style={{ stopColor: 'var(--team-cooler)' }} />
+          <stop offset="0.82" style={{ stopColor: 'var(--team-cooler)' }} />
+          <stop offset="1" style={{ stopColor: 'var(--team-cooler-dark)' }} />
+        </linearGradient>
+        <linearGradient id={`${uid}-bottle`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" style={{ stopColor: 'var(--team-cooler-bottle-dark)' }} />
+          <stop offset="0.35" style={{ stopColor: 'var(--team-cooler-bottle)' }} />
+          <stop offset="0.7" style={{ stopColor: 'var(--team-cooler-bottle-lit)' }} />
+          <stop offset="1" style={{ stopColor: 'var(--team-cooler-bottle-dark)' }} />
+        </linearGradient>
+        <linearGradient id={`${uid}-water`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style={{ stopColor: 'var(--team-cooler-water-lit)' }} />
+          <stop offset="1" style={{ stopColor: 'var(--team-cooler-water)' }} />
+        </linearGradient>
+      </defs>
+      <path className={css.coolerShadow} d="M12 88 C20 95 44 95 52 88 L52 91 C44 97 20 97 12 91 Z" />
+      <path
+        className={css.coolerCabinet}
+        d="M10 46 H54 V85 Q54 90 49.5 90 H14.5 Q10 90 10 85 Z"
+        fill={`url(#${uid}-cabinet)`}
+      />
+      <path className={css.coolerCabinetTop} d="M10 46 H54 V52 Q54 54 52 54 H12 Q10 54 10 52 Z" />
+      <path className={css.coolerCabinetEdge} d="M10 46 H54 V85 Q54 90 49.5 90 H14.5 Q10 90 10 85 Z" />
+      <path className={css.coolerPanel} d="M15 58 H49 V82 H15 Z" />
+      <path className={css.coolerDoorSeam} d="M32 58 V82" />
+      <path className={css.coolerTap} d="M21 61 H31 M33 61 H43" />
+      <circle className={css.coolerHandleWarm} cx="26" cy="58" r="2" />
+      <circle className={css.coolerHandleCool} cx="38" cy="58" r="2" />
+      <path className={css.coolerDrip} d="M15 84 H49 V87.5 H15 Z" />
+      <path
+        className={css.coolerBottle}
+        d="M18 46 C18 31 21.5 19 27 12 L37 12 C42.5 19 46 31 46 46 Z"
+        fill={`url(#${uid}-bottle)`}
+      />
+      <path
+        className={css.coolerWater}
+        d="M20 46 C20 33.5 22.8 22 27.3 16.5 L36.7 16.5 C41.2 22 44 33.5 44 46 Z"
+        fill={`url(#${uid}-water)`}
+      />
+      <path
+        className={css.coolerNeck}
+        d="M27 12 L27 4.5 C27 3 28 2 29.5 2 L34.5 2 C36 2 37 3 37 4.5 L37 12 Z"
+        fill={`url(#${uid}-bottle)`}
+      />
+      <rect className={css.coolerCap} x="24" y="0" width="16" height="5" rx="1.8" />
+      <path className={css.coolerShine} d="M21.5 44 C21.5 32.5 24.3 21.5 29 15 C26.2 21 23.5 30.5 23.5 44 Z" />
+      <circle className={css.coolerBubble} cx="27" cy="32" r="0.9" />
+      <circle className={css.coolerBubble} cx="36" cy="37" r="1.1" />
+      <circle className={css.coolerBubble} cx="31" cy="27" r="0.7" />
+    </svg>
+  )
+}
+
+/** A chair seen from behind: one SVG, because a chair this small needs real
+ *  edges — a curved backrest shell, a mesh panel, a lumbar pad, a spine
+ *  bracket, a gas lift, and a five-star base with casters. */
+function ChairFigure() {
+  const uid = useId().replaceAll(':', '')
+  return (
+    <svg className={css.chairSvg} viewBox="0 0 64 95" aria-hidden focusable="false">
+      <defs>
+        <linearGradient id={`${uid}-shell`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style={{ stopColor: 'var(--team-chair-lit)' }} />
+          <stop offset="0.55" style={{ stopColor: 'var(--team-chair)' }} />
+          <stop offset="1" style={{ stopColor: 'var(--team-chair-dark)' }} />
+        </linearGradient>
+        <linearGradient id={`${uid}-mesh`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style={{ stopColor: 'color-mix(in srgb, var(--team-chair-lit) 58%, transparent)' }} />
+          <stop offset="1" style={{ stopColor: 'color-mix(in srgb, var(--team-chair) 42%, transparent)' }} />
+        </linearGradient>
+        <linearGradient id={`${uid}-lift`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" style={{ stopColor: 'var(--team-chair-dark)' }} />
+          <stop offset="0.35" style={{ stopColor: 'var(--team-chair-lit)' }} />
+          <stop offset="0.65" style={{ stopColor: 'var(--team-chair)' }} />
+          <stop offset="1" style={{ stopColor: 'var(--team-chair-dark)' }} />
+        </linearGradient>
+      </defs>
+      <path
+        className={css.chairShell}
+        d="M12 12 C12 4 20 1.5 32 1.5 C44 1.5 52 4 52 12 L52 44 C52 51 45 53.5 32 53.5 C19 53.5 12 51 12 44 Z"
+        fill={`url(#${uid}-shell)`}
+      />
+      <path
+        className={css.chairShellEdge}
+        d="M12 12 C12 4 20 1.5 32 1.5 C44 1.5 52 4 52 12 L52 44 C52 51 45 53.5 32 53.5 C19 53.5 12 51 12 44 Z"
+      />
+      <path
+        className={css.chairMesh}
+        d="M18 14 C18 10.5 23 8 32 8 C41 8 46 10.5 46 14 L46 40 C46 45.5 40 47.5 32 47.5 C24 47.5 18 45.5 18 40 Z"
+        fill={`url(#${uid}-mesh)`}
+      />
+      <path className={css.chairMeshLine} d="M19 17 L45 17 M19 22 L45 22 M19 27 L45 27 M19 32 L45 32 M19 37 L45 37 M19 42 L45 42" />
+      <path className={css.chairLumbar} d="M20 30 C24 27.5 40 27.5 44 30 L44 37 C40 40 24 40 20 37 Z" fill={`url(#${uid}-shell)`} />
+      <path className={css.chairSpine} d="M27 52 L37 52 L34.5 63 L29.5 63 Z" />
+      <rect className={css.chairMechanism} x="24" y="62" width="16" height="6" rx="2.5" />
+      <rect className={css.chairLift} x="30" y="68" width="4" height="15" rx="2" fill={`url(#${uid}-lift)`} />
+      <ellipse className={css.chairHub} cx="32" cy="86" rx="6.5" ry="3" />
+      <g className={css.chairSpokes}>
+        <path d="M32 85 L7 92" />
+        <path d="M32 85 L18 94.5" />
+        <path d="M32 85 L46 94.5" />
+        <path d="M32 85 L57 92" />
+        <path d="M32 85 L32 95" />
+      </g>
+      <g className={css.chairCasters}>
+        <circle cx="7" cy="92" r="2.4" />
+        <circle cx="18" cy="94.5" r="2.4" />
+        <circle cx="46" cy="94.5" r="2.4" />
+        <circle cx="57" cy="92" r="2.4" />
+        <circle cx="32" cy="95" r="2.4" />
+      </g>
+    </svg>
+  )
+}
+
 /**
  * One workstation: the desk, the computer on it, the keyboard and the mug. It
  * belongs to the member whose desk it is and stays furnished while its owner
@@ -647,15 +773,17 @@ function Workstation(props: {
         <span className={css.mug} data-prop="mug" />
         <span className={css.papers} data-prop="papers" />
       </div>
-      {/* The chair stands behind its own occupant: a member seen from behind
-          covers most of it, which is exactly what sitting in one looks like. */}
+      {/* The chair is the nearest layer at the seat: the backrest reads in
+          front of the member, and the SVG keeps its edges crisp at any size. */}
       <span
         className={css.chair}
         style={at(desk, desk.scale)}
         data-chair={id}
         data-prop="chair"
         aria-hidden
-      />
+      >
+        <ChairFigure />
+      </span>
     </>
   )
 }

@@ -54,6 +54,41 @@ export function maskOf(seat: number): MaskKind {
   return MASKS[(seat + 1) % MASKS.length] ?? 'blue'
 }
 
+/** The outfits a seat can wear, in the order seats take them. */
+export const OUTFITS = ['shirt', 'tee', 'sweater', 'polo', 'hoodie', 'tunic'] as const
+
+/** One kind of outfit. */
+export type OutfitKind = typeof OUTFITS[number]
+
+/** The shoes a seat can wear, in the order seats take them. */
+export const SHOE_KINDS = ['sneaker', 'boot', 'loafer'] as const
+
+/** One kind of shoe. */
+export type ShoeKind = typeof SHOE_KINDS[number]
+
+/**
+ * The outfit one seat wears: the leader keeps the tailored shirt, teammates
+ * take the rest in roster order, so a full team is not a row of identical
+ * shirts.
+ * @param seat - the member's index on the roster; the leader passes -1.
+ * @returns the kind.
+ */
+export function outfitOf(seat: number): OutfitKind {
+  if (seat < 0) return 'shirt'
+  return OUTFITS[(seat + 1) % OUTFITS.length] ?? 'shirt'
+}
+
+/**
+ * The shoes one seat wears: sneakers, boots and loafers take turns around the
+ * roster, each tinted by the seat's own accent.
+ * @param seat - the member's index on the roster; the leader passes -1.
+ * @returns the kind.
+ */
+export function shoeOf(seat: number): ShoeKind {
+  if (seat < 0) return 'sneaker'
+  return SHOE_KINDS[(seat + 1) % SHOE_KINDS.length] ?? 'sneaker'
+}
+
 /** The whale worn as a hood: flukes at the left, snout out to the right. */
 const WHALE = 'M10 10 C10 -6 21 -16 37 -16 C51 -16 61 -8 65 2 '
   + 'C66.5 5 65 9 61 9.5 C52 11 44 15 36 20 C28 25 19 26 14 24 '
@@ -89,6 +124,16 @@ const HOOD_SHEEN = 'M17 -3 C18 -10 23 -15 30 -16 C25 -12 21 -8 19 -2 Z'
 /** A soft shadow under the whale's jaw, where the hood meets the collar. */
 const HOOD_SHADE = 'M14 21 C20 24.5 28 24.5 35 21.5 C42 18.5 50 14 59 11 '
   + 'C52 15.5 45 18.5 38 21 C30 23.8 21 24.5 14 21 Z'
+
+/** A ribbed hem across the bottom of a sweater. */
+const RIB_HEM = 'M16.5 74 L47.5 74 L47.5 80.5 L16.5 80.5 Z'
+
+/** A kangaroo pocket across the front of a hoodie. */
+const POCKET = 'M27 57 C29 53.5 35 53.5 37 57 L38 63 L26 63 Z'
+
+/** The hood lying around the neck of a hoodie. */
+const HOOD_FABRIC = 'M24 44 C24 33 28 28.5 32 28.5 C36 28.5 40 33 40 44 '
+  + 'L40 47 C36 48 28 48 24 47 Z'
 
 /** What one kind wears behind the whale, so its base merges into the hood. */
 function behind(kind: MaskKind) {
