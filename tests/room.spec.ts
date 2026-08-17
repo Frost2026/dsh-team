@@ -8,8 +8,9 @@
 
 import { describe, expect, it } from 'vitest'
 import {
-  CORRIDOR, FIELD, LANES, aisleFor, breakAt, deskOf, footprintOf, poseFor, rowsFor,
-  routeBetween, stationFor, visitAt, walkMs, type Point, type Rect,
+  CORRIDOR, FIELD, HAUNTS, ROOM_BLOCKS, aisleFor, breakAt, deskOf, footprintOf,
+  lengthOf, obstaclesOf, poseFor, rowsFor, routeBetween, smooth, spread,
+  stationFor, visitAt, walkMs, wanderOf, type Point, type Rect,
 } from '../src/client/room.ts'
 
 /** Every desk of one roster, in seating order. */
@@ -28,6 +29,14 @@ function crosses(from: Point, to: Point, rect: Rect): boolean {
     if (inside) return true
   }
   return false
+}
+
+/** Whether a leg CROSSES a rectangle: standing in your own spot at either end
+ *  of it is not crossing it. */
+function plows(from: Point, to: Point, rect: Rect): boolean {
+  const startsInside = crosses(from, from, rect)
+  const endsInside = crosses(to, to, rect)
+  return !startsInside && !endsInside && crosses(from, to, rect)
 }
 
 describe('where a member sits', () => {
@@ -102,42 +111,77 @@ describe('where a visitor stands', () => {
 })
 
 describe('walking the floor', () => {
-  it('turns every walk into horizontal and vertical legs, never a diagonal', () => {
-    const route = routeBetween(deskOf(0, 9), visitAt(deskOf(8, 9), deskOf(0, 9).x))
-    expect(route.length).toBeGreaterThan(2)
-    for (let index = 1; index < route.length; index += 1) {
-      const from = route[index - 1]!
-      const to = route[index]!
-      const moves = (Math.abs(from.x - to.x) > 0.5 ? 1 : 0) + (Math.abs(from.y - to.y) > 0.5 ? 1 : 0)
-      expect(moves).toBe(1)
-    }
-  })
-
-  it('walks around the desks: only the leg out of its own desk touches one', () => {
+  it('never sends a walk through any piece of furniture', () => {
     const floor = desks(9)
-    const rects = floor.map(footprintOf)
+    const obstacles = obstaclesOf(floor)
     for (const [seat, desk] of floor.entries()) {
-      const route = routeBetween(floor[0]!, visitAt(desk, floor[0]!.x))
+      const route = routeBetween(floor[0]!, visitAt(desk, floor[0]!.x), obstacles)
       if (seat === 0) continue
-      for (let index = 2; index < route.length; index += 1) {
-        for (const rect of rects) {
-          expect(crosses(route[index - 1]!, route[index]!, rect), `seat ${seat}, leg ${index}`).toBe(false)
+      expect(route[route.length - 1]).toEqual(visitAt(desk, floor[0]!.x))
+      for (let index = 1; index < route.length; index += 1) {
+        for (const rect of obstacles) {
+          expect(plows(route[index - 1]!, route[index]!, rect), `seat ${seat}, leg ${index}`).toBe(false)
         }
       }
     }
   })
 
-  it('crosses the aisle in front of a row rather than the row itself', () => {
-    const [from, to] = [deskOf(0, 6), deskOf(2, 6)]
-    const route = routeBetween(from, to)
-    expect(route.map(point => point.y)).toContain(aisleFor(from.y))
-    // Two desks at the same depth never send anybody out to a side lane.
-    expect(route.map(point => point.x)).not.toContain(LANES.right)
+  it('takes the straight line when the floor between two places is clear', () => {
+    // Two places on the open floor in front of the desks: nothing stands
+    // between them, so the route is exactly the two ends.
+    const obstacles = obstaclesOf(desks(3))
+    const from = { x: 15, y: 60 }
+    const to = { x: 45, y: 60 }
+    expect(routeBetween(from, to, obstacles)).toEqual([from, to])
   })
 
-  it('goes around by a side lane when the rows differ', () => {
-    const route = routeBetween(deskOf(0, 9), deskOf(8, 9))
-    expect(route.map(point => point.x)).toContain(LANES.right)
+  it('detours around a piece of furniture standing in the way', () => {
+    const wall = { x: 40, y: 40, w: 4, h: 20 }
+    const route = routeBetween({ x: 30, y: 50 }, { x: 54, y: 50 }, [wall])
+    expect(route.length).toBeGreaterThan(2)
+    for (let index = 1; index < route.length; index += 1) {
+      expect(crosses(route[index - 1]!, route[index]!, wall)).toBe(false)
+    }
+  })
+
+  it('finds its way across the whole room, front row to back row', () => {
+    const floor = desks(9)
+    const obstacles = obstaclesOf(floor)
+    const from = deskOf(0, 9)
+    const to = visitAt(deskOf(8, 9), from.x)
+    const route = routeBetween(from, to, obstacles)
+    expect(route.length).toBeGreaterThan(2)
+    expect(route[route.length - 1]).toEqual(to)
+    for (let index = 1; index < route.length; index += 1) {
+      for (const rect of obstacles) {
+        expect(plows(route[index - 1]!, route[index]!, rect)).toBe(false)
+      }
+    }
+  })
+
+  it('walks around the standing furniture of the break corner', () => {
+    const [from, to] = [breakAt(2), visitAt(breakAt(0), breakAt(2).x)]
+    const route = routeBetween(from, to)
+    for (let index = 1; index < route.length; index += 1) {
+      for (const rect of ROOM_BLOCKS) {
+        expect(plows(route[index - 1]!, route[index]!, rect)).toBe(false)
+      }
+    }
+  })
+
+  it('rounds its corners off, without cutting back through the furniture', () => {
+    const wall = { x: 40, y: 40, w: 4, h: 20 }
+    const raw = routeBetween({ x: 30, y: 50 }, { x: 54, y: 50 }, [wall])
+    const route = smooth(raw, [wall])
+    expect(route.length).toBeGreaterThan(2)
+    // Rounding a corner off shortens the walk, and never swings it back
+    // through the furniture it was avoiding.
+    expect(lengthOf(route)).toBeLessThan(lengthOf(raw))
+    expect(route[0]).toEqual(raw[0])
+    expect(route[route.length - 1]).toEqual(raw[raw.length - 1])
+    for (let index = 1; index < route.length; index += 1) {
+      expect(plows(route[index - 1]!, route[index]!, wall)).toBe(false)
+    }
   })
 
   it('keeps the front walkway in front of every desk', () => {
@@ -173,5 +217,30 @@ describe('what a member is doing', () => {
     expect(poseFor(false, 'got', 0)).toBe('reading')
     expect(poseFor(false, undefined, 1)).toBe('reading')
     expect(poseFor(false, 'sent', 0)).toBe('idle')
+  })
+})
+
+
+describe('the idle errands', () => {
+  it('keeps everybody at their own place when the clock has not turned', () => {
+    for (let seat = -1; seat < 9; seat += 1) expect(wanderOf(seat, 0)).toBeUndefined()
+  })
+
+  it('sends a wanderer to a real haunt, and most turns nobody anywhere', () => {
+    for (let tick = 1; tick < 60; tick += 1) {
+      for (let seat = 0; seat < 6; seat += 1) {
+        const haunt = wanderOf(seat, tick)
+        if (haunt !== undefined) {
+          expect(HAUNTS.some(spot => Math.abs(spot.x - haunt.x) < 7 && Math.abs(spot.y - haunt.y) < 1)).toBe(true)
+        }
+      }
+    }
+  })
+
+  it('parts two members sent to the same place, and leaves a lone one alone', () => {
+    const apart = spread([{ x: 50, y: 50 }, { x: 50, y: 50 }])
+    expect(Math.hypot(apart[0]!.x - apart[1]!.x, apart[0]!.y - apart[1]!.y)).toBeGreaterThan(3)
+    const alone = spread([{ x: 30, y: 40 }])
+    expect(alone[0]).toEqual({ x: 30, y: 40 })
   })
 })

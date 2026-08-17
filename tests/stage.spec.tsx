@@ -193,14 +193,27 @@ describe('the room', () => {
   })
 
   it('turns a member around once it is off its own chair', () => {
-    const { container } = stage({
-      messages: [{ messageId: 'm1', from: 'child-1', kind: 'report', text: 'done', time: 1 }],
-    })
-    const away = person(container, 'child-1')
-    expect(away?.getAttribute('data-facing')).toBe('front')
-    expect(away?.querySelector('[data-back="true"]')).toBeNull()
-    // The one still at its desk keeps its back to you.
-    expect(person(container, 'child-2')?.getAttribute('data-facing')).toBe('back')
+    vi.useFakeTimers()
+    try {
+      const { container } = stage({
+        messages: [{ messageId: 'm1', from: 'child-1', kind: 'report', text: 'done', time: 1 }],
+      })
+      // On its feet it faces the room even mid-walk; the figure shows a face,
+      // never a back of head.
+      const away = person(container, 'child-1')
+      expect(away?.getAttribute('data-walk')).toBe('true')
+      expect(away?.querySelector('[data-back="true"]')).toBeNull()
+
+      // Once it arrives it turns to face the leader it is reporting to.
+      act(() => { vi.advanceTimersByTime(4_000) })
+      expect(away?.getAttribute('data-walk')).toBeNull()
+      expect(['left', 'right']).toContain(away?.getAttribute('data-facing'))
+      expect(away?.getAttribute('data-talking')).toBe('from')
+      // The one still at its desk keeps its back to you.
+      expect(person(container, 'child-2')?.getAttribute('data-facing')).toBe('back')
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('lets a member that has delivered and owns nothing leave its desk', () => {
@@ -231,7 +244,11 @@ describe('the room', () => {
 
   it('furnishes the room instead of labelling it', () => {
     const { container } = stage()
-    for (const prop of ['window', 'whiteboard', 'clock', 'sofa', 'table', 'plant', 'cooler', 'rug']) {
+    for (const prop of [
+      'window', 'whiteboard', 'clock', 'shelf', 'poster', 'calendar',
+      'sofa', 'table', 'plant', 'cooler', 'rug',
+      'cabinet', 'printer', 'coffee', 'cat',
+    ]) {
       expect(container.querySelector(`[data-prop="${prop}"]`), prop).toBeTruthy()
     }
   })

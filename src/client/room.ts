@@ -3,10 +3,16 @@
  * doing there, and how a member walks from one place on the floor to another.
  *
  * All of it is pure geometry over the roster — a place comes from a member's
- * index, never from a DOM measurement — and a walk is a chain of horizontal
- * and vertical legs that leaves the desk row through its aisle and crosses the
- * floor along a lane, so a member walks around the furniture instead of
- * drifting over it.
+ * index, never from a DOM measurement. A walk is planned on a visibility graph
+ * built from the furniture itself: every desk, the sofa, the low table, the
+ * cooler and the plant carry a rectangle of floor nobody may cross, the corners
+ * of those rectangles are the only places worth turning at, and the shortest
+ * chain of clear straight lines between them is the walk. Furniture moves, the
+ * routes move with it; nothing is hard-coded to a lane.
+ *
+ * How the flat plan here becomes the box you look into is `stagecraft.ts`'s
+ * job, not this module's: the floor is 0–100 square and knows nothing about
+ * perspective.
  */
 
 /** A point on the floor, in the room's own 0–100 space. */
@@ -61,6 +67,12 @@ const NEAR = 0.5
 
 /** Rows of desks that differ by less than this share one aisle. */
 const BAND = 4
+
+/** How much clear floor a walker keeps between itself and the furniture. */
+const CLEARANCE = 2.4
+
+/** The strip along each wall a route never turns into. */
+const MARGIN = 2.5
 
 /** Round geometry so a style, a test and a route all read the same number. */
 function round(value: number): number {
@@ -158,6 +170,84 @@ export function aisleFor(y: number): number {
   return round(Math.min(CORRIDOR, y + AISLE))
 }
 
+/* ------------------------------------------------------------- the furniture */
+
+/**
+ * The standing furniture of the break corner, in the same 0–100 plan the desks
+ * use. These are the floor rectangles the pieces occupy, which is what a walk
+ * has to know about them; the stylesheet draws them inside the projected
+ * lounge box at the matching fractions of it.
+ */
+export const ROOM_BLOCKS: readonly Rect[] = [
+  /** The sofa, along the back of the corner. */
+  { x: LOUNGE.x + 2.3, y: LOUNGE.y + 1, w: 14.5, h: 7 },
+  /** The low table in front of it. */
+  { x: LOUNGE.x + 4.9, y: LOUNGE.y + 11, w: 10, h: 4.5 },
+  /** The plant, in the far corner. */
+  { x: LOUNGE.x + 21, y: LOUNGE.y + 2, w: 6, h: 6 },
+  /** The water cooler, against the right wall. */
+  { x: LOUNGE.x + 22, y: LOUNGE.y + 12, w: 6, h: 6.5 },
+  /** The filing cabinet and printer, along the left wall of the room. */
+  { x: 0.5, y: 24, w: 6, h: 7 },
+]
+
+/**
+ * Everything a walk goes around: the standing furniture of the room plus one
+ * rectangle per workstation.
+ * @param posts - the desks currently on the floor.
+ * @returns every rectangle of floor a route must stay out of.
+ */
+export function obstaclesOf(posts: Iterable<Post>): readonly Rect[] {
+  return [...ROOM_BLOCKS, ...[...posts].map(footprintOf)]
+}
+
+/** A rectangle grown by the clearance a walker keeps around it. */
+function inflate(rect: Rect, by: number): Rect {
+  return { x: rect.x - by, y: rect.y - by, w: rect.w + by * 2, h: rect.h + by * 2 }
+}
+
+/** Whether a point lies inside a rectangle. */
+function inside(point: Point, rect: Rect): boolean {
+  return point.x > rect.x && point.x < rect.x + rect.w
+    && point.y > rect.y && point.y < rect.y + rect.h
+}
+
+/**
+ * Whether a straight leg passes through the inside of a rectangle. Running
+ * along an edge is not crossing it: a walker may graze the furniture it has
+ * just left without the route being called blocked.
+ */
+function crossesRect(from: Point, to: Point, rect: Rect): boolean {
+  const edge = 0.01
+  const left = rect.x + edge
+  const right = rect.x + rect.w - edge
+  const top = rect.y + edge
+  const bottom = rect.y + rect.h - edge
+  if (right <= left || bottom <= top) return false
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  let enter = 0
+  let leave = 1
+  /** Clip the leg against one of the four slabs; false when it misses entirely. */
+  const clip = (slope: number, distance: number): boolean => {
+    if (Math.abs(slope) < 1e-9) return distance >= 0
+    const cut = distance / slope
+    if (slope < 0) {
+      if (cut > leave) return false
+      if (cut > enter) enter = cut
+    } else {
+      if (cut < enter) return false
+      if (cut < leave) leave = cut
+    }
+    return true
+  }
+  return clip(-dx, from.x - left)
+    && clip(dx, right - from.x)
+    && clip(-dy, from.y - top)
+    && clip(dy, bottom - from.y)
+    && leave > enter + 1e-6
+}
+
 /** Which side lane a trip between these two columns goes around by. */
 function laneFor(fromX: number, toX: number): number {
   return (fromX + toX) / 2 < FIELD.x + FIELD.w / 2 ? LANES.left : LANES.right
@@ -184,17 +274,12 @@ function prune(points: readonly Point[]): readonly Point[] {
 }
 
 /**
- * The walk from one place on the floor to another, as the corners it turns.
- * Two places at the same depth share the aisle in front of them; anywhere else
- * the walk goes out to its own aisle, down a side lane, and in along the
- * destination's aisle. Every leg is horizontal or vertical: nobody cuts a
- * diagonal through a desk.
- * @param from - where the walk starts.
- * @param to - where it ends.
- * @returns the corners, starting at `from` and ending at `to`.
+ * The old lane route, kept as the way out when the graph cannot find one: out
+ * to your own aisle, down a side lane, in along the destination's aisle. It
+ * crosses furniture rather than leaving somebody stranded, which is the right
+ * trade for a room that has been packed too tight to walk through.
  */
-export function routeBetween(from: Point, to: Point): readonly Point[] {
-  if (Math.abs(from.x - to.x) < NEAR && Math.abs(from.y - to.y) < NEAR) return [from]
+function laneRoute(from: Point, to: Point): readonly Point[] {
   if (Math.abs(from.y - to.y) <= BAND) {
     const aisle = aisleFor(Math.max(from.y, to.y))
     return prune([from, { x: from.x, y: aisle }, { x: to.x, y: aisle }, to])
@@ -212,9 +297,246 @@ export function routeBetween(from: Point, to: Point): readonly Point[] {
   ])
 }
 
+/** How far apart two places are. */
+function span(from: Point, to: Point): number {
+  return Math.hypot(to.x - from.x, to.y - from.y)
+}
+
+/**
+ * The corners worth turning at: each blocking rectangle's four corners, pushed
+ * out by the clearance, dropped when they fall inside another piece or off the
+ * floor. A shortest path around rectangles only ever turns at one of these.
+ */
+function cornersOf(blocks: readonly Rect[]): readonly Point[] {
+  const out: Point[] = []
+  for (const block of blocks) {
+    const grown = inflate(block, CLEARANCE)
+    const candidates: Point[] = [
+      { x: grown.x, y: grown.y },
+      { x: grown.x + grown.w, y: grown.y },
+      { x: grown.x, y: grown.y + grown.h },
+      { x: grown.x + grown.w, y: grown.y + grown.h },
+    ]
+    for (const corner of candidates) {
+      const spot = { x: clamp(corner.x, MARGIN, 100 - MARGIN), y: clamp(corner.y, MARGIN, 100 - MARGIN) }
+      if (blocks.some(other => inside(spot, inflate(other, CLEARANCE * 0.6)))) continue
+      out.push(spot)
+    }
+  }
+  return out
+}
+
+/**
+ * The walk from one place on the floor to another, as the corners it turns.
+ *
+ * A member leaves its own desk and walks around everything else: the route is
+ * the shortest chain of clear straight lines between the corners of the
+ * furniture. Whatever the walker is standing in — its own workstation — stops
+ * blocking for the length of that trip, because you are allowed to walk out of
+ * your own chair.
+ * @param from - where the walk starts.
+ * @param to - where it ends.
+ * @param obstacles - the furniture on the floor; defaults to the fixed pieces.
+ * @returns the corners, starting at `from` and ending at `to`.
+ */
+export function routeBetween(
+  from: Point,
+  to: Point,
+  obstacles: readonly Rect[] = ROOM_BLOCKS,
+): readonly Point[] {
+  if (Math.abs(from.x - to.x) < NEAR && Math.abs(from.y - to.y) < NEAR) return [from]
+  // The two ends stand in their own furniture; that furniture cannot block the
+  // trip out of it, or nobody would ever leave a desk.
+  const blocks = obstacles.filter(rect => {
+    const grown = inflate(rect, CLEARANCE * 0.5)
+    return !inside(from, grown) && !inside(to, grown)
+  })
+  const clear = (a: Point, b: Point): boolean => !blocks.some(rect => crossesRect(a, b, rect))
+  if (clear(from, to)) return [from, to]
+
+  const nodes: Point[] = [from, ...cornersOf(blocks), to]
+  const goal = nodes.length - 1
+  const best = nodes.map(() => Infinity)
+  const via = nodes.map(() => -1)
+  const done = nodes.map(() => false)
+  best[0] = 0
+  for (;;) {
+    let at = -1
+    for (const [index, cost] of best.entries()) {
+      if (!done[index] && cost < (at < 0 ? Infinity : best[at]!)) at = index
+    }
+    if (at < 0 || at === goal) break
+    done[at] = true
+    const here = nodes[at]!
+    for (const [index, node] of nodes.entries()) {
+      if (done[index] || index === at || !clear(here, node)) continue
+      const cost = best[at]! + span(here, node)
+      if (cost < best[index]!) {
+        best[index] = cost
+        via[index] = at
+      }
+    }
+  }
+  if (best[goal] === Infinity) return laneRoute(from, to)
+
+  const path: Point[] = []
+  for (let at = goal; at >= 0; at = via[at]!) {
+    path.unshift(nodes[at]!)
+    if (at === 0) break
+  }
+  return prune(path)
+}
+
+/** How far into a leg a turn starts rounding off. */
+const SHOULDER = 2.2
+
+/** How many samples one rounded corner is drawn from. */
+const ARC = 3
+
+/**
+ * The same walk with its corners rounded off. A person turning a corner does
+ * not stop dead and set off again at a right angle: each turn is replaced by a
+ * short arc that starts before the corner and finishes after it, cut back
+ * whenever the legs are too short to give it room.
+ * @param points - the corners of the walk.
+ * @param blocks - furniture the rounded corner still may not cut through.
+ * @returns the walk, as points to be followed in a straight line between.
+ */
+export function smooth(points: readonly Point[], blocks: readonly Rect[] = []): readonly Point[] {
+  if (points.length < 3) return points
+  const out: Point[] = [points[0]!]
+  for (let index = 1; index < points.length - 1; index += 1) {
+    const before = points[index - 1]!
+    const corner = points[index]!
+    const after = points[index + 1]!
+    const back = Math.min(SHOULDER, span(before, corner) * 0.4)
+    const on = Math.min(SHOULDER, span(corner, after) * 0.4)
+    if (back < 0.2 || on < 0.2) {
+      out.push(corner)
+      continue
+    }
+    const start = along(corner, before, back)
+    const end = along(corner, after, on)
+    if (blocks.some(rect => crossesRect(start, end, rect))) {
+      out.push(corner)
+      continue
+    }
+    out.push(start)
+    for (let step = 1; step < ARC; step += 1) out.push(bend(start, corner, end, step / ARC))
+    out.push(end)
+  }
+  out.push(points[points.length - 1]!)
+  return out
+}
+
+/** The point this far from `corner` along the line toward `toward`. */
+function along(corner: Point, toward: Point, distance: number): Point {
+  const length = span(corner, toward) || 1
+  return {
+    x: round(corner.x + ((toward.x - corner.x) / length) * distance),
+    y: round(corner.y + ((toward.y - corner.y) / length) * distance),
+  }
+}
+
+/** One sample of the quadratic curve that rounds a corner off. */
+function bend(start: Point, corner: Point, end: Point, at: number): Point {
+  const rest = 1 - at
+  return {
+    x: round(rest * rest * start.x + 2 * rest * at * corner.x + at * at * end.x),
+    y: round(rest * rest * start.y + 2 * rest * at * corner.y + at * at * end.y),
+  }
+}
+
 /** How long a walk of this length takes, at a walking pace. */
 export function walkMs(distance: number, speed = 34): number {
   return Math.max(140, Math.round((distance / speed) * 1000))
+}
+
+/** The whole length of a walk, corner to corner. */
+export function lengthOf(points: readonly Point[]): number {
+  let total = 0
+  for (let index = 1; index < points.length; index += 1) total += span(points[index - 1]!, points[index]!)
+  return round(total)
+}
+
+/* ------------------------------------------------------------- idle errands */
+
+/**
+ * The places a member with nothing on its plate drifts off to: the cooler, the
+ * two windows, and the plant in the corner. Somewhere to be that is not a
+ * chair — an office where nobody ever gets up is a diorama.
+ */
+export const HAUNTS: readonly Post[] = [
+  /** At the water cooler, filling a cup. */
+  { x: 93, y: 58, gap: 5, scale: 0.92 },
+  /** At the left-hand window, looking out. */
+  { x: 34, y: 20, gap: 6, scale: 0.86 },
+  /** At the right-hand window. */
+  { x: 58, y: 20, gap: 6, scale: 0.86 },
+  /** Stretching by the plant. */
+  { x: 88, y: 47, gap: 5, scale: 0.9 },
+]
+
+/** A stable number in 0–1 for a pair of integers: the same seat, the same trip. */
+function hash(a: number, b: number): number {
+  let value = Math.imul(a + 1, 374761393) + Math.imul(b + 1, 668265263)
+  value = Math.imul(value ^ (value >>> 13), 1274126177)
+  return ((value ^ (value >>> 16)) >>> 0) / 4294967296
+}
+
+/**
+ * Where a member with nothing to do wanders on the nth turn of the room's
+ * clock, if it wanders anywhere at all. Most turns it stays where it is: an
+ * office in which everybody is always on their feet is as wrong as one in
+ * which nobody ever is.
+ * @param seat - the member's index on the roster; the leader passes -1.
+ * @param tick - which turn of the room's clock this is.
+ * @returns the place it drifts to, or nothing if it stays put.
+ */
+export function wanderOf(seat: number, tick: number): Post | undefined {
+  // The first turn keeps everybody put: nobody arrives in the room already
+  // out of its chair.
+  if (tick === 0) return undefined
+  if (hash(seat, tick) < 0.62) return undefined
+  const pick = Math.floor(hash(seat, tick + 7919) * HAUNTS.length)
+  const haunt = HAUNTS[Math.min(HAUNTS.length - 1, pick)]
+  if (haunt === undefined) return undefined
+  // Two members who drift to the same haunt stand beside each other rather than
+  // inside each other: each seat keeps its own place at the cooler.
+  const step = ((seat + 1) % 3) - 1
+  return { ...haunt, x: round(clamp(haunt.x + step * 4.5, MARGIN, 100 - MARGIN)) }
+}
+
+/** How far apart two members standing still push each other. */
+const PERSONAL = 5
+
+/**
+ * The same places with nobody standing inside anybody else. Two members sent
+ * to the same corner would otherwise draw one on top of the other; one pass of
+ * separation is enough to tell them apart without moving either far enough to
+ * leave the spot it was sent to.
+ * @param spots - where each member has been told to stand, in roster order.
+ * @returns the same list, nudged apart.
+ */
+export function spread(spots: readonly Point[]): readonly Point[] {
+  const out = spots.map(spot => ({ x: spot.x, y: spot.y }))
+  for (const [index, spot] of out.entries()) {
+    for (let other = index + 1; other < out.length; other += 1) {
+      const mate = out[other]!
+      const apart = span(spot, mate)
+      if (apart >= PERSONAL) continue
+      // Two members sent to exactly one point are parted along the floor, not
+      // along a zero-length line: the tie is broken by roster order.
+      const push = (PERSONAL - apart) / 2
+      const dx = apart < 0.01 ? 1 : (mate.x - spot.x) / apart
+      const dy = apart < 0.01 ? 0 : (mate.y - spot.y) / apart
+      spot.x = clamp(spot.x - dx * push, MARGIN, 100 - MARGIN)
+      spot.y = clamp(spot.y - dy * push, MARGIN, 100 - MARGIN)
+      mate.x = clamp(mate.x + dx * push, MARGIN, 100 - MARGIN)
+      mate.y = clamp(mate.y + dy * push, MARGIN, 100 - MARGIN)
+    }
+  }
+  return out.map(spot => ({ x: round(spot.x), y: round(spot.y) }))
 }
 
 /** The last thing that happened to one member in the visible mailbox tail. */

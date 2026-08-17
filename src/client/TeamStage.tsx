@@ -12,7 +12,7 @@
  * the roster alone (no DOM measurement), so the picture is a function of the
  * durable state and nothing else.
  */
-import { useEffect, useMemo, useRef, useState, useId } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { StateDot } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale, PropsRuntime, SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
@@ -26,11 +26,18 @@ import {
   IconTeamPeer16, IconTeamSend16, IconTeamTask16, IconTeamWorkspace16,
 } from './icons.tsx'
 import {
-  LOUNGE, breakAt, deskOf, poseFor, stationFor, visitAt,
-  type Desk, type Point, type Pose, type Post, type Touch,
+  ROOM_BLOCKS, breakAt, deskOf, obstaclesOf, poseFor, spread, stationFor, visitAt,
+  type Desk, type Point, type Pose, type Post, type Rect, type Touch,
 } from './room.ts'
-import { useWalk, type Facing } from './walk.ts'
-import { Crew, accentOf, maskOf, outfitOf, shoeOf } from './crew.tsx'
+import { onWall, project, shellVars } from './stagecraft.ts'
+import { useIdleErrand, useWalk, type Facing } from './walk.ts'
+import {
+  Crew, accentOf, gearOf, hairOf, maskOf, outfitOf, shoeOf, skinOf, toneOf,
+} from './crew.tsx'
+import { Plant, plantOf } from './flora.tsx'
+import {
+  CabinetFigure, CatFigure, ChairFigure, CoffeeFigure, CoolerFigure, PendantFigure, PrinterFigure,
+} from './props.tsx'
 import css from './TeamStage.module.css'
 
 /** What the plugin's session follower publishes to this entry. */
@@ -150,20 +157,32 @@ function Cameo(props: { readonly seat: number | undefined, readonly name: string
   if (seat === undefined) return <span className={css.discGlyph}>{initial(name)}</span>
   return (
     <span className={css.cameo} data-cameo-species={maskOf(seat)} style={accentOf(seat)}>
-      <Crew kind={maskOf(seat)} className={css.cameoCrew} portrait />
+      <Crew
+        kind={maskOf(seat)}
+        className={css.cameoCrew}
+        portrait
+        hair={hairOf(seat)}
+        gear={gearOf(seat)}
+        tone={toneOf(seat)}
+        skin={skinOf(seat)}
+      />
     </span>
   )
 }
 
 /** Where one thing stands on the floor, and how big it draws there. */
 function at(post: Post | Point, scale: number): CSSProperties {
+  const screen = project(post)
   return {
-    left: `${post.x}%`,
-    top: `${post.y}%`,
+    left: `${screen.left}%`,
+    top: `${screen.top}%`,
     // Depth rides a variable rather than an inline z-index: an inline z-index
     // would outrank the stylesheet and pin a hovered member under its desk.
     '--team-depth': Math.round(post.y),
-    '--team-scale': scale,
+    // Perspective and the member's own size are one number by the time the
+    // stylesheet sees them: something further back is smaller by exactly the
+    // amount the floor under it is narrower.
+    '--team-scale': Math.round(screen.scale * scale * 1000) / 1000,
   } as CSSProperties
 }
 
@@ -264,6 +283,7 @@ export function TeamStage(props: TeamStageProps) {
   const homes = new Map<string, Post>()
   /** Who is away from its own desk, so the desk can be drawn empty. */
   const away = new Set<string>()
+  const stations: Post[] = []
   let breaks = 0
   for (const id of roster) {
     const desk = desks.get(id) ?? deskOf(0, roster.length)
@@ -271,8 +291,37 @@ export function TeamStage(props: TeamStageProps) {
       ? 'desk'
       : stationFor(running.has(id), touched.get(id), openOf(id))
     if (station === 'break') away.add(id)
-    homes.set(id, station === 'break' ? breakAt(breaks++) : desk)
+    stations.push(station === 'break' ? breakAt(breaks++) : desk)
   }
+  // Four members on a break share three places to stand around the sofa; one
+  // pass of separation keeps the fourth beside the first rather than inside it.
+  const parted = spread(stations)
+  roster.forEach((id, index) => {
+    const post = stations[index]!
+    homes.set(id, { ...post, ...parted[index]! })
+  })
+
+  /**
+   * Where one piece of the break corner stands, and how large it draws there.
+   * A piece is placed by its OWN plan rectangle — the same rectangle a walk
+   * goes around — so the furniture it is drawn as and the furniture it is
+   * walked around as are the same furniture, and it can never creep off the
+   * floor and up a wall.
+   */
+  const loungePiece = (rect: Rect): CSSProperties => {
+    const screen = project({ x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 })
+    return {
+      left: `${screen.left}%`,
+      top: `${screen.top}%`,
+      width: `${Math.round(rect.w * screen.scale * 100) / 100}%`,
+      height: `${Math.round(rect.h * screen.scale * 100) / 100}%`,
+      '--team-depth': Math.round(rect.y + rect.h / 2),
+    } as CSSProperties
+  }
+  /** The rug and the floor lamp are furniture too, so they get plan rects. */
+  const rugRect: Rect = { x: 70.5, y: 53.5, w: 21, h: 7.5 }
+  const lampRect: Rect = { x: 70, y: 47.5, w: 3, h: 7 }
+  const [sofaBlock, tableBlock, plantBlock, coolerBlock] = ROOM_BLOCKS
 
   const peers = members.filter(member => member.relation === 'peer')
   const openTasks = tasks.filter(task => task.status !== 'done').length
@@ -280,10 +329,8 @@ export function TeamStage(props: TeamStageProps) {
 
   /** The delivery on its feet: who carries it, to whom, and where they meet. */
   const errand = errandOf(visit, leaderId, homes)
-  const spotOf = (id: string): Point => {
-    if (errand !== undefined && errand.fromId === id) return errand.meet
-    return homes.get(id) ?? { x: 50, y: 50 }
-  }
+  const visitOf = (id: string): Point | undefined =>
+    errand !== undefined && errand.fromId === id ? errand.meet : undefined
   /** Which way the two ends of a delivery turn while they talk. */
   const turnOf = (id: string): Facing | undefined => {
     if (errand === undefined) return undefined
@@ -308,7 +355,8 @@ export function TeamStage(props: TeamStageProps) {
         name={name}
         seat={seat}
         home={home}
-        spot={spotOf(id)}
+        errand={visitOf(id)}
+        count={roster.length}
         scale={home.scale}
         relation={member?.relation ?? 'lead'}
         role={member?.role}
@@ -365,26 +413,48 @@ export function TeamStage(props: TeamStageProps) {
 
       <div className={css.scene}>
         <section className={css.roomPane} aria-label={t('stage.room')}>
-          <div className={css.floor}>
-            <span className={css.wall} aria-hidden>
-              <span className={css.window} data-prop="window" />
-              <span className={css.window} data-prop="window" />
-              <span className={css.whiteboard} data-prop="whiteboard" />
-              <span className={css.clockProp} data-prop="clock" />
-              <span className={css.shelf} data-prop="shelf" />
+          <div className={css.floor} style={shellVars()}>
+            {/* The box you are looking into. Five faces, all cut from the same
+                numbers the floor arithmetic uses, so the walls meet the floor
+                exactly where a member standing at the back wall would. */}
+            <span className={css.shell} aria-hidden>
+              <span className={css.ceiling} />
+              <span className={css.wallLeft} />
+              <span className={css.wallRight} />
+              <span className={css.wallBack} />
+              <span className={css.floorPlane} />
+              <span className={css.skirting} />
             </span>
 
-            <div
-              className={css.lounge}
-              aria-hidden
-              style={{ left: `${LOUNGE.x}%`, top: `${LOUNGE.y}%`, width: `${LOUNGE.w}%`, height: `${LOUNGE.h}%` }}
-            >
-              <span className={css.rug} data-prop="rug" />
-              <span className={css.sofa} data-prop="sofa" />
-              <span className={css.table} data-prop="table" />
-              <span className={css.lamp} data-prop="lamp" />
-              <span className={css.plant} data-prop="plant" />
-              <span className={css.cooler} data-prop="cooler" aria-hidden>
+            <RoomWall />
+
+            {/* Over the desk field and the shelf: the ceiling between the
+                windows is where a real office hangs its lamps. */}
+            <span className={css.pendant} style={{ left: `${onWall(50)}%` }} aria-hidden>
+              <PendantFigure />
+            </span>
+
+            {/* The service wall on the left: the things an office has that
+                nobody has a desk for. */}
+            <span className={css.utility} style={at({ x: 3.5, y: 31 }, 1)} aria-hidden>
+              <span className={css.utilityCabinet} data-prop="cabinet"><CabinetFigure /></span>
+              <span className={css.utilityPrinter} data-prop="printer"><PrinterFigure /></span>
+              <span className={css.utilityCoffee} data-prop="coffee"><CoffeeFigure /></span>
+            </span>
+
+            <span className={css.cat} data-prop="cat" aria-hidden>
+              <CatFigure />
+            </span>
+
+            <div className={css.lounge} aria-hidden>
+              <span className={css.rug} data-prop="rug" style={loungePiece(rugRect)} />
+              <span className={css.sofa} data-prop="sofa" style={loungePiece(sofaBlock!)} />
+              <span className={css.table} data-prop="table" style={loungePiece(tableBlock!)} />
+              <span className={css.lamp} data-prop="lamp" style={loungePiece(lampRect)} />
+              <span className={css.plant} data-prop="plant" style={loungePiece(plantBlock!)}>
+                <Plant kind={plantOf(0)} />
+              </span>
+              <span className={css.cooler} data-prop="cooler" style={loungePiece(coolerBlock!)}>
                 <CoolerFigure />
               </span>
             </div>
@@ -610,129 +680,79 @@ function screenLineOf(
   return inbound === undefined ? undefined : short(inbound.text, 34)
 }
 
-/** A water cooler drawn as one SVG: the bottle and the cabinet share real
- *  edges and their own gradients, so the corner prop stays crisp at any size. */
-function CoolerFigure() {
-  const uid = useId().replaceAll(':', '')
+/**
+ * The back wall of the room, and everything hung on it.
+ *
+ * Every fixture is placed by the SAME floor coordinate a member would stand at
+ * to look at it: `onWall` maps a place on the plan onto the wall's own width,
+ * so the window somebody wanders over to is the window they end up under. The
+ * wall itself is a face of the shell; this is only what is screwed to it.
+ */
+function RoomWall() {
   return (
-    <svg className={css.coolerSvg} viewBox="0 0 64 96" aria-hidden focusable="false">
-      <defs>
-        <linearGradient id={`${uid}-cabinet`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" style={{ stopColor: 'var(--team-cooler-lit)' }} />
-          <stop offset="0.2" style={{ stopColor: 'var(--team-cooler)' }} />
-          <stop offset="0.82" style={{ stopColor: 'var(--team-cooler)' }} />
-          <stop offset="1" style={{ stopColor: 'var(--team-cooler-dark)' }} />
-        </linearGradient>
-        <linearGradient id={`${uid}-bottle`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" style={{ stopColor: 'var(--team-cooler-bottle-dark)' }} />
-          <stop offset="0.35" style={{ stopColor: 'var(--team-cooler-bottle)' }} />
-          <stop offset="0.7" style={{ stopColor: 'var(--team-cooler-bottle-lit)' }} />
-          <stop offset="1" style={{ stopColor: 'var(--team-cooler-bottle-dark)' }} />
-        </linearGradient>
-        <linearGradient id={`${uid}-water`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" style={{ stopColor: 'var(--team-cooler-water-lit)' }} />
-          <stop offset="1" style={{ stopColor: 'var(--team-cooler-water)' }} />
-        </linearGradient>
-      </defs>
-      <path className={css.coolerShadow} d="M12 88 C20 95 44 95 52 88 L52 91 C44 97 20 97 12 91 Z" />
-      <path
-        className={css.coolerCabinet}
-        d="M10 46 H54 V85 Q54 90 49.5 90 H14.5 Q10 90 10 85 Z"
-        fill={`url(#${uid}-cabinet)`}
-      />
-      <path className={css.coolerCabinetTop} d="M10 46 H54 V52 Q54 54 52 54 H12 Q10 54 10 52 Z" />
-      <path className={css.coolerCabinetEdge} d="M10 46 H54 V85 Q54 90 49.5 90 H14.5 Q10 90 10 85 Z" />
-      <path className={css.coolerPanel} d="M15 58 H49 V82 H15 Z" />
-      <path className={css.coolerDoorSeam} d="M32 58 V82" />
-      <path className={css.coolerTap} d="M21 61 H31 M33 61 H43" />
-      <circle className={css.coolerHandleWarm} cx="26" cy="58" r="2" />
-      <circle className={css.coolerHandleCool} cx="38" cy="58" r="2" />
-      <path className={css.coolerDrip} d="M15 84 H49 V87.5 H15 Z" />
-      <path
-        className={css.coolerBottle}
-        d="M18 46 C18 31 21.5 19 27 12 L37 12 C42.5 19 46 31 46 46 Z"
-        fill={`url(#${uid}-bottle)`}
-      />
-      <path
-        className={css.coolerWater}
-        d="M20 46 C20 33.5 22.8 22 27.3 16.5 L36.7 16.5 C41.2 22 44 33.5 44 46 Z"
-        fill={`url(#${uid}-water)`}
-      />
-      <path
-        className={css.coolerNeck}
-        d="M27 12 L27 4.5 C27 3 28 2 29.5 2 L34.5 2 C36 2 37 3 37 4.5 L37 12 Z"
-        fill={`url(#${uid}-bottle)`}
-      />
-      <rect className={css.coolerCap} x="24" y="0" width="16" height="5" rx="1.8" />
-      <path className={css.coolerShine} d="M21.5 44 C21.5 32.5 24.3 21.5 29 15 C26.2 21 23.5 30.5 23.5 44 Z" />
-      <circle className={css.coolerBubble} cx="27" cy="32" r="0.9" />
-      <circle className={css.coolerBubble} cx="36" cy="37" r="1.1" />
-      <circle className={css.coolerBubble} cx="31" cy="27" r="0.7" />
-    </svg>
-  )
-}
+    <span className={css.wall} aria-hidden>
+      <span className={css.whiteboard} data-prop="whiteboard" style={{ left: `${onWall(16)}%` }}>
+        <span className={css.boardGhost} />
+        <span className={css.boardInk} />
+        <span className={css.boardNote} data-note="a" />
+        <span className={css.boardNote} data-note="b" />
+        <span className={css.boardTray} />
+        <span className={css.boardTrayTop} />
+        <span className={css.boardPens} />
+        <span className={css.boardEraser} />
+      </span>
 
-/** A chair seen from behind: one SVG, because a chair this small needs real
- *  edges — a curved backrest shell, a mesh panel, a lumbar pad, a spine
- *  bracket, a gas lift, and a five-star base with casters. */
-function ChairFigure() {
-  const uid = useId().replaceAll(':', '')
-  return (
-    <svg className={css.chairSvg} viewBox="0 0 64 95" aria-hidden focusable="false">
-      <defs>
-        <linearGradient id={`${uid}-shell`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" style={{ stopColor: 'var(--team-chair-lit)' }} />
-          <stop offset="0.55" style={{ stopColor: 'var(--team-chair)' }} />
-          <stop offset="1" style={{ stopColor: 'var(--team-chair-dark)' }} />
-        </linearGradient>
-        <linearGradient id={`${uid}-mesh`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" style={{ stopColor: 'color-mix(in srgb, var(--team-chair-lit) 58%, transparent)' }} />
-          <stop offset="1" style={{ stopColor: 'color-mix(in srgb, var(--team-chair) 42%, transparent)' }} />
-        </linearGradient>
-        <linearGradient id={`${uid}-lift`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" style={{ stopColor: 'var(--team-chair-dark)' }} />
-          <stop offset="0.35" style={{ stopColor: 'var(--team-chair-lit)' }} />
-          <stop offset="0.65" style={{ stopColor: 'var(--team-chair)' }} />
-          <stop offset="1" style={{ stopColor: 'var(--team-chair-dark)' }} />
-        </linearGradient>
-      </defs>
-      <g className={css.chairRide}>
-        <path
-          className={css.chairShell}
-          d="M12 12 C12 4 20 1.5 32 1.5 C44 1.5 52 4 52 12 L52 44 C52 51 45 53.5 32 53.5 C19 53.5 12 51 12 44 Z"
-          fill={`url(#${uid}-shell)`}
-        />
-        <path
-          className={css.chairShellEdge}
-          d="M12 12 C12 4 20 1.5 32 1.5 C44 1.5 52 4 52 12 L52 44 C52 51 45 53.5 32 53.5 C19 53.5 12 51 12 44 Z"
-        />
-        <path
-          className={css.chairMesh}
-          d="M18 14 C18 10.5 23 8 32 8 C41 8 46 10.5 46 14 L46 40 C46 45.5 40 47.5 32 47.5 C24 47.5 18 45.5 18 40 Z"
-          fill={`url(#${uid}-mesh)`}
-        />
-        <path className={css.chairMeshLine} d="M19 17 L45 17 M19 22 L45 22 M19 27 L45 27 M19 32 L45 32 M19 37 L45 37 M19 42 L45 42" />
-        <path className={css.chairLumbar} d="M20 30 C24 27.5 40 27.5 44 30 L44 37 C40 40 24 40 20 37 Z" fill={`url(#${uid}-shell)`} />
-        <path className={css.chairSpine} d="M27 52 L37 52 L34.5 63 L29.5 63 Z" />
-        <rect className={css.chairMechanism} x="24" y="62" width="16" height="6" rx="2.5" />
-      </g>
-      <rect className={css.chairLift} x="30" y="68" width="4" height="15" rx="2" fill={`url(#${uid}-lift)`} />
-      <ellipse className={css.chairHub} cx="32" cy="86" rx="6.5" ry="3" />
-      <g className={css.chairSpokes}>
-        <path d="M32 85 L7 92" />
-        <path d="M32 85 L18 94.5" />
-        <path d="M32 85 L46 94.5" />
-        <path d="M32 85 L57 92" />
-        <path d="M32 85 L32 95" />
-      </g>
-      <g className={css.chairCasters}>
-        <circle cx="7" cy="92" r="2.4" />
-        <circle cx="18" cy="94.5" r="2.4" />
-        <circle cx="46" cy="94.5" r="2.4" />
-        <circle cx="57" cy="92" r="2.4" />
-        <circle cx="32" cy="95" r="2.4" />
-      </g>
-    </svg>
+      <span className={css.hanger} style={{ left: `${onWall(25)}%` }}>
+        <span className={css.hangerBracket} />
+        <Plant kind="pothos" className={css.hangerPlant} />
+      </span>
+
+      {[30, 62].map(where => (
+        <span key={where} className={css.window} data-prop="window" style={{ left: `${onWall(where)}%` }}>
+          <span className={css.pane}>
+            <span className={css.sky} />
+            <span className={css.cloud} data-cloud="near" />
+            <span className={css.cloud} data-cloud="far" />
+            <span className={css.sea} />
+            <span className={css.sail} />
+          </span>
+          {/* The reveal: two faces of the opening, so the glass is set into a
+              wall with thickness rather than painted onto a flat one. */}
+          <span className={css.reveal} />
+          <span className={css.mullion} />
+          <span className={css.sillTop} />
+          <span className={css.sill} />
+          <span className={css.beam} />
+        </span>
+      ))}
+
+      <span className={css.shelf} data-prop="shelf" style={{ left: `${onWall(46)}%` }}>
+        <span className={css.books} />
+        <span className={css.bookLeaning} />
+        <span className={css.trophy} />
+        <Plant kind="cactus" className={css.shelfPlant} />
+        <span className={css.plankTop} />
+        <span className={css.plank} />
+        <span className={css.plankBracket} />
+      </span>
+
+      <span className={css.clockProp} data-prop="clock" style={{ left: `${onWall(74)}%` }}>
+        <span className={css.clockTicks} />
+        <span className={css.clockHand} data-hand="hour" />
+        <span className={css.clockHand} data-hand="minute" />
+        <span className={css.clockHand} data-hand="second" />
+        <span className={css.clockPin} />
+      </span>
+
+      <span className={css.poster} data-prop="poster" style={{ left: `${onWall(86)}%` }}>
+        <span className={css.posterArt} />
+      </span>
+
+      <span className={css.calendar} data-prop="calendar" style={{ left: `${onWall(8)}%` }}>
+        <span className={css.calendarHead} />
+        <span className={css.calendarGrid} />
+      </span>
+    </span>
   )
 }
 
@@ -763,7 +783,17 @@ function Workstation(props: {
         data-empty={empty ? 'true' : undefined}
         aria-hidden
       >
-        <span className={css.deskTop} data-prop="desk" />
+        {/* The slab is a box: a lid you can see across, an apron under its near
+            edge and one flank. Everything standing on the desk is placed on the
+            lid, so a mug sits back on the surface instead of on the front rail. */}
+        <span className={css.deskTop} data-prop="desk">
+          <span className={css.deskFlank} />
+          <span className={css.deskSurface} />
+          <span className={css.deskApron} />
+          <span className={css.deskGrain} />
+        </span>
+        <span className={css.deskLegs} />
+        <span className={css.deskModesty} />
         <span className={css.monitor} data-prop="monitor" title={line}>
           {/* The machine is never blank: an idle seat still shows its own
               preset picture, only dimmer. A dark rectangle would read as a
@@ -776,11 +806,14 @@ function Workstation(props: {
           <span className={css.neck} />
           <span className={css.base} />
         </span>
-        {/* Drawn after the computer, because they sit on the near edge of the
-            desk while it stands at the back of it. */}
+        {/* Drawn after the computer, because they sit on the near half of the
+            lid while it stands at the back of it. */}
         <span className={css.keyboard} data-prop="keyboard" />
         <span className={css.mug} data-prop="mug" />
         <span className={css.papers} data-prop="papers" />
+        <span className={css.deskPlant} data-prop="deskPlant">
+          <Plant kind={plantOf(seat + 2)} />
+        </span>
       </div>
       {/* The chair is the nearest layer at the seat: the backrest reads in
           front of the member, and the SVG keeps its edges crisp at any size. */}
@@ -803,7 +836,10 @@ function MemberTile(props: {
   readonly name: string
   readonly seat: number
   readonly home: Post
-  readonly spot: Point
+  /** Where a delivery has called it away to, while one is in flight. */
+  readonly errand: Point | undefined
+  /** How many members the room seats, so the tile knows the furniture. */
+  readonly count: number
   readonly scale: number
   readonly relation: 'peer' | 'managed' | 'lead'
   readonly role: string | undefined
@@ -824,29 +860,41 @@ function MemberTile(props: {
   readonly t: Translate
 }) {
   const {
-    id, name, seat, home, spot, scale, relation, role, current, running, pose, away,
+    id, name, seat, home, errand, count, scale, relation, role, current, running, pose, away,
     focused, talking, turn, speech, tasks, label, title, onOpen, onFocus, t,
   } = props
-  const walk = useWalk(home, spot)
+  // The furniture only changes when the roster does, and the walk hook keys its
+  // frame loop on this list: rebuilding it every render would restart the trip.
+  const obstacles = useMemo(
+    () => obstaclesOf(Array.from({ length: count }, (_, index) => deskOf(index, count))),
+    [count],
+  )
+  // Somebody with nothing on their plate and nowhere to be drifts off now and
+  // then. A delivery outranks a daydream, and the leader keeps its seat — the
+  // first desk is the room's anchor, and a wandering host is a dropped mail.
+  const loose = seat >= 0 && pose === 'idle' && errand === undefined && talking === undefined
+  const wander = useIdleErrand(seat, loose)
+  const spot: Point = errand ?? (loose ? wander ?? home : home)
+  const walk = useWalk(home, spot, obstacles, scale)
   const mask = maskOf(seat)
   const outfit = outfitOf(seat)
   const shoes = shoeOf(seat)
   // At its own desk a member faces its own computer, so you see it from
   // behind; on its feet or away from its desk it turns back around.
-  const back = !walk.walking && !away && talking === undefined
+  const seated = !walk.walking && !away && talking === undefined && wander === undefined
+  const facing = walk.walking ? walk.facing : turn ?? (seated ? 'back' : 'front')
   const relationLabel = relation === 'lead'
     ? undefined
     : relation === 'peer' ? t('relation.peer') : t('relation.managed')
   return (
     <button
       type="button"
+      ref={walk.ref}
       className={css.person}
       style={{
-        ...at(walk, scale),
         ...accentOf(seat),
         ...chairDelay(seat),
         ...stagger(seat + 1),
-        transitionDuration: `${walk.ms}ms`,
       }}
       onClick={onOpen}
       onMouseEnter={() => { onFocus(id) }}
@@ -860,7 +908,7 @@ function MemberTile(props: {
       data-pose={pose}
       data-away={away ? 'true' : undefined}
       data-walk={walk.walking ? 'true' : undefined}
-      data-facing={walk.walking ? walk.facing : turn ?? (back ? 'back' : 'front')}
+      data-facing={facing}
       data-running={running ? 'true' : undefined}
       data-focus={focused ? 'true' : undefined}
       data-talking={talking}
@@ -872,7 +920,17 @@ function MemberTile(props: {
       {pose === 'idle' && !away && talking === undefined && <span className={css.doze} aria-hidden>zZ</span>}
 
       <span className={css.body}>
-        <Crew kind={mask} back={back} outfit={outfit} shoes={shoes} className={css.figure} />
+        <Crew
+          kind={mask}
+          back={facing === 'back' || facing === 'away'}
+          outfit={outfit}
+          shoes={shoes}
+          hair={hairOf(seat)}
+          gear={gearOf(seat)}
+          tone={toneOf(seat)}
+          skin={skinOf(seat)}
+          className={css.figure}
+        />
         {relation === 'lead' && (
           <span className={css.crown} aria-hidden>
             <IconTeamLeader16 size={12} />

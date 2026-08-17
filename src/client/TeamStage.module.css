@@ -323,285 +323,948 @@
   border: 1px solid var(--dsw-alias-border-l2);
   border-radius: 14px;
   overflow: hidden;
-  /* A cool wall over a warm floor: the two ends of the token sheet's own
-     colour range, so the room reads as a room and not as a grey sheet. */
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--team-hue) 9%, var(--team-page)) 0 14%,
-      color-mix(in srgb, var(--team-hue) 5%, var(--team-page)) 14% 21%,
-      color-mix(in srgb, var(--team-warm) 10%, var(--team-page)) 21.2% 40%,
-      color-mix(in srgb, var(--team-warm) 17%, var(--team-page)) 100%
-    );
+  background: var(--team-page);
 }
 
-/* Floorboards, laid from the foot of the back wall toward the viewer. The
-   boards space out as they come forward, which is all the perspective this
-   room needs. */
-.floor::before {
-  content: '';
+/* ------------------------------------------------------------- the shell */
+
+/* Five faces of one box. Every polygon is cut from the two numbers
+   `stagecraft.ts` hands down — how far in the back wall stands
+   (`--team-far-inset`) and how far down the stage the floor starts
+   (`--team-floor-top`) — and so is every place a member can stand. Nothing
+   here is eyeballed: change either number and the walls, the floor and the
+   whole cast move together. */
+.shell {
   position: absolute;
-  inset: 21% 0 0;
-  background-image:
-    repeating-linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--team-warm) 24%, transparent) 0 1px,
-      transparent 1px 9%
-    );
-  opacity: 0.3;
+  inset: 0;
+  z-index: 0;
   pointer-events: none;
 }
 
-/* The skirting board where the wall meets the floor. */
-.floor::after {
-  content: '';
+.shell > * {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 21%;
-  height: 6px;
+  inset: 0;
+  content: '';
+}
+
+/* The ceiling, closing the box over your head. The light that washes it comes
+   from the two pendants below, so it is brightest along its front edge. */
+.ceiling {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    calc(100% - var(--team-far-inset)) var(--team-wall-top),
+    var(--team-far-inset) var(--team-wall-top)
+  );
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--team-ink) 22%, var(--team-page)) 0 2px,
-      color-mix(in srgb, var(--team-ink) 8%, var(--team-page)) 2px 100%
+      color-mix(in srgb, var(--team-ink) 13%, var(--team-page)) 0,
+      color-mix(in srgb, var(--team-ink) 5%, var(--team-page)) 100%
     );
-  pointer-events: none;
+}
+
+/* The back wall: the lit face, because the windows are in it. */
+.wallBack {
+  clip-path: polygon(
+    var(--team-far-inset) var(--team-wall-top),
+    calc(100% - var(--team-far-inset)) var(--team-wall-top),
+    calc(100% - var(--team-far-inset)) var(--team-floor-top),
+    var(--team-far-inset) var(--team-floor-top)
+  );
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-hue) 11%, var(--team-page)) 0,
+      color-mix(in srgb, var(--team-hue) 5%, var(--team-page)) 62%,
+      color-mix(in srgb, var(--team-hue) 8%, var(--team-page)) 100%
+    );
+}
+
+/* The side walls turn away from the light: the left one catches some of it,
+   the right one is in shade. Three faces at three values is the whole reason
+   the room reads as a room and not as a backdrop. */
+.wallLeft,
+.wallRight {
+  background: color-mix(in srgb, var(--team-hue) 15%, var(--team-page));
+}
+
+.wallLeft {
+  clip-path: polygon(0 0, var(--team-far-inset) var(--team-wall-top), var(--team-far-inset) var(--team-floor-top), 0 100%);
+  background:
+    linear-gradient(
+      92deg,
+      color-mix(in srgb, var(--team-ink) 17%, var(--team-page)) 0,
+      color-mix(in srgb, var(--team-hue) 12%, var(--team-page)) 100%
+    );
+}
+
+.wallRight {
+  clip-path: polygon(
+    100% 0,
+    calc(100% - var(--team-far-inset)) var(--team-wall-top),
+    calc(100% - var(--team-far-inset)) var(--team-floor-top),
+    100% 100%
+  );
+  background:
+    linear-gradient(
+      88deg,
+      color-mix(in srgb, var(--team-hue) 12%, var(--team-page)) 0,
+      color-mix(in srgb, var(--team-ink) 21%, var(--team-page)) 100%
+    );
+}
+
+/* The floor. The boards run across the room and bunch up toward the back: the
+   stops are the projection's own depths, so a board is where a member standing
+   on it would be. */
+.floorPlane {
+  clip-path: polygon(
+    0 100%,
+    100% 100%,
+    calc(100% - var(--team-far-inset)) var(--team-floor-top),
+    var(--team-far-inset) var(--team-floor-top)
+  );
+  background:
+    radial-gradient(ellipse 26% 30% at 34% 62%, color-mix(in srgb, var(--team-warm) 22%, transparent) 0, transparent 70%),
+    radial-gradient(ellipse 26% 30% at 66% 62%, color-mix(in srgb, var(--team-warm) 22%, transparent) 0, transparent 70%),
+    linear-gradient(
+      180deg,
+      transparent 0 27.4%,
+      color-mix(in srgb, var(--team-warm) 30%, transparent) 27.4% 27.6%,
+      transparent 27.6% 32.2%,
+      color-mix(in srgb, var(--team-warm) 30%, transparent) 32.2% 32.5%,
+      transparent 32.5% 37.6%,
+      color-mix(in srgb, var(--team-warm) 30%, transparent) 37.6% 37.9%,
+      transparent 37.9% 43.5%,
+      color-mix(in srgb, var(--team-warm) 30%, transparent) 43.5% 43.9%,
+      transparent 43.9% 50.2%,
+      color-mix(in srgb, var(--team-warm) 30%, transparent) 50.2% 50.6%,
+      transparent 50.6% 57.7%,
+      color-mix(in srgb, var(--team-warm) 30%, transparent) 57.7% 58.2%,
+      transparent 58.2% 66.2%,
+      color-mix(in srgb, var(--team-warm) 30%, transparent) 66.2% 66.8%,
+      transparent 66.8% 75.8%,
+      color-mix(in srgb, var(--team-warm) 30%, transparent) 75.8% 76.5%,
+      transparent 76.5% 87%,
+      color-mix(in srgb, var(--team-warm) 30%, transparent) 87% 87.8%,
+      transparent 87.8% 100%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-warm) 13%, var(--team-page)) 0,
+      color-mix(in srgb, var(--team-warm) 19%, var(--team-page)) 100%
+    );
+}
+
+/* The skirting where the back wall meets the floor. */
+.skirting {
+  clip-path: polygon(
+    var(--team-far-inset) var(--team-floor-top),
+    calc(100% - var(--team-far-inset)) var(--team-floor-top),
+    calc(100% - var(--team-far-inset)) calc(var(--team-floor-top) + 1.5%),
+    var(--team-far-inset) calc(var(--team-floor-top) + 1.5%)
+  );
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-page) 44%, var(--team-ink)) 0 22%,
+      color-mix(in srgb, var(--team-ink) 26%, var(--team-page)) 22% 100%
+    );
+}
+
+/* The same board, carried around each side wall so the three faces are joined
+   rather than merely adjacent. */
+.wallLeft::after,
+.wallRight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--team-ink) 24%, var(--team-page));
+}
+
+.wallLeft::after {
+  clip-path: polygon(
+    0 100%,
+    var(--team-far-inset) var(--team-floor-top),
+    var(--team-far-inset) calc(var(--team-floor-top) + 1.5%),
+    0 calc(100% + 1.5%)
+  );
+}
+
+.wallRight::after {
+  clip-path: polygon(
+    100% 100%,
+    calc(100% - var(--team-far-inset)) var(--team-floor-top),
+    calc(100% - var(--team-far-inset)) calc(var(--team-floor-top) + 1.5%),
+    100% calc(100% + 1.5%)
+  );
 }
 
 /* ------------------------------------------------------------- back wall */
 
-/* Props on the wall are sized from the room's own unit, not from the width of
-   the tab: a wide window is a window, a stretched one is a grey rectangle. */
+/* The wall is exactly the shell's own back face, so a fixture placed at a
+   floor coordinate lands where somebody standing there would be looking. */
 .wall {
   --team-unit: clamp(72px, 24cqh, 182px);
   position: absolute;
-  inset: 0 0 79% 0;
+  inset: var(--team-wall-top) var(--team-far-inset) calc(100% - var(--team-floor-top)) var(--team-far-inset);
+  z-index: 1;
   pointer-events: none;
 }
 
-/* Two windows of sea, framed, with a sill under each. */
-.window {
+.wall > * {
   position: absolute;
-  top: 15%;
-  width: calc(var(--team-unit) * 0.46);
-  height: 58%;
-  border: 2px solid color-mix(in srgb, var(--team-ink) 26%, var(--team-page));
-  border-radius: 3px;
+  transform: translateX(-50%);
+}
+
+/* -- the windows -- */
+
+/* A window is an opening, not a picture: the reveal gives the wall thickness
+   at the jamb, the sill has a top face you could stand a mug on, and the sea
+   beyond it has weather. */
+.window {
+  top: 14%;
+  width: calc(var(--team-unit) * 0.5);
+  height: 60%;
+}
+
+/* The glass. */
+.pane {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 2px;
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--team-ink) 30%, var(--team-page)),
+    inset 0 -4px 8px color-mix(in srgb, var(--team-hue) 34%, transparent);
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--team-hue) 22%, var(--team-page)) 0 46%,
-      color-mix(in srgb, var(--team-hue) 34%, var(--team-page)) 46% 52%,
-      color-mix(in srgb, var(--team-hue) 62%, var(--team-page)) 52% 100%
+      color-mix(in srgb, var(--team-hue) 16%, var(--team-page)) 0,
+      color-mix(in srgb, var(--team-hue) 30%, var(--team-page)) 100%
     );
-  box-shadow: inset 0 -3px 6px color-mix(in srgb, var(--team-hue) 30%, transparent);
 }
 
-.window:nth-of-type(1) {
-  left: 31%;
-}
-
-.window:nth-of-type(2) {
-  left: 47%;
-}
-
-/* The mullion. */
-.window::before {
-  content: '';
+/* Two banks of cloud, drifting at different speeds so the sky has depth. */
+.cloud {
   position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  margin-left: -1px;
-  background: color-mix(in srgb, var(--team-ink) 26%, var(--team-page));
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--team-page) 74%, transparent);
+  animation: team-drift 42s linear infinite;
 }
 
-/* The sill. */
-.window::after {
-  content: '';
-  position: absolute;
-  left: -8%;
-  right: -8%;
-  top: 100%;
-  height: 12%;
-  border-radius: 0 0 2px 2px;
-  background: var(--team-surface-3);
+.cloud[data-cloud='near'] {
+  left: -40%;
+  top: 14%;
+  width: 46%;
+  height: 16%;
+  box-shadow:
+    26% -60% 0 -4% color-mix(in srgb, var(--team-page) 74%, transparent),
+    62% -20% 0 -2% color-mix(in srgb, var(--team-page) 74%, transparent);
 }
 
-/* The whiteboard: a framed pane with a few lines still on it, and a pen tray. */
-.whiteboard {
-  position: absolute;
-  left: 6%;
-  top: 16%;
-  width: calc(var(--team-unit) * 0.72);
-  height: 58%;
-  border: 2px solid color-mix(in srgb, var(--team-ink) 20%, var(--team-page));
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--team-page) 92%, var(--team-hue));
-  box-shadow: 0 2px 5px var(--dsw-alias-bg-mask-2);
+.cloud[data-cloud='far'] {
+  left: -30%;
+  top: 32%;
+  width: 30%;
+  height: 9%;
+  opacity: 0.62;
+  animation-duration: 71s;
+  animation-delay: -24s;
 }
 
-.whiteboard::before {
-  content: '';
+/* The sea, with the horizon where the glass says it is. */
+.sea {
   position: absolute;
-  inset: 16% 12%;
+  inset: 52% 0 0;
   background:
-    linear-gradient(90deg, var(--team-hue) 0 62%, transparent 62%) 0 0 / 100% 2px no-repeat,
-    linear-gradient(90deg, var(--dsw-alias-state-error-primary) 0 34%, transparent 34%)
-      0 40% / 100% 2px no-repeat,
-    linear-gradient(90deg, var(--team-leaf) 0 78%, transparent 78%) 0 78% / 100% 2px no-repeat;
-  opacity: 0.75;
+    repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-page) 22%, transparent) 0 1px,
+      transparent 1px 7px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-hue) 52%, var(--team-page)) 0,
+      color-mix(in srgb, var(--team-hue) 74%, var(--team-page)) 100%
+    );
 }
 
-/* The tray along the bottom, with a marker lying in it. */
-.whiteboard::after {
-  content: '';
+/* Somebody's boat, out where the whales are. */
+.sail {
   position: absolute;
-  left: 14%;
-  right: 14%;
+  left: 24%;
+  top: 47%;
+  width: 9%;
+  height: 9%;
+  background: color-mix(in srgb, var(--team-page) 88%, transparent);
+  clip-path: polygon(50% 0, 100% 82%, 0 82%);
+  animation: team-sail 96s linear infinite;
+}
+
+/* The reveal: the jamb face on one side and the head above it, both a shade
+   darker than the wall, so the opening is cut INTO something. */
+.reveal {
+  position: absolute;
+  inset: -6% -7% -6% -7%;
+  z-index: -1;
+  border-radius: 3px;
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--team-ink) 20%, var(--team-page)) 0 46%,
+      color-mix(in srgb, var(--team-ink) 9%, var(--team-page)) 46% 100%
+    );
+  box-shadow: inset 0 3px 5px color-mix(in srgb, var(--team-ink) 22%, transparent);
+}
+
+/* The cross of the window: a mullion and a transom, both catching the light
+   along one edge. */
+.mullion {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--team-ink) 28%, var(--team-page)) 0 60%,
+      color-mix(in srgb, var(--team-page) 60%, var(--team-ink)) 60% 100%
+    ) no-repeat 50% 0 / 2.5px 100%,
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-ink) 28%, var(--team-page)) 0 60%,
+      color-mix(in srgb, var(--team-page) 60%, var(--team-ink)) 60% 100%
+    ) no-repeat 0 46% / 100% 2.5px;
+}
+
+/* The sill: a front rail and, above it, the ledge itself seen from slightly
+   over, which is what makes it a shelf rather than a line. */
+.sillTop {
+  position: absolute;
+  left: -11%;
+  right: -11%;
   top: 100%;
+  height: 5%;
+  background: color-mix(in srgb, var(--team-page) 62%, var(--team-surface-3));
+  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+}
+
+.sill {
+  position: absolute;
+  left: -11%;
+  right: -11%;
+  top: 105%;
   height: 6%;
   border-radius: 0 0 2px 2px;
   background:
-    linear-gradient(90deg, var(--dsw-alias-state-error-primary) 10% 34%, transparent 34%),
-    color-mix(in srgb, var(--team-ink) 22%, var(--team-page));
+    linear-gradient(
+      180deg,
+      var(--team-surface-3) 0 40%,
+      color-mix(in srgb, var(--team-ink) 18%, var(--team-page)) 40% 100%
+    );
+  clip-path: polygon(0 0, 100% 0, 96% 100%, 4% 100%);
 }
 
-/* The office clock, stopped at the classic ten past ten. */
-.clockProp {
+/* The shaft of daylight the window throws down the wall. */
+.beam {
   position: absolute;
-  right: 8%;
-  top: 22%;
-  width: calc(var(--team-unit) * 0.16);
-  aspect-ratio: 1;
-  border: 2px solid color-mix(in srgb, var(--team-ink) 26%, var(--team-page));
-  border-radius: 50%;
-  background: var(--team-page);
+  left: -30%;
+  top: 100%;
+  width: 160%;
+  height: 320%;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--team-page) 34%, transparent) 0, transparent 100%);
+  clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+  opacity: 0.5;
 }
 
-.clockProp::before,
-.clockProp::after {
-  content: '';
+/* -- the whiteboard -- */
+
+/* A framed pane with yesterday's diagram not quite rubbed off, two notes stuck
+   to it, and a tray with the markers still in it. */
+.whiteboard {
+  top: 15%;
+  width: calc(var(--team-unit) * 0.78);
+  height: 58%;
+  border: 2px solid color-mix(in srgb, var(--team-ink) 18%, var(--team-page));
+  border-radius: 3px;
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--team-page) 96%, var(--team-hue)) 0 58%,
+      color-mix(in srgb, var(--team-page) 88%, var(--team-hue)) 58% 100%
+    );
+  box-shadow:
+    0 3px 6px var(--dsw-alias-bg-mask-2),
+    inset 0 1px 0 var(--dsw-static-neutral-00);
+}
+
+/* What was rubbed off and did not quite come off. */
+.boardGhost {
+  position: absolute;
+  inset: 14% 10% 30% 10%;
+  border-radius: 40% 60% 55% 45%;
+  background: color-mix(in srgb, var(--team-ink) 5%, transparent);
+}
+
+/* What is on it now: three lines and a box with an arrow off it. */
+.boardInk {
+  position: absolute;
+  inset: 14% 11%;
+  background:
+    linear-gradient(90deg, var(--team-hue) 0 60%, transparent 60%) no-repeat 0 4% / 100% 2px,
+    linear-gradient(90deg, var(--dsw-alias-state-error-primary) 0 32%, transparent 32%) no-repeat 0 34% / 100% 2px,
+    linear-gradient(90deg, var(--team-leaf) 0 76%, transparent 76%) no-repeat 0 64% / 100% 2px,
+    linear-gradient(90deg, var(--team-hue) 0 100%, transparent 0) no-repeat 4% 84% / 24% 2px,
+    linear-gradient(180deg, var(--team-hue) 0 100%, transparent 0) no-repeat 4% 84% / 2px 14%;
+  opacity: 0.72;
+}
+
+/* Two sticky notes, at two angles, because nobody sticks them straight. */
+.boardNote {
+  position: absolute;
+  width: 15%;
+  aspect-ratio: 1;
+  border-radius: 1px;
+  box-shadow: 1px 2px 3px var(--dsw-alias-bg-mask-2);
+}
+
+.boardNote[data-note='a'] {
+  right: 9%;
+  top: 16%;
+  background: color-mix(in srgb, var(--team-warm) 46%, var(--dsw-static-neutral-00));
+  transform: rotate(-5deg);
+}
+
+.boardNote[data-note='b'] {
+  right: 8%;
+  top: 52%;
+  background: color-mix(in srgb, var(--team-leaf) 34%, var(--dsw-static-neutral-00));
+  transform: rotate(4deg);
+}
+
+/* The tray under it, seen from a little above: a top face and a front rail. */
+.boardTrayTop {
+  position: absolute;
+  left: 13%;
+  right: 13%;
+  top: 100%;
+  height: 3.5%;
+  background: color-mix(in srgb, var(--team-page) 52%, var(--dsw-static-neutral-400));
+  clip-path: polygon(3% 0, 100% 0, 97% 100%, 0 100%);
+}
+
+.boardTray {
+  position: absolute;
+  left: 13%;
+  right: 13%;
+  top: 103.5%;
+  height: 4.5%;
+  border-radius: 0 0 2px 2px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-ink) 16%, var(--team-page)) 0 34%,
+      color-mix(in srgb, var(--team-ink) 30%, var(--team-page)) 34% 100%
+    );
+  clip-path: polygon(0 0, 100% 0, 97% 100%, 3% 100%);
+}
+
+/* Three markers lying in it. */
+.boardPens {
+  position: absolute;
+  left: 18%;
+  top: 101%;
+  width: 34%;
+  height: 2.6%;
+  background:
+    linear-gradient(90deg, var(--dsw-alias-state-error-primary) 0 30%, transparent 30% 36%,
+      var(--team-hue) 36% 66%, transparent 66% 72%, var(--team-leaf) 72% 100%);
+  border-radius: 1px;
+}
+
+/* And the eraser at the other end of it. */
+.boardEraser {
+  position: absolute;
+  right: 18%;
+  top: 100.6%;
+  width: 11%;
+  height: 3.4%;
+  border-radius: 1px;
+  background:
+    linear-gradient(
+      180deg,
+      var(--dsw-static-neutral-300) 0 44%,
+      color-mix(in srgb, var(--team-hue) 40%, var(--dsw-static-neutral-500)) 44% 100%
+    );
+}
+
+/* -- the shelf -- */
+
+/* A plank with a real edge to it: a top face you look across, the plank's own
+   thickness under it, and a bracket holding it to the wall. */
+.shelf {
+  top: 34%;
+  width: calc(var(--team-unit) * 0.42);
+  height: calc(var(--team-unit) * 0.2);
+}
+
+.plankTop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--team-unit) * 0.035);
+  height: calc(var(--team-unit) * 0.018);
+  background: color-mix(in srgb, var(--team-warm) 28%, var(--dsw-static-neutral-200));
+  clip-path: polygon(2% 0, 100% 0, 98% 100%, 0 100%);
+}
+
+.plank {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--team-unit) * 0.017);
+  height: calc(var(--team-unit) * 0.018);
+  border-radius: 0 0 2px 2px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-warm) 40%, var(--dsw-static-neutral-400)) 0 40%,
+      color-mix(in srgb, var(--team-warm) 52%, var(--dsw-static-neutral-600)) 40% 100%
+    );
+  box-shadow: 0 3px 5px var(--dsw-alias-bg-mask-2);
+  clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
+}
+
+.plankBracket {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 0;
+  height: calc(var(--team-unit) * 0.02);
+  background:
+    linear-gradient(color-mix(in srgb, var(--team-ink) 32%, var(--team-page)) 0 0) no-repeat 4% 0 / 5% 100%,
+    linear-gradient(color-mix(in srgb, var(--team-ink) 32%, var(--team-page)) 0 0) no-repeat 96% 0 / 5% 100%;
+  clip-path: polygon(0 0, 100% 0, 84% 100%, 16% 100%);
+}
+
+/* The books: seven spines of different heights, with the tallest first — a row
+   of identical rectangles reads as a barcode rather than as books. */
+.books {
+  position: absolute;
+  left: 6%;
+  bottom: calc(var(--team-unit) * 0.052);
+  width: 62%;
+  height: calc(var(--team-unit) * 0.11);
+  background:
+    linear-gradient(color-mix(in srgb, var(--team-hue) 66%, var(--dsw-static-neutral-600)) 0 0) no-repeat 0 0 / 12% 100%,
+    linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 70%, var(--dsw-static-neutral-500)) 0 0) no-repeat 15% 8% / 9% 92%,
+    linear-gradient(color-mix(in srgb, var(--team-leaf) 72%, var(--dsw-static-neutral-500)) 0 0) no-repeat 27% 20% / 13% 80%,
+    linear-gradient(color-mix(in srgb, var(--dsw-alias-state-error-primary) 62%, var(--dsw-static-neutral-600)) 0 0) no-repeat 43% 4% / 10% 96%,
+    linear-gradient(color-mix(in srgb, var(--dsw-static-neutral-00) 74%, var(--dsw-static-neutral-400)) 0 0) no-repeat 56% 26% / 11% 74%,
+    linear-gradient(color-mix(in srgb, var(--team-hue) 40%, var(--dsw-static-neutral-700)) 0 0) no-repeat 70% 12% / 8% 88%,
+    linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 40%, var(--dsw-static-neutral-700)) 0 0) no-repeat 81% 30% / 12% 70%;
+}
+
+/* The one that fell over against the rest. */
+.bookLeaning {
+  position: absolute;
+  left: 46%;
+  bottom: calc(var(--team-unit) * 0.052);
+  width: 4%;
+  height: calc(var(--team-unit) * 0.09);
+  transform-origin: 50% 100%;
+  transform: rotate(15deg);
+  background: color-mix(in srgb, var(--team-leaf) 50%, var(--dsw-static-neutral-700));
+}
+
+/* A little trophy nobody remembers winning. */
+.trophy {
+  position: absolute;
+  right: 6%;
+  bottom: calc(var(--team-unit) * 0.052);
+  width: 8%;
+  height: calc(var(--team-unit) * 0.06);
+  background:
+    linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 76%, var(--dsw-static-neutral-500)) 0 0)
+      no-repeat 50% 100% / 100% 22%,
+    linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 64%, var(--dsw-static-neutral-300)) 0 0)
+      no-repeat 50% 60% / 26% 40%,
+    radial-gradient(
+      ellipse 60% 100% at 50% 0,
+      color-mix(in srgb, var(--dsw-alias-state-warn-primary) 70%, var(--dsw-static-neutral-300)) 0 96%,
+      transparent 98%
+    ) no-repeat 50% 0 / 100% 58%;
+}
+
+/* A cactus at the end of the plank, because a shelf with one thing on it is a
+   shelf and a shelf with three is an office. */
+.shelfPlant {
+  position: absolute;
+  right: 20%;
+  bottom: calc(var(--team-unit) * 0.05);
+  width: calc(var(--team-unit) * 0.09);
+  height: calc(var(--team-unit) * 0.115);
+}
+
+/* -- the clock, the poster and the calendar -- */
+
+/* Stopped at ten past ten, like every clock in every photograph, except that
+   this one's second hand is going round. */
+.clockProp {
+  top: 20%;
+  width: calc(var(--team-unit) * 0.17);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, var(--team-page) 0 76%, transparent 78%),
+    linear-gradient(
+      150deg,
+      color-mix(in srgb, var(--team-page) 50%, var(--team-ink)) 0,
+      color-mix(in srgb, var(--team-ink) 34%, var(--team-page)) 100%
+    );
+  box-shadow: 1px 2px 4px var(--dsw-alias-bg-mask-2);
+}
+
+.clockTicks {
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      from 0deg,
+      var(--dsw-alias-label-tertiary) 0 2deg,
+      transparent 2deg 28deg,
+      var(--dsw-alias-label-tertiary) 28deg 30deg,
+      transparent 30deg 58deg,
+      var(--dsw-alias-label-tertiary) 58deg 60deg,
+      transparent 60deg 88deg,
+      var(--dsw-alias-label-tertiary) 88deg 90deg,
+      transparent 90deg
+    );
+  -webkit-mask: radial-gradient(circle at 50% 50%, transparent 0 82%, black 84%);
+  mask: radial-gradient(circle at 50% 50%, transparent 0 82%, black 84%);
+  transform: rotate(0deg);
+}
+
+.clockHand {
   position: absolute;
   left: 50%;
   top: 50%;
   width: 2px;
+  margin-left: -1px;
   border-radius: 1px;
   background: var(--dsw-alias-label-secondary);
   transform-origin: 50% 100%;
 }
 
-.clockProp::before {
-  height: 34%;
-  transform: translate(-50%, -100%) rotate(55deg);
-}
-
-.clockProp::after {
+.clockHand[data-hand='hour'] {
   height: 26%;
-  transform: translate(-50%, -100%) rotate(-50deg);
+  transform: translateY(-100%) rotate(-55deg);
 }
 
-/* A little wall shelf between the whiteboard and the first window, holding
-   five coloured books and a metal bookend — the office reads lived-in without
-   any labels. */
-.shelf {
+.clockHand[data-hand='minute'] {
+  height: 34%;
+  transform: translateY(-100%) rotate(55deg);
+}
+
+.clockHand[data-hand='second'] {
+  width: 1px;
+  margin-left: -0.5px;
+  height: 36%;
+  background: var(--dsw-alias-state-error-primary);
+  transform: translateY(-100%) rotate(0deg);
+  animation: team-tick 60s steps(60) infinite;
+}
+
+.clockPin {
   position: absolute;
-  left: 22%;
-  top: 36%;
-  width: calc(var(--team-unit) * 0.34);
-  height: calc(var(--team-unit) * 0.06);
+  left: 50%;
+  top: 50%;
+  width: 12%;
+  aspect-ratio: 1;
+  margin: -6% 0 0 -6%;
+  border-radius: 50%;
+  background: var(--dsw-alias-label-secondary);
+}
+
+/* A framed print of the sea the windows look out on. */
+.poster {
+  top: 20%;
+  width: calc(var(--team-unit) * 0.26);
+  height: 44%;
+  padding: 5%;
   border-radius: 2px;
+  background: color-mix(in srgb, var(--team-page) 70%, var(--dsw-static-neutral-400));
+  box-shadow: 1px 3px 5px var(--dsw-alias-bg-mask-2);
+}
+
+.posterArt {
+  position: absolute;
+  inset: 6%;
   background:
+    radial-gradient(circle at 72% 30%, color-mix(in srgb, var(--dsw-alias-state-warn-primary) 70%, transparent) 0 14%, transparent 16%),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--team-warm) 34%, var(--dsw-static-neutral-300)) 0 40%,
-      color-mix(in srgb, var(--team-warm) 46%, var(--dsw-static-neutral-500)) 40% 100%
-    );
-  box-shadow:
-    0 2px 4px var(--dsw-alias-bg-mask-2),
-    inset 0 1px 0 color-mix(in srgb, var(--dsw-static-neutral-00) 36%, transparent);
-}
-
-.shelf::before {
-  content: '';
-  position: absolute;
-  left: 4%;
-  right: 8%;
-  bottom: 100%;
-  height: calc(var(--team-unit) * 0.13);
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--team-hue) 70%, var(--dsw-static-neutral-600)) 0 16%,
-      transparent 16% 20%,
-      color-mix(in srgb, var(--dsw-alias-state-warn-primary) 72%, var(--dsw-static-neutral-500)) 20% 38%,
-      transparent 38% 42%,
-      color-mix(in srgb, var(--team-leaf) 74%, var(--dsw-static-neutral-500)) 42% 58%,
-      transparent 58% 62%,
-      color-mix(in srgb, var(--dsw-alias-state-error-primary) 64%, var(--dsw-static-neutral-600)) 62% 78%,
-      transparent 78% 82%,
-      color-mix(in srgb, var(--dsw-static-neutral-00) 76%, var(--dsw-static-neutral-400)) 82% 98%
+      color-mix(in srgb, var(--team-hue) 26%, var(--team-page)) 0 54%,
+      color-mix(in srgb, var(--team-hue) 66%, var(--team-page)) 54% 100%
     );
 }
 
-.shelf::after {
-  content: '';
+/* The wall calendar, on the month somebody last turned it to. */
+.calendar {
+  top: 22%;
+  width: calc(var(--team-unit) * 0.2);
+  height: 38%;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--dsw-static-neutral-00);
+  box-shadow: 1px 2px 4px var(--dsw-alias-bg-mask-2);
+}
+
+.calendarHead {
   position: absolute;
   left: 0;
-  bottom: 100%;
-  width: 9%;
-  height: calc(var(--team-unit) * 0.13);
-  border-radius: 1px;
-  background: color-mix(in srgb, var(--team-ink) 30%, var(--team-page));
+  right: 0;
+  top: 0;
+  height: 30%;
+  background: color-mix(in srgb, var(--team-hue) 56%, var(--team-page));
+}
+
+.calendarGrid {
+  position: absolute;
+  inset: 34% 10% 10%;
+  background:
+    repeating-linear-gradient(90deg, var(--dsw-static-neutral-300) 0 1px, transparent 1px 20%),
+    repeating-linear-gradient(180deg, var(--dsw-static-neutral-300) 0 1px, transparent 1px 25%);
+}
+
+/* -- what hangs off the wall -- */
+
+/* A pothos in a bracket, trailing down the wall beside the whiteboard. */
+.hanger {
+  top: 26%;
+  width: calc(var(--team-unit) * 0.16);
+  height: calc(var(--team-unit) * 0.24);
+}
+
+.hangerBracket {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 46%;
+  height: 16%;
+  margin-left: -23%;
+  border-radius: 0 0 40% 40%;
+  background: color-mix(in srgb, var(--team-ink) 34%, var(--team-page));
+}
+
+.hangerPlant {
+  position: absolute;
+  inset: 8% 0 0;
+  width: 100%;
+  height: 92%;
+}
+
+/* -- the pendants, and what walks under them -- */
+
+/* The lamps that tell the reader the room has a ceiling. Each hangs from the
+   ceiling's front edge at its own place along the wall, its shade ending just
+   at the floor line, so a lamp reads as hanging over the room instead of being
+   screwed to whatever is mounted on the wall beneath it. */
+.pendant {
+  position: absolute;
+  top: var(--team-wall-top);
+  z-index: 2;
+  width: calc(var(--team-unit) * 0.2);
+  height: calc(var(--team-floor-top) - var(--team-wall-top));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.pendantSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.pendantFlex {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-ink) 46%, var(--team-page));
+  stroke-width: 1.6;
+}
+
+.pendantShade {
+  fill: color-mix(in srgb, var(--team-warm) 50%, var(--dsw-static-neutral-600));
+  stroke: color-mix(in srgb, var(--team-ink) 18%, transparent);
+  stroke-width: 0.8;
+}
+
+.pendantMouth {
+  fill: color-mix(in srgb, var(--team-warm) 68%, var(--dsw-static-neutral-300));
+}
+
+.pendantBulb {
+  fill: color-mix(in srgb, var(--dsw-static-neutral-00) 86%, var(--team-warm));
+  filter: blur(0.6px);
+}
+
+.pendantGlow {
+  fill: color-mix(in srgb, var(--team-warm) 26%, transparent);
+  animation: team-glow 7.5s ease-in-out infinite;
+}
+
+/* The office cat. It crosses the front of the room now and again and is the
+   only thing in here nobody assigned a task to. */
+.cat {
+  position: absolute;
+  left: 0;
+  bottom: 3%;
+  z-index: 40;
+  width: clamp(34px, 9cqh, 74px);
+  pointer-events: none;
+  opacity: 0;
+  animation: team-prowl 47s linear infinite;
+}
+
+.catSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.catBody {
+  fill: color-mix(in srgb, var(--team-warm) 46%, var(--dsw-static-neutral-600));
+}
+
+.catLeg,
+.catTail {
+  fill: color-mix(in srgb, var(--team-warm) 52%, var(--dsw-static-neutral-700));
+}
+
+.catEar {
+  fill: color-mix(in srgb, var(--team-warm) 36%, var(--dsw-static-neutral-700));
+}
+
+.catEye {
+  fill: var(--team-leaf);
+}
+
+.catStripe {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-ink) 22%, transparent);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.catWhisker {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-page) 70%, transparent);
+  stroke-width: 0.8;
+  stroke-linecap: round;
+}
+
+/* -- the service wall -- */
+
+/* The printer, the coffee machine and the filing cabinet, along the left of
+   the room where a real office puts them: out of the way, and in the way. */
+.utility {
+  --team-unit: clamp(72px, 24cqh, 182px);
+  position: absolute;
+  width: calc(var(--team-unit) * 0.34);
+  height: calc(var(--team-unit) * 0.62);
+  transform: translate(-50%, -100%) scale(var(--team-scale, 1));
+  transform-origin: 50% 100%;
+  z-index: calc(6 + var(--team-depth, 0));
+  pointer-events: none;
+}
+
+.utility > * {
+  position: absolute;
+  display: block;
+}
+
+.utilityCabinet {
+  left: -34%;
+  bottom: 0;
+  width: 74%;
+  height: 100%;
+}
+
+.utilityPrinter {
+  left: 34%;
+  bottom: 0;
+  width: 92%;
+  height: 46%;
+}
+
+.utilityCoffee {
+  left: 46%;
+  bottom: 44%;
+  width: 52%;
+  height: 46%;
 }
 
 /* -------------------------------------------------------- the break corner */
 
 /* No label anywhere: a sofa, a low table, a plant and a cooler say what this
-   corner is better than a caption would. Everything here is sized from the
-   room's unit and placed clear of the three spots a member stands in. */
+   corner is better than a caption would. Every piece stands at its OWN point
+   on the floor plan — the same rectangle a walk goes around — so the furniture
+   you see and the furniture you walk around are the same furniture, and none
+   of it can drift up a wall. */
 .lounge {
   --team-unit: clamp(72px, 24cqh, 182px);
   --team-fabric: color-mix(in srgb, var(--team-warm) 52%, var(--dsw-static-neutral-600));
   --team-fabric-lit: color-mix(in srgb, var(--team-warm) 62%, var(--dsw-static-neutral-300));
+  --team-fabric-dark: color-mix(in srgb, var(--team-ink) 22%, var(--team-fabric));
   position: absolute;
+  inset: 0;
   /* Under everybody: the corner is furniture, and a member on a break stands
      in front of it rather than inside it. */
   z-index: 5;
   pointer-events: none;
 }
 
-/* The mat the sofa and the table stand on. It is drawn flat and shallow and
-   tucked under the furniture — the room is an elevation, and a tall ellipse on
-   an elevation reads as a pond rather than as a floor — and tinted barely
-   enough to tell the corner from the boards it lies on. */
-.rug {
+.lounge > * {
   position: absolute;
-  left: 5%;
-  top: 15%;
-  width: 68%;
-  height: 20%;
+  transform: translate(-50%, -100%);
+}
+
+/* The mat the sofa and the table stand on. It is drawn flat and shallow and
+   tucked under the furniture — the floor is seen at a shallow angle, and a
+   round rug on a shallow floor is an ellipse — with a woven border so it reads
+   as a rug rather than as a stain. */
+.rug {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  border: 1.5px solid color-mix(in srgb, var(--team-hue) 10%, transparent);
   background:
+    repeating-radial-gradient(
+      ellipse at 50% 50%,
+      transparent 0 84%,
+      color-mix(in srgb, var(--team-hue) 12%, transparent) 84% 88%,
+      transparent 88% 94%,
+      color-mix(in srgb, var(--team-hue) 16%, transparent) 94% 97%,
+      transparent 97% 100%
+    ),
     radial-gradient(
       ellipse at 50% 50%,
-      color-mix(in srgb, var(--team-hue) 4%, var(--team-page)) 0 56%,
-      color-mix(in srgb, var(--team-hue) 8%, var(--team-page)) 58% 100%
+      color-mix(in srgb, var(--team-hue) 5%, var(--team-page)) 0 56%,
+      color-mix(in srgb, var(--team-hue) 10%, var(--team-page)) 58% 100%
     );
 }
 
-/* The sofa, at the back of the corner. The element itself is the padded back —
-   three cushions divided by two seams — and the seat and the arms are built in
-   front of it, so it reads as an upholstered piece rather than a bench. */
+/* The sofa. The element itself is the padded back — three cushions divided by
+   two seams — with a lid across its top so you can see it has depth, a seat in
+   front of it, and an arm rolled into each end. */
 .sofa {
-  position: absolute;
-  left: 8%;
-  top: 2%;
-  width: 50%;
-  height: calc(var(--team-unit) * 0.2);
+  width: 100%;
+  height: 100%;
   border-radius: 9px 9px 2px 2px;
   background:
     linear-gradient(color-mix(in srgb, var(--team-ink) 15%, transparent) 0 0)
@@ -612,13 +1275,14 @@
       180deg,
       var(--team-fabric-lit) 0 26%,
       var(--team-fabric) 26% 88%,
-      color-mix(in srgb, var(--team-ink) 10%, var(--team-fabric)) 88% 100%
+      var(--team-fabric-dark) 88% 100%
     );
   box-shadow: 0 8px 13px var(--dsw-alias-bg-mask-2);
 }
 
 /* The seat: two cushions in front of the back, with the base shaded under them
-   so the front edge of the sofa has an edge to it. */
+   so the front edge of the sofa has an edge to it, and a lid on the cushions
+   themselves so they read as blocks of foam. */
 .sofa::before {
   content: '';
   position: absolute;
@@ -632,9 +1296,10 @@
       no-repeat 50% 8% / 1.5px 46%,
     linear-gradient(
       180deg,
-      var(--team-fabric-lit) 0 44%,
+      color-mix(in srgb, var(--dsw-static-neutral-00) 22%, var(--team-fabric-lit)) 0 18%,
+      var(--team-fabric-lit) 18% 44%,
       var(--team-fabric) 44% 66%,
-      color-mix(in srgb, var(--team-ink) 20%, var(--team-fabric)) 66% 100%
+      var(--team-fabric-dark) 66% 100%
     );
 }
 
@@ -652,38 +1317,36 @@
       180deg,
       var(--team-fabric-lit) 0 26%,
       var(--team-fabric) 26% 82%,
-      color-mix(in srgb, var(--team-ink) 16%, var(--team-fabric)) 82% 100%
+      var(--team-fabric-dark) 82% 100%
     ) no-repeat 0 0 / 11% 100%,
     linear-gradient(
       180deg,
       var(--team-fabric-lit) 0 26%,
       var(--team-fabric) 26% 82%,
-      color-mix(in srgb, var(--team-ink) 16%, var(--team-fabric)) 82% 100%
+      var(--team-fabric-dark) 82% 100%
     ) no-repeat 100% 0 / 11% 100%;
 }
 
-/* The low table, centered on the rug in front of the sofa: a thick top on two
-   legs, with a magazine on one end and a mug on the other. It sits clear of
-   the floor spots, so nobody stands in the furniture. */
+/* The low table, centered on the rug in front of the sofa: a top you look
+   across, an edge under it, two legs, a magazine on one end and a mug on the
+   other. It sits clear of the floor spots, so nobody stands in the furniture. */
 .table {
-  position: absolute;
-  left: 17%;
-  top: 26%;
-  width: 34%;
-  height: calc(var(--team-unit) * 0.07);
+  width: 100%;
+  height: 100%;
   border-radius: 3px;
   background:
     radial-gradient(
       ellipse at 74% 32%,
       color-mix(in srgb, var(--dsw-alias-state-warn-primary) 74%, var(--dsw-static-neutral-600)) 0 52%,
       transparent 56%
-    ) no-repeat 68% 20% / 16% 18%,
+    ) no-repeat 68% 18% / 16% 18%,
     linear-gradient(color-mix(in srgb, var(--dsw-static-neutral-00) 62%, transparent) 0 0)
-      no-repeat 16% 22% / 20% 26%,
+      no-repeat 16% 20% / 20% 24%,
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--team-warm) 40%, var(--dsw-static-neutral-00)) 0 46%,
-      color-mix(in srgb, var(--team-warm) 46%, var(--dsw-static-neutral-500)) 46% 100%
+      color-mix(in srgb, var(--team-warm) 32%, var(--dsw-static-neutral-00)) 0 34%,
+      color-mix(in srgb, var(--team-warm) 40%, var(--dsw-static-neutral-00)) 34% 62%,
+      color-mix(in srgb, var(--team-warm) 52%, var(--dsw-static-neutral-600)) 62% 100%
     );
   box-shadow: 0 6px 9px var(--dsw-alias-bg-mask-2);
 }
@@ -703,7 +1366,7 @@
       no-repeat 97% 0 / 6% 100%;
 }
 
-/* The mug somebody left on it. */
+/* The mug somebody left on it, steaming. */
 .table::after {
   content: '';
   position: absolute;
@@ -723,11 +1386,8 @@
 /* A floor lamp at the edge of the break corner: a warm shade on a slim
    stand, with a pool of light on the floor. */
 .lamp {
-  position: absolute;
-  left: 1.5%;
-  top: 8%;
-  width: calc(var(--team-unit) * 0.07);
-  height: calc(var(--team-unit) * 0.34);
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 
@@ -769,119 +1429,33 @@
   box-shadow:
     inset 0 -2px 4px color-mix(in srgb, var(--team-warm) 70%, transparent),
     0 0 14px color-mix(in srgb, var(--team-warm) 46%, transparent);
+  animation: team-glow 9.2s ease-in-out infinite;
 }
 
-/* The plant standing beside the sofa: a shaded terracotta pot with a rolled
-   rim, and a fuller fan of leaves with visible stems. */
+/* The big plant beside the sofa. The pot and every leaf are drawn in
+   `flora.tsx`; all the corner does is say how large it stands here. */
 .plant {
-  position: absolute;
-  right: 2%;
-  top: 5%;
-  width: calc(var(--team-unit) * 0.2);
-  height: calc(var(--team-unit) * 0.19);
-  border-radius: 4px 4px 36% 36% / 4px 4px 30% 30%;
-  background:
-    linear-gradient(
-      105deg,
-      transparent 0 24%,
-      color-mix(in srgb, var(--dsw-static-neutral-00) 38%, transparent) 24% 32%,
-      transparent 32%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--dsw-static-amber-600) 46%, var(--dsw-static-neutral-300)) 0 12%,
-      color-mix(in srgb, var(--dsw-static-amber-600) 56%, var(--dsw-static-neutral-500)) 12% 26%,
-      color-mix(in srgb, var(--dsw-static-amber-600) 70%, var(--dsw-static-neutral-600)) 26% 58%,
-      color-mix(in srgb, var(--dsw-static-amber-600) 84%, var(--dsw-static-neutral-700)) 58% 100%
-    );
-  box-shadow:
-    inset 0 2px 0 color-mix(in srgb, var(--dsw-static-neutral-00) 46%, transparent),
-    inset 0 -5px 6px color-mix(in srgb, var(--team-ink) 20%, transparent),
-    inset 2px 0 3px color-mix(in srgb, var(--dsw-static-neutral-00) 18%, transparent),
-    inset -3px 0 4px color-mix(in srgb, var(--team-ink) 16%, transparent),
-    0 6px 9px var(--dsw-alias-bg-mask-2);
+  width: 100%;
+  /* Foliage grows up out of the pot, so a plant draws taller than the floor
+     rectangle it stands in. */
+  height: 136%;
+  filter: drop-shadow(3px 6px 5px var(--dsw-alias-bg-mask-1));
 }
 
-/* The foliage: a fuller fan of leaves, scaled with the larger pot. */
-.plant::before,
-.plant::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: 68%;
-  width: 230%;
-  height: 156%;
-}
-
-.plant::before {
-  transform: translateX(-50%);
-  background:
-    linear-gradient(78deg, transparent 45%, color-mix(in srgb, var(--team-leaf) 66%, var(--dsw-static-neutral-800)) 45% 50%, transparent 50%)
-      no-repeat 46% 70% / 30% 52%,
-    linear-gradient(102deg, transparent 45%, color-mix(in srgb, var(--team-leaf) 66%, var(--dsw-static-neutral-800)) 45% 50%, transparent 50%)
-      no-repeat 54% 70% / 30% 52%,
-    radial-gradient(
-      ellipse 26% 50% at 50% 100%,
-      color-mix(in srgb, var(--team-leaf) 76%, var(--dsw-static-neutral-800)) 0 96%,
-      transparent 98%
-    ),
-    radial-gradient(
-      ellipse 30% 32% at 10% 90%,
-      color-mix(in srgb, var(--team-leaf) 70%, var(--dsw-static-neutral-800)) 0 96%,
-      transparent 98%
-    ),
-    radial-gradient(
-      ellipse 30% 32% at 90% 90%,
-      color-mix(in srgb, var(--team-leaf) 70%, var(--dsw-static-neutral-800)) 0 96%,
-      transparent 98%
-    ),
-    radial-gradient(
-      ellipse 22% 34% at 30% 84%,
-      color-mix(in srgb, var(--team-leaf) 60%, var(--dsw-static-neutral-600)) 0 96%,
-      transparent 98%
-    );
-}
-
-.plant::after {
-  transform: translateX(-50%) scaleX(-1);
-  background:
-    linear-gradient(78deg, transparent 45%, color-mix(in srgb, var(--team-leaf) 58%, var(--dsw-static-neutral-400)) 45% 50%, transparent 50%)
-      no-repeat 46% 70% / 30% 52%,
-    linear-gradient(102deg, transparent 45%, color-mix(in srgb, var(--team-leaf) 58%, var(--dsw-static-neutral-400)) 45% 50%, transparent 50%)
-      no-repeat 54% 70% / 30% 52%,
-    radial-gradient(
-      ellipse 42% 36% at 6% 92%,
-      color-mix(in srgb, var(--team-leaf) 66%, var(--dsw-static-neutral-00)) 0 96%,
-      transparent 98%
-    ),
-    radial-gradient(
-      ellipse 24% 46% at 50% 100%,
-      color-mix(in srgb, var(--team-leaf) 70%, var(--dsw-static-neutral-300)) 0 96%,
-      transparent 98%
-    ),
-    radial-gradient(
-      ellipse 32% 28% at 88% 92%,
-      color-mix(in srgb, var(--team-leaf) 58%, var(--dsw-static-neutral-00)) 0 96%,
-      transparent 98%
-    );
-}
-
-/* The water cooler, against the wall behind the corner: a big bottled jug
-   on a crisp SVG cabinet, with its own water line and two taps. */
+/* The water cooler, against the wall behind the corner. */
+/* The jug dwarfs the cabinet, which is why the drawn cooler is taller than its
+   walkable rect: the rect is what a walker must clear, the drawing is what a
+   reader must recognize. */
 .cooler {
   --team-cooler: var(--team-surface-2);
-  --team-cooler-lit: color-mix(in srgb, var(--team-page) 22%, var(--team-cooler));
+  --team-cooler-lit: color-mix(in srgb, var(--team-page) 30%, var(--team-cooler));
   --team-cooler-dark: color-mix(in srgb, var(--team-ink) 16%, var(--team-page));
   --team-cooler-bottle: color-mix(in srgb, var(--team-hue) 30%, var(--team-page));
   --team-cooler-bottle-lit: color-mix(in srgb, var(--team-page) 26%, var(--team-cooler-bottle));
   --team-cooler-bottle-dark: color-mix(in srgb, var(--team-hue) 62%, var(--team-page));
   --team-cooler-water: color-mix(in srgb, var(--team-hue) 58%, var(--team-page));
   --team-cooler-water-lit: color-mix(in srgb, var(--team-hue) 34%, var(--team-page));
-  position: absolute;
-  right: 1.5%;
-  top: 29%;
-  width: calc(var(--team-unit) * 0.26);
-  height: calc(var(--team-unit) * 0.38);
+  height: 168%;
   pointer-events: none;
   filter: drop-shadow(2px 5px 4px var(--dsw-alias-bg-mask-1));
 }
@@ -893,16 +1467,8 @@
   overflow: visible;
 }
 
-.coolerShadow {
-  fill: color-mix(in srgb, var(--team-ink) 10%, transparent);
-}
-
 .coolerCabinet {
   stroke: none;
-}
-
-.coolerCabinetTop {
-  fill: color-mix(in srgb, var(--team-page) 28%, var(--team-cooler));
 }
 
 .coolerCabinetEdge {
@@ -940,13 +1506,18 @@
 }
 
 .coolerDrip {
-  fill: color-mix(in srgb, var(--team-ink) 18%, var(--team-page));
-  stroke: color-mix(in srgb, var(--team-ink) 22%, transparent);
+  fill: color-mix(in srgb, var(--team-ink) 20%, var(--team-page));
+  stroke: color-mix(in srgb, var(--team-ink) 24%, transparent);
   stroke-width: 0.6;
 }
 
+.coolerDripWell {
+  fill: color-mix(in srgb, var(--team-hue) 26%, var(--team-page));
+}
+
 .coolerBottle,
-.coolerNeck {
+.coolerNeck,
+.coolerWater {
   stroke: color-mix(in srgb, var(--team-hue) 42%, transparent);
   stroke-width: 0.7;
 }
@@ -961,8 +1532,217 @@
   fill: color-mix(in srgb, var(--team-page) 46%, transparent);
 }
 
+/* The bubbles rise, which is the one thing a water cooler visibly does. */
 .coolerBubble {
-  fill: color-mix(in srgb, var(--team-page) 48%, transparent);
+  fill: color-mix(in srgb, var(--team-page) 56%, transparent);
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: team-bubble 6.4s ease-in infinite;
+}
+
+/* ------------------------------------------------------ the standing props */
+
+/* The shared vocabulary of every object in the room: a lit lid, a front face,
+   and one flank in shade. Three values, one light, every prop. */
+.propSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(2px 4px 4px var(--dsw-alias-bg-mask-1));
+}
+
+.propShade {
+  fill: color-mix(in srgb, var(--team-ink) 11%, transparent);
+}
+
+.propFront {
+  fill: var(--team-surface-2);
+}
+
+.propTop {
+  fill: color-mix(in srgb, var(--team-page) 42%, var(--team-surface-2));
+}
+
+.propSide {
+  fill: color-mix(in srgb, var(--team-ink) 15%, var(--team-surface-2));
+}
+
+.propSeam {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-ink) 15%, transparent);
+  stroke-width: 1;
+}
+
+.propInset {
+  fill: color-mix(in srgb, var(--team-ink) 9%, var(--team-page));
+  stroke: color-mix(in srgb, var(--team-ink) 12%, transparent);
+  stroke-width: 0.8;
+}
+
+.propTray {
+  fill: color-mix(in srgb, var(--team-ink) 18%, var(--team-page));
+}
+
+.propPaper {
+  fill: var(--dsw-static-neutral-00);
+  stroke: var(--dsw-static-neutral-300);
+  stroke-width: 0.7;
+}
+
+.propHandle {
+  fill: color-mix(in srgb, var(--team-ink) 40%, var(--team-page));
+}
+
+.propLabel {
+  fill: color-mix(in srgb, var(--team-warm) 40%, var(--dsw-static-neutral-00));
+}
+
+.propFolder {
+  fill: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 56%, var(--dsw-static-neutral-300));
+}
+
+.propBox {
+  fill: color-mix(in srgb, var(--team-warm) 34%, var(--dsw-static-neutral-300));
+}
+
+.propBoxTop {
+  fill: color-mix(in srgb, var(--team-warm) 22%, var(--dsw-static-neutral-200));
+}
+
+.propGlass {
+  fill: color-mix(in srgb, var(--team-page) 62%, transparent);
+  stroke: color-mix(in srgb, var(--team-ink) 16%, transparent);
+  stroke-width: 0.7;
+}
+
+.propBrew {
+  fill: color-mix(in srgb, var(--dsw-static-amber-600) 72%, var(--dsw-static-neutral-800));
+}
+
+.propCup {
+  fill: var(--dsw-static-neutral-00);
+  stroke: var(--dsw-static-neutral-300);
+  stroke-width: 0.7;
+}
+
+.propSpout {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-ink) 40%, var(--team-page));
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.propLampLive {
+  fill: var(--team-leaf);
+  animation: team-blink 3.4s ease-in-out infinite;
+}
+
+.propLampIdle {
+  fill: color-mix(in srgb, var(--team-ink) 22%, var(--team-page));
+}
+
+/* ------------------------------------------------------------- the plants */
+
+.flora {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.floraShade {
+  fill: color-mix(in srgb, var(--team-ink) 10%, transparent);
+}
+
+.floraSaucer {
+  fill: color-mix(in srgb, var(--dsw-static-amber-600) 60%, var(--dsw-static-neutral-700));
+}
+
+/* The pot: a thrown body, one shaded flank, a glaze highlight down the other,
+   and a rolled rim over the top of it. */
+.floraPot {
+  fill: color-mix(in srgb, var(--dsw-static-amber-600) 66%, var(--dsw-static-neutral-500));
+}
+
+.floraPotShade {
+  fill: color-mix(in srgb, var(--team-ink) 16%, transparent);
+}
+
+.floraGlaze {
+  fill: color-mix(in srgb, var(--dsw-static-neutral-00) 34%, transparent);
+}
+
+.floraRim {
+  fill: color-mix(in srgb, var(--dsw-static-amber-600) 56%, var(--dsw-static-neutral-400));
+}
+
+.floraRimLip {
+  fill: none;
+  stroke: color-mix(in srgb, var(--dsw-static-neutral-00) 40%, transparent);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.floraSoil {
+  fill: color-mix(in srgb, var(--dsw-static-amber-600) 30%, var(--dsw-static-neutral-800));
+}
+
+.floraCrumb {
+  fill: color-mix(in srgb, var(--dsw-static-amber-600) 50%, var(--dsw-static-neutral-700));
+}
+
+.floraStem {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-leaf) 46%, var(--dsw-static-neutral-800));
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+/* Two layers of foliage: the ones behind sit in the plant's own shade, the
+   ones in front catch the window. */
+.floraBlade {
+  fill: color-mix(in srgb, var(--team-leaf) 62%, var(--dsw-static-neutral-900));
+}
+
+.floraBladeLit {
+  fill: color-mix(in srgb, var(--team-leaf) 74%, var(--dsw-static-neutral-400));
+}
+
+.floraVein {
+  fill: none;
+  stroke: color-mix(in srgb, var(--dsw-static-neutral-900) 22%, transparent);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+}
+
+/* Each blade is hinged where it joins the plant, and they are all out of step,
+   so the plant breathes instead of wobbling as one lump. */
+.floraLeaf {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: team-sway 7.4s ease-in-out infinite;
+  animation-delay: var(--team-leaf-delay, 0s);
+}
+
+.floraLeaf[data-hang='true'] {
+  transform-origin: 50% 0%;
+  animation-duration: 9.1s;
+}
+
+.floraSpine {
+  fill: none;
+  stroke: color-mix(in srgb, var(--dsw-static-neutral-00) 70%, transparent);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.floraBloom {
+  fill: color-mix(in srgb, var(--dsw-alias-state-error-primary) 62%, var(--dsw-static-neutral-00));
+}
+
+.floraBloomHeart {
+  fill: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 72%, var(--dsw-static-neutral-00));
 }
 
 /* ------------------------------------------------------ the workstations */
@@ -989,48 +1769,101 @@
   pointer-events: none;
 }
 
-/* The desk itself: one wooden slab, lit along the front edge. */
+/* The desk itself: a wooden slab you can see ACROSS — a lid with grain, an
+   apron under its near edge, and one flank in shade. The `inset` below is the
+   lid; the near rail and the flank hang down from it. */
 .deskTop {
   position: absolute;
   inset: 0;
   border-radius: 2px;
+  filter: drop-shadow(5px 9px 14px var(--dsw-alias-bg-mask-2));
+}
+
+/* The lid, receding a little up and to the right, like every other top face in
+   the room. Its rear half is where the monitor stands. */
+.deskSurface {
+  position: absolute;
+  inset: 0 5% 22% 5%;
+  background:
+    linear-gradient(
+      200deg,
+      color-mix(in srgb, var(--team-wood) 66%, var(--dsw-static-neutral-00)) 0 40%,
+      var(--team-wood) 40% 82%,
+      color-mix(in srgb, var(--team-ink) 20%, var(--team-wood)) 82% 100%
+    );
+  clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 100%);
+  border-radius: 2px;
+}
+
+/* The apron under the near edge. */
+.deskApron {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 4%;
+  height: 18%;
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--team-wood) 82%, var(--dsw-static-neutral-00)) 0 34%,
-      var(--team-wood) 34% 74%,
-      color-mix(in srgb, var(--team-ink) 22%, var(--team-wood)) 74% 100%
+      color-mix(in srgb, var(--team-ink) 16%, var(--team-wood)) 0 22%,
+      color-mix(in srgb, var(--team-ink) 30%, var(--team-wood)) 22% 100%
     );
-  box-shadow: 5px 9px 14px var(--dsw-alias-bg-mask-2);
+  clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
 }
 
-/* The lip of the surface, standing a little proud of the slab at each end. */
-.deskTop::before {
-  content: '';
+/* The flank at the near end of the slab. */
+.deskFlank {
   position: absolute;
-  left: -2.5%;
-  right: -2.5%;
-  top: -3px;
-  height: 6px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--team-wood) 76%, var(--dsw-static-neutral-00));
+  right: 5%;
+  top: 0;
+  width: 10%;
+  height: 78%;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-ink) 12%, var(--team-wood)) 0,
+      color-mix(in srgb, var(--team-ink) 26%, var(--team-wood)) 100%
+    );
+  clip-path: polygon(100% 14%, 100% 100%, 0 100%, 0 0);
+}
+
+/* The grain: a few pale streaks along the lid. */
+.deskGrain {
+  position: absolute;
+  inset: 6% 12% 30% 12%;
+  background:
+    linear-gradient(105deg, transparent 46%, color-mix(in srgb, var(--team-page) 22%, transparent) 46% 47.4%, transparent 47.4% 72%, color-mix(in srgb, var(--team-page) 18%, transparent) 72% 73.2%, transparent 73.2%);
+  opacity: 0.8;
 }
 
 /* Two legs, reaching exactly to the floor the desk's owner stands on. */
-.deskTop::after {
-  content: '';
+.deskLegs {
   position: absolute;
-  left: 3%;
-  right: 3%;
+  left: 7%;
+  right: 7%;
   top: 100%;
   height: 150%;
   background:
     linear-gradient(color-mix(in srgb, var(--team-ink) 26%, var(--team-page)) 0 0)
       no-repeat 2% 0 / 4% 100%,
     linear-gradient(color-mix(in srgb, var(--team-ink) 26%, var(--team-page)) 0 0)
-      no-repeat 98% 0 / 4% 100%,
-    linear-gradient(color-mix(in srgb, var(--team-ink) 16%, var(--team-page)) 0 0)
-      no-repeat 50% 100% / 100% 8%;
+      no-repeat 98% 0 / 4% 100%;
+}
+
+/* The panel that keeps knees out of the wiring. */
+.deskModesty {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 100%;
+  height: 60%;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--team-wood) 60%, var(--dsw-static-neutral-500)) 0,
+      color-mix(in srgb, var(--team-ink) 26%, var(--team-wood)) 100%
+    );
+  clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
 }
 
 /* The chair is the nearest of the three seated layers: a real little chair,
@@ -1095,6 +1928,17 @@
   stroke-width: 0.9;
 }
 
+/* The seat pan and the lid of the cushion across its top. */
+.chairPan {
+  fill: var(--team-chair-dark);
+  stroke: color-mix(in srgb, var(--team-ink) 16%, transparent);
+  stroke-width: 0.8;
+}
+
+.chairPanTop {
+  fill: color-mix(in srgb, var(--team-chair-lit) 70%, var(--team-chair));
+}
+
 .chairSpine,
 .chairMechanism {
   fill: var(--team-chair-dark);
@@ -1122,7 +1966,8 @@
   stroke-linecap: round;
 }
 
-.chairCasters circle {
+.chairCasters circle,
+.chairCasters ellipse {
   fill: var(--dsw-static-neutral-800);
   stroke: color-mix(in srgb, var(--team-page) 42%, transparent);
   stroke-width: 0.8;
@@ -1135,7 +1980,10 @@
 .monitor {
   position: absolute;
   left: 0;
-  bottom: calc(100% - 2px);
+  /* On the rear half of the lid: the lid's back edge rises to 12% below the
+     desk's top, so the screen stands at the back of the surface and leaves the
+     front of it clear for the keyboard and the mug. */
+  bottom: 88%;
   width: 58%;
   display: flex;
   flex-direction: column;
@@ -1231,15 +2079,14 @@
   box-shadow: 0 2px 6px var(--dsw-alias-bg-mask-2);
 }
 
-/* On the desk around the computer: a keyboard on the near edge under the
+/* On the lid around the computer: a keyboard at the near edge under the
    member's own hands, a mug in its accent at one elbow, and a stack of paper
-   at the other. The desk is a slab seen edge-on, so everything standing on it
-   is measured from the room's unit and rises from the slab's near edge rather
-   than being a share of a surface that has no depth to be a share of. */
+   at the other. They all stand on the surface, so their feet are ON the lid —
+   near edge for the keyboard, a little way in for the rest. */
 .keyboard {
   position: absolute;
   left: 35%;
-  bottom: calc(100% - var(--team-unit) * 0.026);
+  bottom: 6%;
   width: 38%;
   height: calc(var(--team-unit) * 0.03);
   border-radius: 2.5px;
@@ -1254,13 +2101,14 @@
 
 .mug {
   position: absolute;
-  left: 84%;
-  bottom: calc(100% - var(--team-unit) * 0.014);
+  left: 82%;
+  bottom: 14%;
   width: calc(var(--team-unit) * 0.065);
   aspect-ratio: 3 / 4;
   border-radius: 1px 1px 40% 40%;
   background: color-mix(in srgb, var(--team-hue) 72%, var(--dsw-static-neutral-00));
   filter: hue-rotate(var(--team-accent-shift, 0deg));
+  box-shadow: 0 1.5px 2.5px var(--dsw-alias-bg-mask-2);
 }
 
 .mug::after {
@@ -1277,8 +2125,8 @@
 
 .papers {
   position: absolute;
-  left: 10%;
-  bottom: calc(100% - var(--team-unit) * 0.01);
+  left: 8%;
+  bottom: 8%;
   width: calc(var(--team-unit) * 0.11);
   height: calc(var(--team-unit) * 0.024);
   border-radius: 1px;
@@ -1287,6 +2135,16 @@
     0 0 0 1px var(--dsw-static-neutral-300),
     2px -2.5px 0 -1px var(--dsw-static-neutral-00),
     2px -2.5px 0 0 var(--dsw-static-neutral-300);
+}
+
+/* A small plant at the back corner of the lid, where the light is. */
+.deskPlant {
+  position: absolute;
+  right: 0;
+  bottom: 78%;
+  width: calc(var(--team-unit) * 0.09);
+  height: calc(var(--team-unit) * 0.115);
+  filter: drop-shadow(1px 2px 2px var(--dsw-alias-bg-mask-1));
 }
 
 /* ------------------------------------------------------------ the members */
@@ -1305,10 +2163,8 @@
   transform: translate(-50%, -100%) scale(calc(var(--team-scale, 1) * var(--team-sit, 1)));
   transform-origin: 50% 100%;
   z-index: calc(10 + var(--team-depth, 0));
-  /* The duration of the leg being walked rides the style attribute; the timing
-     is linear because a walk has no easing between two corners. */
-  transition-property: left, top;
-  transition-timing-function: linear;
+  /* The frame loop owns left and top: React renders when the member turns,
+     and the walk itself never round-trips through a render. */
   animation: team-person-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
@@ -1373,6 +2229,17 @@
   transform: rotate(3deg);
 }
 
+/* Somebody walking into the room shows you its back — the same view you get at
+   its desk, minus the chair. */
+.person[data-facing='away'] .figure {
+  transform: rotate(-2deg);
+}
+
+.person[data-facing='away'] .crewLimbBack,
+.person[data-facing='away'] .crewLimbFront {
+  display: none;
+}
+
 .person[data-facing='left'] .figure {
   transform: scaleX(-1) rotate(3deg);
 }
@@ -1435,12 +2302,35 @@
   opacity: 0.7;
 }
 
-/* The face looking out from under the whale's chin. */
+/* The face looking out from under the whale's chin. The base wash serves as
+   the room's neutral; each seat overrides it with one of the stylesheet's skin
+   tones, so a full team is not one person copied four times. */
 .crewFace,
 .crewHand,
 .crewNeck,
 .crewEar {
   fill: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 24%, var(--dsw-static-neutral-00));
+}
+
+.crew[data-skin='1'] .crewFace,
+.crew[data-skin='1'] .crewHand,
+.crew[data-skin='1'] .crewNeck,
+.crew[data-skin='1'] .crewEar {
+  fill: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 44%, var(--dsw-static-neutral-00));
+}
+
+.crew[data-skin='2'] .crewFace,
+.crew[data-skin='2'] .crewHand,
+.crew[data-skin='2'] .crewNeck,
+.crew[data-skin='2'] .crewEar {
+  fill: color-mix(in srgb, var(--dsw-static-amber-600) 58%, var(--dsw-static-neutral-00));
+}
+
+.crew[data-skin='3'] .crewFace,
+.crew[data-skin='3'] .crewHand,
+.crew[data-skin='3'] .crewNeck,
+.crew[data-skin='3'] .crewEar {
+  fill: color-mix(in srgb, var(--dsw-static-amber-700) 62%, var(--dsw-static-neutral-00));
 }
 
 /* Face-on features: soft brows, bright eye lights, and a touch of colour on
@@ -1462,15 +2352,33 @@
   opacity: 0.45;
 }
 
-/* The back of the head, for a member sitting at its own computer. */
+/* The back of the head, for a member sitting at its own computer. Hair is
+   NOT tinted by the seat accent — the hood already carries that hue — but from
+   a rack of its own tones, keyed by the tone index the seat was given. */
 .crewHair {
-  fill: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 26%, var(--dsw-static-neutral-800));
+  fill: color-mix(in srgb, var(--dsw-static-amber-700) 38%, var(--dsw-static-neutral-800));
+}
+
+.crew[data-tone='1'] .crewHair {
+  fill: var(--dsw-static-neutral-900);
+}
+
+.crew[data-tone='2'] .crewHair {
+  fill: color-mix(in srgb, var(--dsw-static-amber-600) 52%, var(--dsw-static-neutral-900));
+}
+
+.crew[data-tone='3'] .crewHair {
+  fill: color-mix(in srgb, var(--dsw-static-amber-600) 76%, var(--dsw-static-neutral-400));
+}
+
+.crew[data-tone='4'] .crewHair {
+  fill: color-mix(in srgb, var(--dsw-static-neutral-00) 80%, var(--dsw-static-neutral-600));
 }
 
 /* A soft light across the crown, so hair reads as hair and not a dark cap. */
 .crewHairShine {
-  fill: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 22%, var(--dsw-static-neutral-300));
-  opacity: 0.55;
+  fill: color-mix(in srgb, var(--dsw-static-neutral-00) 34%, transparent);
+  opacity: 0.5;
 }
 
 /* The whale hood is a smooth, polished shell: one bright edge, one shadowed
@@ -1554,6 +2462,57 @@
   fill: color-mix(in srgb, var(--team-hue) 44%, var(--dsw-static-neutral-00));
 }
 
+.crew[data-outfit='vest'] .crewShirt {
+  fill: color-mix(in srgb, var(--team-hue) 26%, var(--dsw-static-neutral-00));
+}
+
+.crew[data-outfit='jacket'] .crewShirt {
+  fill: color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));
+}
+
+.crew[data-outfit='stripes'] .crewShirt {
+  fill: color-mix(in srgb, var(--team-hue) 24%, var(--dsw-static-neutral-00));
+}
+
+.crew[data-outfit='dungarees'] .crewShirt {
+  fill: color-mix(in srgb, var(--team-hue) 36%, var(--dsw-static-neutral-00));
+}
+
+/* The garments drawn over the base figure. */
+.crewVest,
+.crewJacket,
+.crewBib {
+  fill: color-mix(in srgb, var(--team-hue) 46%, var(--dsw-static-neutral-00));
+  stroke: color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));
+  stroke-width: 0.6;
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+.crewStripes {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-hue) 62%, var(--dsw-static-neutral-00));
+  stroke-width: 1.4;
+  opacity: 0.8;
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+/* The tailoring that every cut shares: shoulder seams, hems, cuffs. */
+.crewSeam {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-hue) 56%, var(--dsw-static-neutral-00));
+  stroke-width: 0.8;
+  stroke-linecap: round;
+  opacity: 0.5;
+}
+
+.crewCuff {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
 .crewCollar {
   fill: none;
   stroke: var(--dsw-static-neutral-00);
@@ -1618,6 +2577,89 @@
   stroke-linecap: round;
 }
 
+/* What a member carries on its person. Glasses are drawn over the face, so
+   they sit above the hood; headphones circle the head under it; a scarf hangs
+   over the collar; a lanyard holds a badge against the chest; a backpack rides
+   on the shoulders from behind. */
+.crewCans {
+  pointer-events: none;
+}
+
+.crewGlasses rect {
+  fill: color-mix(in srgb, var(--team-hue) 34%, transparent);
+  stroke: var(--dsw-static-neutral-800);
+  stroke-width: 1.2;
+}
+
+.crewGlasses path {
+  fill: none;
+  stroke: var(--dsw-static-neutral-800);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.crewCansBand {
+  fill: none;
+  stroke: var(--dsw-static-neutral-800);
+  stroke-width: 3.4;
+}
+
+.crewCansCup {
+  fill: color-mix(in srgb, var(--team-hue) 64%, var(--dsw-static-neutral-00));
+  stroke: var(--dsw-static-neutral-800);
+  stroke-width: 0.8;
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+.crewScarf {
+  fill: color-mix(in srgb, var(--team-hue) 66%, var(--dsw-static-neutral-00));
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+.crewCord {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-hue) 72%, var(--dsw-static-neutral-00));
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+.crewBadge {
+  fill: var(--dsw-static-neutral-00);
+  stroke: var(--dsw-static-neutral-300);
+  stroke-width: 0.7;
+}
+
+.crewBadgeLine {
+  fill: none;
+  stroke: var(--dsw-static-neutral-500);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+}
+
+.crewPack {
+  fill: color-mix(in srgb, var(--team-hue) 52%, var(--dsw-static-neutral-700));
+  stroke: color-mix(in srgb, var(--team-ink) 20%, transparent);
+  stroke-width: 0.8;
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+.crewPackTrim {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-hue) 72%, var(--dsw-static-neutral-00));
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
+.crewStrap {
+  fill: none;
+  stroke: color-mix(in srgb, var(--team-hue) 58%, var(--dsw-static-neutral-700));
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  filter: hue-rotate(var(--team-accent-shift, 0deg));
+}
+
 /* Denim and leather rather than black: a near-black leg reads as a gap in the
    figure at the size the room draws it. Every seat rotates its own trouser
    hue with the accent, so the team is not a row of identical blue jeans. */
@@ -1641,7 +2683,31 @@
   fill: color-mix(in srgb, var(--team-hue) 16%, var(--dsw-static-neutral-500));
 }
 
-/* Limbs swing from the hip and the shoulder while the member walks. */
+.crew[data-shoes='hightop'] .crewShoe {
+  fill: color-mix(in srgb, var(--team-hue) 50%, var(--dsw-static-neutral-00));
+}
+
+.crew[data-shoes='sandal'] .crewShoe {
+  fill: color-mix(in srgb, var(--dsw-static-amber-600) 64%, var(--dsw-static-neutral-700));
+}
+
+/* The sole edge and the laces or straps over each pair. */
+.crewShoeTrim {
+  fill: none;
+  stroke: color-mix(in srgb, var(--dsw-static-neutral-00) 46%, transparent);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.crew[data-shoes='boot'] .crewShoeTrim,
+.crew[data-shoes='hightop'] .crewShoeTrim {
+  stroke: color-mix(in srgb, var(--dsw-static-neutral-00) 30%, transparent);
+}
+
+/* Limbs swing from the hip and the shoulder while the member walks. The swing
+   is one loop, paused, and the frame loop scrubs it: the walker's `--team-gait`
+   says where in the stride the member is, so the legs move at the speed the
+   member actually walks instead of at a fixed rate that fights a slow walk. */
 .crewLimbBack,
 .crewLimbFront,
 .crewArmBack,
@@ -1652,16 +2718,22 @@
 
 .person[data-walk='true'] .crewLimbBack,
 .person[data-walk='true'] .crewArmFront {
-  animation: team-step 520ms ease-in-out infinite;
+  animation: team-swing 1s linear infinite;
+  animation-play-state: paused;
+  animation-delay: calc(var(--team-gait, 0) * -1s);
 }
 
 .person[data-walk='true'] .crewLimbFront,
 .person[data-walk='true'] .crewArmBack {
-  animation: team-step 520ms ease-in-out infinite reverse;
+  animation: team-swing 1s linear infinite reverse;
+  animation-play-state: paused;
+  animation-delay: calc(var(--team-gait, 0) * -1s);
 }
 
 .person[data-walk='true'] .body {
-  animation: team-bob 520ms ease-in-out infinite;
+  animation: team-bob 1s ease-in-out infinite;
+  animation-play-state: paused;
+  animation-delay: calc(var(--team-gait, 0) * -1s);
 }
 
 /* At its desk, mid-turn, a member types. */
@@ -1991,6 +3063,11 @@
 
 .logArrow {
   opacity: 0.55;
+}
+
+.logTo {
+  font-weight: 600;
+  color: var(--dsw-alias-label-secondary);
 }
 
 .logKind {
@@ -2545,16 +3622,71 @@
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* One stride: the hip (or shoulder) swings the limb through and back. */
-@keyframes team-step {
+/* One stride, paused and scrubbed by the frame loop: the hip (or shoulder)
+   swings the limb through and back while the body rises on each step. */
+@keyframes team-swing {
   0%, 100% { transform: rotate(-17deg); }
   50% { transform: rotate(17deg); }
 }
 
-/* The body rises on each stride. */
 @keyframes team-bob {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3%); }
+  25% { transform: translateY(-3%); }
+  50% { transform: translateY(0); }
+  75% { transform: translateY(-3%); }
+}
+
+/* The weather outside the window. */
+@keyframes team-drift {
+  from { translate: 0 0; }
+  to { translate: 230% 0; }
+}
+
+@keyframes team-sail {
+  from { translate: 0 0; }
+  to { translate: 340% 0; }
+}
+
+/* The pendants' light pool breathes. */
+@keyframes team-glow {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; }
+}
+
+/* A leaf leans over and comes back. */
+@keyframes team-sway {
+  0%, 100% { transform: rotate(-2.6deg); }
+  50% { transform: rotate(2.6deg); }
+}
+
+/* A bubble climbs through the jug and is gone. */
+@keyframes team-bubble {
+  0% { opacity: 0; translate: 0 0; }
+  12% { opacity: 1; }
+  88% { opacity: 0.8; }
+  100% { opacity: 0; translate: 0 -44%; }
+}
+
+/* The office cat: over the room, under the desks, off again. */
+@keyframes team-prowl {
+  0%, 100% { opacity: 0; left: -12%; transform: scaleX(1); }
+  2% { opacity: 1; }
+  46% { opacity: 1; left: 42%; transform: scaleX(1); }
+  50% { opacity: 1; left: 50%; transform: scaleX(1); }
+  54% { opacity: 1; left: 62%; transform: scaleX(-1); }
+  92% { opacity: 1; left: -12%; transform: scaleX(-1); }
+  94%, 100% { opacity: 0; }
+}
+
+/* The clock's second hand: one revolution a minute, in sixty even steps. */
+@keyframes team-tick {
+  from { transform: translateY(-100%) rotate(0deg); }
+  to { transform: translateY(-100%) rotate(360deg); }
+}
+
+@keyframes team-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
 }
 
 @keyframes team-type {
@@ -2596,7 +3728,18 @@
   .logRow,
   .card,
   .note,
-  .speech {
+  .speech,
+  .chairRide,
+  .chairLift,
+  .lamp::after,
+  .pendantGlow,
+  .cloud,
+  .sail,
+  .coolerBubble,
+  .floraLeaf,
+  .cat,
+  .clockHand[data-hand='second'],
+  .propLampLive {
     animation: none;
   }
 
