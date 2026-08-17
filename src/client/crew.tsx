@@ -382,29 +382,36 @@ function hairAbove(kind: HairKind) {
   )
 }
 
-/** Whatever a member wears on its head besides its own hood. */
-function headGear(kind: GearKind, back: boolean) {
-  switch (kind) {
-    case 'glasses':
-      if (back) return null
-      return (
-        <g className={css.crewGlasses}>
-          <rect x="21" y="26.6" width="9.4" height="7.4" rx="3.2" />
-          <rect x="33.6" y="26.6" width="9.4" height="7.4" rx="3.2" />
-          <path d="M30.4 29.8 H33.6 M21 29.4 L17.6 30.4 M43 29.4 L46.4 30.4" />
-        </g>
-      )
-    case 'headphones':
-      return (
-        <g className={css.crewCans}>
-          <path className={css.crewCansBand} d="M16.5 31 C16.5 16 23.5 9 32 9 C40.5 9 47.5 16 47.5 31" />
-          <rect className={css.crewCansCup} x="12.6" y="26" width="8" height="12" rx="4" />
-          {back && <rect className={css.crewCansCup} x="43.4" y="26" width="8" height="12" rx="4" />}
-        </g>
-      )
-    default:
-      return null
-  }
+/**
+ * Gear worn UNDER the hood. Headphones go on before the whale does: the band
+ * runs over the head and the hood lies over it where they cross, so the cups
+ * hang under the jaw instead of being glued to the outside of it.
+ */
+function headGearUnder(kind: GearKind, back: boolean) {
+  if (kind !== 'headphones') return null
+  return (
+    <g className={css.crewCans}>
+      <path className={css.crewCansBand} d="M16.5 31 C16.5 16 23.5 9 32 9 C40.5 9 47.5 16 47.5 31" />
+      <rect className={css.crewCansCup} x="12.6" y="26" width="8" height="12" rx="4" />
+      {back && <rect className={css.crewCansCup} x="43.4" y="26" width="8" height="12" rx="4" />}
+    </g>
+  )
+}
+
+/**
+ * Gear worn OVER everything: glasses sit on the face, and the hood's jaw
+ * stays clear of them, so the lenses read as lenses and not as a strip under
+ * the whale's chin.
+ */
+function headGearOver(kind: GearKind, back: boolean) {
+  if (kind !== 'glasses' || back) return null
+  return (
+    <g className={css.crewGlasses}>
+      <rect x="21" y="26.6" width="9.4" height="7.4" rx="3.2" />
+      <rect x="33.6" y="26.6" width="9.4" height="7.4" rx="3.2" />
+      <path d="M30.4 29.8 H33.6 M21 29.4 L17.6 30.4 M43 29.4 L46.4 30.4" />
+    </g>
+  )
 }
 
 /** Whatever a member wears over its clothes. */
@@ -471,9 +478,12 @@ function head(kind: MaskKind, hair: HairKind, gear: GearKind, back: boolean) {
       )}
       <path className={css.crewHair} d={CAPS[hair]} />
       <path className={css.crewHairShine} d={HAIR_SHINE} />
+      {headGearUnder(gear, back)}
       {/* The whale is worn in profile either way, pulled down over the brow so
           it reads as a hood rather than a hat; from behind it faces the other
-          side, which is what turning around does to a hood. */}
+          side, which is what turning around does to a hood. Drawn after the
+          headgear, so anything worn under it — the headphone band — tucks
+          under the hood instead of sitting on top of it. */}
       <g transform={back ? 'translate(64 3) scale(-1 1)' : 'translate(0 3)'}>
         {behind(kind)}
         <path className={css.crewHood} d={WHALE} />
@@ -488,7 +498,7 @@ function head(kind: MaskKind, hair: HairKind, gear: GearKind, back: boolean) {
         <path className={css.crewMouth} d="M49 9.6 C54 7.7 59 6.1 63 5.7" />
       </g>
       {hairAbove(hair)}
-      {headGear(gear, back)}
+      {headGearOver(gear, back)}
     </>
   )
 }
