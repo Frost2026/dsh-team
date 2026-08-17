@@ -6,6 +6,39 @@
 
 整个能力是**一个包、一行装配**：宿主半边（`dsh-team`）与浏览器半边（`dsh-team/client`）从同一个 `package.json` 构建。
 
+## 安装
+
+npm 预构建包，一行装配：
+
+```sh
+dsh plugin --profile web add dsh-team
+```
+
+也可以克隆源码构建后挂 link：
+
+```sh
+git clone https://github.com/huxint/dsh-team.git
+cd dsh-team
+pnpm install
+pnpm run build
+dsh plugin --profile web add link:$PWD
+```
+
+包自带 `cordis.patch.yml`（`package.json` 里的 `dsh.bundle.patch` 指向它），`plugin add` 装进去即生效。web profile 的 base bundle（`@deepseek-ai/dsh-base`）已经带齐所需的 continuable subagent provider、session projection 与持久化；虚拟工作区还需要挂载 storage-domain（`@deepseek-ai/dsh-web-app` 已组合），没有它团队其余能力照常，只是 `team_note` / `team_board` 不会注册。
+
+验证装配与启动：
+
+```sh
+dsh --profile web --dump-config | grep 'id: team'
+dsh --profile web
+```
+
+在会话里让主会话调用 `team_spawn` 派生第一名队友，视图环里就会出现 `Agent 团队` 页签。卸载：
+
+```sh
+dsh plugin --profile web remove dsh-team
+```
+
 ## 能力一览
 
 - **具名常驻队友**：`team_spawn` 把一个 `ctx.subagents` 的 continuable 子代变成团队成员——会话、日志、冷恢复、活动驻留与中断都由 harness 负责，队友不占会话树。
@@ -16,77 +49,15 @@
 
 ## 设计
 
-### 队友 = continuable subagent
+实现完全走 dsh 的能力缝，不造新运行时：
 
-队友必须有会话（要记忆、要日志、要能恢复），所以问题不是"别建会话"，而是"别建一个普通会话"。`ctx.subagents.startContinuable()` 建的子代天然满足：
-
-- `childSessionMeta` 打上 `origin: 'subagent'` → 会话树不展示，也不参与通用 Host 路由；
-- durable child id + descriptor 由缝持有 → dsh 重启后队友**冷恢复**，团队不丢；
-- 队友的 transcript 仍可读：内置的 subagent 目录里它们是 `continuable` 子代，标签是 `名字 (角色)`，协作室里点一个成员就打开。
-
-本插件在这之上只补三样 subagent 缝故意不提供的东西：**具名成员**、**成员之间的投递**、**一份共享任务列表**。
-
-### 投递权威永远是 leader 的
-
-`ctx.subagents.followup()` 只认 durable 直接父级的权威，而 leader 正是每个队友的直接父级。所以 peer↔peer 消息也是"由 leader 权威执行、消息源里写明真实发送者"的一次投递：
-
-- `relation` 决定**谁可以要求**投递（`managed` 只能发给 leader，`peer` 可以直接发给任何成员），
-- 从不决定**谁来执行**投递（永远是 leader 权威）。
-
-消息落到收件人自己的日志里，source 是 `{ kind: 'team-message', form: 'relay', senderSessionId, senderName, chainId, hop }`——发送者归属与会话深度都随持久化一起留存。
-
-### 队友之间不会聊到天荒地老
-
-`team_send` 把消息变成对方的下一个 turn——两个 peer 互相礼貌回复就能永远转下去，而这一切**不在用户的主对话里**，没人踩刹车。所以投递带**会话预算**，是机械约束而不是提示词祈祷：
-
-- **一次对话（chain）**：leader 每发一条消息就开一条新链（`hop = 0`）；队友发消息时**继承它当前正在处理的那条投递**的链，`hop + 1`。所以"leader 交办 → A 问 B → B 答 A"是同一次对话，而不是三条互不相干的消息。
-- **深度上限**（`maxChainHops`，默认 4）：一次对话在队友之间最多转这么多手，超了 `team_send` 直接拒绝。
-- **同一有序对不许来回磨**（`maxChainRoundTrips`，默认 2）：一条链里 A→B 最多这么多条。
-- **一字不差的重发直接拒**：同一条链里同一有序对重复同样的内容，对收件人不产生任何新信息。
-- **出口永远开着**：以上三条**只管队友→队友**。发给 leader 从不拒绝。所以预算不会把"有话要说"的成员困住，它只是把话逼回收敛点——拒绝语本身就是"settle it yourself and report to the leader"。
-- **为什么 leader 那一侧不设限**：leader 的每个 turn 都在用户看得见、能中断的主对话里，链走到 leader 就已经收敛了。真正危险的是**看不见的**横向循环。
-- **深度是持久事实**：`hop` 写进投递的 `team-message` 源里，跟着收件人的日志一起存，所以协作室的气泡上能看到"第 n 跳"——第 3 跳起变警告色。深度不是只有拒绝时才存在的东西，它一直是可观测的。
-
-链的执行状态（谁在处理哪条链、每条边发过几次）是**进程内**的，随 leader 的 live team 一起建立与丢弃，最多记住最近 64 条链；重启后重新开始——重启本身就断链。
-
-### 两个虚拟工作区
-
-队友做完一件事，除了发消息告诉别人，还应该有个地方**把它写下来**。所以团队有两个**虚拟**工作区——它们不是文件，也不在用户的真实工作目录里：
-
-- **共享黑板**：全队可读可写的具名条目（结论、约定、交接物）。
-- **私有便笺**：每个成员一块只有自己能读写的板子，用来把自己的状态带过 turn 边界。
-
-工具是 `team_note`（写/删，`private: true` 走自己的便笺）和 `team_board`（不带 key 读索引，带 key 读全文），leader 和队友都有。
-
-**为什么不落在会话日志里**：队友的工具调用只落在**它自己**的日志里，leader 的折叠永远读不到——这正是"任务列表只能 leader 写"这条限制的根源。所以工作区落在 `ctx.storageDomain`（`@deepseek-ai/dsh-storage-domain`）：写入先落盘再更新内存，跨重启存活，**队友可以直接写**，而且不占任何人的一个 turn。
-
-**这也是防死循环的正向出口**：留一条笔记不花 turn、不花会话预算；给同级发消息两样都花。提示里明确这么讲。
-
-**面板看到的是快照**：durable 工作区不在任何会话日志里，所以协作室里的"共享工作区"是**主会话最后一次读或写时**的样子——`team_note` / `team_board` 的结果 meta 带着整份共享索引（只有索引与首行预览，不带正文；私有便笺从不进投影）。面板上写着快照时间，不假装自己是实时的。
-
-工作区随团队走：解散整队清掉这支团队的全部区域，解雇一名队友清掉它的私有便笺（`team/changed` 带上 `ended` / `removedMember`）。没有 storage-domain 的部署照常用团队，只是这两个工具**根本不会注册**——没人会看到一个写不下去的工具。
-
-### leader 不在场时，队友不失联
-
-主会话被卸载（用户关掉、进程重启、residency 回收）而队友还在跑，是常态而不是异常。**投递确实停了**——每次投递都跑在 leader 的父级权威上，没有 live 的 leader 就没有权威——但"投递停了"不等于"你没有团队"：
-
-- **拒绝语分得清两件事**：`LEADER_AWAY`（"团队还在，只是主会话没加载，把结果写进 `team_note`，leader 回来会读到"）与 `NO_TEAM`（"这里还没有团队，用 `team_spawn` 开一支"）。
-- **身份提示段落同样分得清**：花名册读不到时，段落会说"团队还在、主会话没加载、把活收个尾写进黑板"；真正被解雇的成员才会看到"团队已经不在了"。段落每次组装都重算，所以 leader 一回来，下一步就自动恢复成完整花名册。
-- **工作区不受影响**：队友的席位（`leaderId` / `memberId` / 名字）是**组装时就捕获**的，不需要每次调用回去问 leader。所以 `team_note` / `team_board` 在 leader 不在场时照常可写可读——这正是把它做成 durable 而不是会话日志的收益。
-
-### 只折叠一次
-
-rc.6 的 `Session.append` 无法把事件标成 `ignorable`，因此**仓库外插件不能新增会话事件类型**（否则卸载插件后旧日志会拒绝加载）。所以团队的每条持久事实都骑在 harness 已认识的词汇上：
-
-- 团队工具自己 `tool/result` 的 `meta`（`presentationMeta` 带**整个实体**，不是增量）；
-- `user/message` 的消息源（`team-message` / 内置的 `subagent-report` / `subagent-settled`）。
-
-`src/fold.ts` 是唯一的折叠实现，`src/projection.ts` 把它注册成 `team` session projection：宿主算一次，框架负责推给浏览器（历史尾巴基线 + `session/projection` 帧），客户端只决定"现在显示哪个会话的值"。
-
-### 工具作用域
-
-- leader 侧：`agent/created` 时把 6 个工具注册进**该 agent 自己的 ctx**（普通 subagent 继承全局注册表，但不继承别人的 agent scope，所以看不到）。
-- 队友侧：`registerContinuableSetup` 在子代**未发布的组装窗口**里注册 `team_send`、`team_list`、身份提示段落与（可选的）思考强度；不属于任何团队的子代拿到的是空的 disposer。
+- **队友 = continuable subagent**：`team_spawn` 用 `ctx.subagents.startContinuable()` 建具名常驻子代——会话、日志、冷恢复、活动驻留与中断全由 harness 负责，队友不进会话树；transcript 仍可读（内置 subagent 目录里标签是 `名字 (角色)`）。插件只补缝里没有的三样：**具名成员、成员投递、共享任务列表**。
+- **投递权威永远是 leader 的**：`followup()` 只认直接父级，leader 正是每个队友的直接父级，所以 peer↔peer 消息也是"由 leader 权威执行、消息源写明真实发送者"的一次投递；`relation` 只决定谁可以要求投递，从不决定谁来执行。消息源（`team-message`，带 `senderSessionId` / `chainId` / `hop`）随日志持久化。
+- **会话预算防横向循环**：`team_send` 把消息变成对方的下一个 turn，peer 互相回复能无限转下去，所以投递带机械约束——链深度（`maxChainHops`，默认 4）、同一有序对来回数（`maxChainRoundTrips`，默认 2）、一字不差的重发直接拒；这些只管队友→队友，发给 leader 从不拒绝。`hop` 随消息源持久化，协作室气泡可见。
+- **两个虚拟工作区**：共享黑板 + 每人一块私有便笺，落 `ctx.storageDomain`，先落盘、跨重启、不占任何人的 turn——留笔记不花会话预算，也是防死循环的正向出口。
+- **leader 不在场，团队不丢**：投递随 live leader 一起停，但拒绝语分得清 `LEADER_AWAY` / `NO_TEAM`；队友席位组装时就捕获，工作区照常可读写，leader 一回来即恢复。
+- **只折叠一次**：团队持久事实都骑在 harness 已认识的词汇上（团队工具 `tool/result` 的 meta、`user/message` 的 `team-message` 源），`src/fold.ts` 是唯一折叠实现，`src/projection.ts` 注册成 `team` projection，宿主算一次、框架推给浏览器。
+- **工具作用域**：leader 的 6 个工具在 `agent/created` 时注册进该 agent 自己的 ctx；队友侧在 `registerContinuableSetup` 的未发布组装窗口里注册 `team_send` / `team_list` 与身份提示段落。
 
 ## 模型看到的工具
 
@@ -147,35 +118,6 @@ rc.6 的 `Session.append` 无法把事件标成 `ignorable`，因此**仓库外�
 
 导航进队友会话时页签不会消失：跟随器认得"当前会话是这支团队的成员"，只把"你在这儿"的标记挪过去，同时改订 **leader 的 `team` 投影**——被读的那个队友自己折不出团队，只有盯着 leader，房间才既是活的、又能在团队解散的那一刻关掉。leader 本身没加载时，房间保留它最后看到的样子。
 
-## 安装
-
-克隆、构建，然后挂进 web profile：
-
-```sh
-git clone https://github.com/huxint/dsh-team.git
-cd dsh-team
-pnpm install
-pnpm run build
-dsh plugin --profile web add link:$PWD
-```
-
-包自带 `cordis.patch.yml`（`package.json` 里的 `dsh.bundle.patch` 指向它），`plugin add` 装进去即生效。web profile 的 base bundle（`@deepseek-ai/dsh-base`）已经带齐所需的 continuable subagent provider、session projection 与持久化；虚拟工作区还需要挂载 storage-domain（`@deepseek-ai/dsh-web-app` 已组合），没有它团队其余能力照常，只是 `team_note` / `team_board` 不会注册。
-
-验证装配与启动：
-
-```sh
-dsh --profile web --dump-config | grep 'id: team'
-dsh --profile web
-```
-
-在会话里让主会话调用 `team_spawn` 派生第一名队友，视图环里就会出现 `Agent 团队` 页签。
-
-改完源码重跑 `pnpm run build`：宿主行要重启 dsh，客户端 bundle 刷新页面即可。卸载：
-
-```sh
-dsh plugin --profile web remove dsh-team
-```
-
 ## 配置（`cordis.patch.yml` 可覆写）
 
 | 键 | 默认 | 含义 |
@@ -201,6 +143,8 @@ dsh plugin --profile web remove dsh-team
 - 不嵌套：队友不能再开自己的团队（`NESTED_TEAM`）。
 
 ## 开发
+
+改完源码重跑 `pnpm run build`：宿主行要重启 dsh，客户端 bundle 刷新页面即可。
 
 ```sh
 pnpm run typecheck   # 源码 + 测试
