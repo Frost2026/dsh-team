@@ -4,7 +4,7 @@
 
 给 dsh 加一支可以指挥的团队：主会话作为 **leader**，可以派生若干**常驻队友（teammate）**，队友有自己的会话、记忆与工具；成员之间通过**邮箱**互发消息（消息成为收件人的下一个 turn），共享一份**任务列表**；会话视图环里多出一个 **Agent 团队**页签，把花名册、协作关系与消息流画成一间能看见的协作室。设计理念参考 Claude Code 的 agent team（共享任务列表 + 邮箱直连 + 成员自协调），实现完全走 dsh 的能力缝。
 
-整个能力是**一个包、一行装配**：宿主半边（`dsh-team`）与浏览器半边（`dsh-team/client`）从同一个 `package.json` 构建。
+整个能力是**一个包、一行装配**：宿主半边（`dsh-team`）与浏览器半边（`dsh-team/client`）从同一个 `package.json` 构建。仓库根放 `dsh-manifest.json`（声明插件元数据：入口、`dsh.bundle` patch 与 `dsh.client` 注入），预构建产物在 `dist/`（宿主 ESM `dist/index.js`、浏览器闭包工厂 `dist/client.js`），npm 包与仓库都直接携带这些文件，克隆即装、无需现场构建。
 
 ## 安装
 
@@ -149,9 +149,11 @@ dsh plugin --profile web remove dsh-team
 ```sh
 pnpm run typecheck   # 源码 + 测试
 pnpm run test        # 折叠 / 投影 / 服务授权矩阵 / 工具契约 / 队友组装 / 会话预算 / 虚拟工作区 / 房间几何与走路 / 客户端跟随与页签 / 协作室与抽屉
-pnpm run build       # 宿主 ESM + 浏览器闭包工厂（构建期强制客户端 bundle 纯净性）
+pnpm run build       # 宿主 ESM + 浏览器闭包工厂（构建期强制客户端 bundle 纯净性），产物进 dist/
 pnpm run check       # 三件一起
 ```
+
+构建产物（`dist/`）与 `dsh-manifest.json` 是提交进仓库的：仓库本身即插件规范要求的「元数据声明 + 预构建产物」形态，改完源码记得把新的 `dist/` 一起提交。
 
 构建与类型针对 npm 上的 `@deepseek-ai/dsh@0.1.0-rc.6`。遵循 harness 的插件纪律：注册即 effect、能力缝三角色、事件全 JSON 整值、模型可见即落日志、配置无硬编码。
 

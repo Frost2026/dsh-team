@@ -40,11 +40,11 @@ const INLINE_SAFE = /^@deepseek-ai\/dsh-(host-apiproxy|session|llm|tools|brand|s
 const CSS_VIRTUAL_PREFIX = '\0dsh-css:'
 const CSS_VIRTUAL_SUFFIX = '.mjs'
 
-/** The node half: ESM plus declarations into lib/. */
+/** The node half: ESM plus declarations into dist/. */
 const library: UserConfig = {
   name: ID,
   entry: ['src/index.ts'],
-  outDir: 'lib',
+  outDir: 'dist',
   format: ['esm'],
   platform: 'node',
   target: 'es2023',
@@ -58,7 +58,7 @@ const library: UserConfig = {
 const client: UserConfig = {
   name: `${ID}/client`,
   entry: { client: 'src/client/index.ts' },
-  outDir: 'lib',
+  outDir: 'dist',
   format: 'cjs',
   platform: 'browser',
   sourcemap: true,

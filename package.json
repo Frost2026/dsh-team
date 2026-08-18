@@ -3,22 +3,20 @@
   "version": "0.2.2",
   "description": "Agent teams for DeepSeek Harness: named long-lived teammates over ctx.subagents, a shared task list, a member-to-member mailbox, virtual workspaces, and a live team room in the conversation view",
   "type": "module",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
-      "default": "./lib/index.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
-    "./client": "./lib/client.js",
+    "./client": "./dist/client.js",
     "./package.json": "./package.json"
   },
   "files": [
-    "lib/index.js",
-    "lib/index.d.ts",
-    "lib/client.js",
-    "lib/client.js.map",
-    "cordis.patch.yml"
+    "dist/",
+    "cordis.patch.yml",
+    "dsh-manifest.json"
   ],
   "license": "MIT",
   "dsh": {
