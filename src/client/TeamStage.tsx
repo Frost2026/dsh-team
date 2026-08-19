@@ -36,7 +36,7 @@ import {
 } from './crew.tsx'
 import { Plant, plantOf } from './flora.tsx'
 import {
-  CabinetFigure, CatFigure, ChairFigure, CoffeeFigure, CoolerFigure, PendantFigure, PrinterFigure,
+  AirConditionerFigure, CabinetFigure, CatFigure, ChairFigure, CoffeeFigure, CoolerFigure, LampFigure, PendantFigure, PrinterFigure, SofaFigure, TableFigure, TreadmillFigure,
 } from './props.tsx'
 import css from './TeamStage.module.css'
 
@@ -313,9 +313,8 @@ export function TeamStage(props: TeamStageProps) {
     return {
       left: `${screen.left}%`,
       top: `${screen.top}%`,
-      width: `${Math.round(rect.w * screen.scale * 100) / 100}%`,
-      height: `${Math.round(rect.h * screen.scale * 100) / 100}%`,
       '--team-depth': Math.round(rect.y + rect.h / 2),
+      '--team-scale': Math.round(screen.scale * 1000) / 1000,
     } as CSSProperties
   }
   /** The rug and the floor lamp are furniture too, so they get plan rects. */
@@ -436,7 +435,7 @@ export function TeamStage(props: TeamStageProps) {
 
             {/* The service wall on the left: the things an office has that
                 nobody has a desk for. */}
-            <span className={css.utility} style={at({ x: 3.5, y: 31 }, 1)} aria-hidden>
+            <span className={css.utility} style={at({ x: 4.5, y: 64 }, 1)} aria-hidden>
               <span className={css.utilityCabinet} data-prop="cabinet"><CabinetFigure /></span>
               <span className={css.utilityPrinter} data-prop="printer"><PrinterFigure /></span>
               <span className={css.utilityCoffee} data-prop="coffee"><CoffeeFigure /></span>
@@ -446,11 +445,24 @@ export function TeamStage(props: TeamStageProps) {
               <CatFigure />
             </span>
 
+            {/* The treadmill in the front-right corner: the wellness zone, in
+                front of the lounge where the floor is empty, clear of the
+                cooler above it and of everybody's way past it. */}
+            <span className={css.treadmill} data-prop="treadmill" style={at({ x: 93, y: 87 }, 1)} aria-hidden>
+              <TreadmillFigure />
+            </span>
+
             <div className={css.lounge} aria-hidden>
               <span className={css.rug} data-prop="rug" style={loungePiece(rugRect)} />
-              <span className={css.sofa} data-prop="sofa" style={loungePiece(sofaBlock!)} />
-              <span className={css.table} data-prop="table" style={loungePiece(tableBlock!)} />
-              <span className={css.lamp} data-prop="lamp" style={loungePiece(lampRect)} />
+              <span className={css.sofa} data-prop="sofa" style={loungePiece(sofaBlock!)}>
+                <SofaFigure />
+              </span>
+              <span className={css.table} data-prop="table" style={loungePiece(tableBlock!)}>
+                <TableFigure />
+              </span>
+              <span className={css.lamp} data-prop="lamp" style={loungePiece(lampRect)}>
+                <LampFigure />
+              </span>
               <span className={css.plant} data-prop="plant" style={loungePiece(plantBlock!)}>
                 <Plant kind={plantOf(0)} />
               </span>
@@ -676,8 +688,13 @@ function screenLineOf(
   const active = tasks.find(task => task.assigneeId === memberId && task.status === 'active')
     ?? tasks.find(task => task.assigneeId === memberId && task.status !== 'done')
   if (active !== undefined) return short(active.title, 34)
-  const inbound = [...messages].reverse().find(message => message.to === memberId)
-  return inbound === undefined ? undefined : short(inbound.text, 34)
+  // Scanned backwards in place: a copy-and-reverse per member per render is
+  // the one cost this stage does not need to pay on every snapshot.
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index]
+    if (message?.to === memberId) return short(message.text, 34)
+  }
+  return undefined
 }
 
 /**
@@ -691,7 +708,16 @@ function screenLineOf(
 function RoomWall() {
   return (
     <span className={css.wall} aria-hidden>
-      <span className={css.whiteboard} data-prop="whiteboard" style={{ left: `${onWall(16)}%` }}>
+      {/* The wall's fixtures, left to right, each with room to breathe: the
+          calendar clears the whiteboard's frame, the hanger trails between
+          the board and the near window with air on both sides of it, and the
+          air conditioner owns the wall's right end alone. */}
+      <span className={css.calendar} data-prop="calendar" style={{ left: `${onWall(4)}%` }}>
+        <span className={css.calendarHead} />
+        <span className={css.calendarGrid} />
+      </span>
+
+      <span className={css.whiteboard} data-prop="whiteboard" style={{ left: `${onWall(15.5)}%` }}>
         <span className={css.boardGhost} />
         <span className={css.boardInk} />
         <span className={css.boardNote} data-note="a" />
@@ -702,12 +728,12 @@ function RoomWall() {
         <span className={css.boardEraser} />
       </span>
 
-      <span className={css.hanger} style={{ left: `${onWall(25)}%` }}>
+      <span className={css.hanger} style={{ left: `${onWall(26)}%` }}>
         <span className={css.hangerBracket} />
         <Plant kind="pothos" className={css.hangerPlant} />
       </span>
 
-      {[30, 62].map(where => (
+      {[36.5, 65].map(where => (
         <span key={where} className={css.window} data-prop="window" style={{ left: `${onWall(where)}%` }}>
           <span className={css.pane}>
             <span className={css.sky} />
@@ -726,7 +752,7 @@ function RoomWall() {
         </span>
       ))}
 
-      <span className={css.shelf} data-prop="shelf" style={{ left: `${onWall(46)}%` }}>
+      <span className={css.shelf} data-prop="shelf" style={{ left: `${onWall(50)}%` }}>
         <span className={css.books} />
         <span className={css.bookLeaning} />
         <span className={css.trophy} />
@@ -736,7 +762,7 @@ function RoomWall() {
         <span className={css.plankBracket} />
       </span>
 
-      <span className={css.clockProp} data-prop="clock" style={{ left: `${onWall(74)}%` }}>
+      <span className={css.clockProp} data-prop="clock" style={{ left: `${onWall(79)}%` }}>
         <span className={css.clockTicks} />
         <span className={css.clockHand} data-hand="hour" />
         <span className={css.clockHand} data-hand="minute" />
@@ -744,13 +770,8 @@ function RoomWall() {
         <span className={css.clockPin} />
       </span>
 
-      <span className={css.poster} data-prop="poster" style={{ left: `${onWall(86)}%` }}>
-        <span className={css.posterArt} />
-      </span>
-
-      <span className={css.calendar} data-prop="calendar" style={{ left: `${onWall(8)}%` }}>
-        <span className={css.calendarHead} />
-        <span className={css.calendarGrid} />
+      <span className={css.airConditioner} data-prop="ac" style={{ left: `${onWall(89.5)}%` }}>
+        <AirConditionerFigure />
       </span>
     </span>
   )

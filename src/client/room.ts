@@ -129,14 +129,16 @@ export function deskOf(index: number, count: number): Desk {
  * places to stand around the sofa, all of them in front of the furniture and
  * close enough to it to belong to it — a member on a break stands at the
  * coffee table, never in it, and never marooned on the floor below it — and a
- * fourth member shares the first.
+ * fourth member shares the first. The rightmost place stays clear of the
+ * treadmill in the corner beyond it: somebody standing in the machine's way
+ * would be drawn into its deck.
  * @param index - the member's index among those on a break.
  * @returns the place it stands.
  */
 export function breakAt(index: number): Post {
   const spots: readonly Point[] = [
     { x: LOUNGE.x + 8, y: LOUNGE.y + 29 },
-    { x: LOUNGE.x + 20, y: LOUNGE.y + 34 },
+    { x: LOUNGE.x + 15, y: LOUNGE.y + 33 },
     { x: LOUNGE.x + 14, y: LOUNGE.y + 23 },
   ]
   const spot = spots[index % spots.length] ?? spots[0]!
@@ -187,8 +189,21 @@ export const ROOM_BLOCKS: readonly Rect[] = [
   { x: LOUNGE.x + 21, y: LOUNGE.y + 2, w: 6, h: 6 },
   /** The water cooler, against the right wall. */
   { x: LOUNGE.x + 22, y: LOUNGE.y + 12, w: 6, h: 6.5 },
-  /** The filing cabinet and printer, along the left wall of the room. */
-  { x: 0.5, y: 24, w: 6, h: 7 },
+  /**
+   * The treadmill, in the front-right corner: the wellness zone, in front of
+   * the lounge and out of every walkway. The rectangle covers the whole drawn
+   * machine, deck and console, because the part of a tall prop that reads as
+   * "here" on a shallow floor is its full visual bulk, not just its feet.
+   */
+  { x: 86, y: 70, w: 12, h: 17 },
+  /**
+   * The filing cabinet, printer and coffee machine, clustered against the
+   * left wall beside the desks. The rectangle spans the cluster's full drawn
+   * height — a tall cabinet's screen area reaches well back of its base on a
+   * floor seen this shallow — so a walker is kept out of the machine, not
+   * merely out from under it.
+   */
+  { x: 0.5, y: 41, w: 12, h: 24 },
 ]
 
 /**

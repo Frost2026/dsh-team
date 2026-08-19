@@ -245,8 +245,8 @@ describe('the room', () => {
   it('furnishes the room instead of labelling it', () => {
     const { container } = stage()
     for (const prop of [
-      'window', 'whiteboard', 'clock', 'shelf', 'poster', 'calendar',
-      'sofa', 'table', 'plant', 'cooler', 'rug',
+      'window', 'whiteboard', 'clock', 'shelf', 'calendar', 'ac',
+      'sofa', 'table', 'plant', 'cooler', 'rug', 'treadmill',
       'cabinet', 'printer', 'coffee', 'cat',
     ]) {
       expect(container.querySelector(`[data-prop="${prop}"]`), prop).toBeTruthy()

@@ -243,7 +243,9 @@ window.__ModuleLoader__.load({
 		* places to stand around the sofa, all of them in front of the furniture and
 		* close enough to it to belong to it — a member on a break stands at the
 		* coffee table, never in it, and never marooned on the floor below it — and a
-		* fourth member shares the first.
+		* fourth member shares the first. The rightmost place stays clear of the
+		* treadmill in the corner beyond it: somebody standing in the machine's way
+		* would be drawn into its deck.
 		* @param index - the member's index among those on a break.
 		* @returns the place it stands.
 		*/
@@ -254,8 +256,8 @@ window.__ModuleLoader__.load({
 					y: LOUNGE.y + 29
 				},
 				{
-					x: LOUNGE.x + 20,
-					y: LOUNGE.y + 34
+					x: LOUNGE.x + 15,
+					y: LOUNGE.y + 33
 				},
 				{
 					x: LOUNGE.x + 14,
@@ -337,12 +339,31 @@ window.__ModuleLoader__.load({
 				h: 6.5
 			}),
 			(
-			/** The filing cabinet and printer, along the left wall of the room. */
+			/**
+			* The treadmill, in the front-right corner: the wellness zone, in front of
+			* the lounge and out of every walkway. The rectangle covers the whole drawn
+			* machine, deck and console, because the part of a tall prop that reads as
+			* "here" on a shallow floor is its full visual bulk, not just its feet.
+			*/
+			{
+				x: 86,
+				y: 70,
+				w: 12,
+				h: 17
+			}),
+			(
+			/**
+			* The filing cabinet, printer and coffee machine, clustered against the
+			* left wall beside the desks. The rectangle spans the cluster's full drawn
+			* height — a tall cabinet's screen area reaches well back of its base on a
+			* floor seen this shallow — so a walker is kept out of the machine, not
+			* merely out from under it.
+			*/
 			{
 				x: .5,
-				y: 24,
-				w: 6,
-				h: 7
+				y: 41,
+				w: 12,
+				h: 24
 			})
 		];
 		/**
@@ -1031,7 +1052,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:/home/huxint/projects/dsh-team/src/client/TeamStage.module.css.mjs
-		const css = ".nesYQG_stage,.nesYQG_stage *,.nesYQG_stage :before,.nesYQG_stage :after{box-sizing:border-box}.nesYQG_stage{--team-page:var(--dsw-alias-bg-base);--team-ink:var(--dsw-alias-label-primary);--team-surface-1:color-mix(in srgb, var(--team-ink) 4%, var(--team-page));--team-surface-2:color-mix(in srgb, var(--team-ink) 9%, var(--team-page));--team-surface-3:color-mix(in srgb, var(--team-ink) 16%, var(--team-page));--team-hue:var(--dsw-alias-state-business-primary);--team-warm:var(--dsw-alias-state-warn-primary);--team-leaf:var(--dsw-alias-state-success-primary);flex-direction:column;gap:8px;height:100%;min-height:0;padding:10px 14px 12px;animation:.26s cubic-bezier(.22,1,.36,1) both nesYQG_team-stage-in;display:flex;overflow:hidden;container-type:inline-size}.nesYQG_composerAway{pointer-events:none;height:0;display:block;overflow:hidden}.nesYQG_bar{flex:none;align-items:center;gap:10px;display:flex}.nesYQG_barTitle{color:var(--dsw-alias-label-primary);align-items:center;gap:7px;font-size:13px;font-weight:600;display:flex}.nesYQG_barIcon{color:var(--team-hue)}.nesYQG_barStats{align-items:center;gap:6px;margin-left:auto;display:flex}.nesYQG_stat{border:1px solid var(--dsw-alias-border-l2);font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-tertiary);white-space:nowrap;border-radius:999px;padding:1px 8px;font-size:11px}.nesYQG_statLive{color:var(--team-hue);border-color:var(--team-hue)}.nesYQG_barHint{white-space:nowrap;text-overflow:ellipsis;min-width:0;color:var(--dsw-alias-label-tertiary);align-items:center;gap:5px;font-size:10.5px;display:flex;overflow:hidden}.nesYQG_scene{flex:1;gap:10px;min-height:0;display:flex;position:relative}.nesYQG_roomPane{z-index:0;isolation:isolate;flex:1;min-width:0;min-height:0;position:relative}.nesYQG_dock{z-index:40;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-overlay);border-radius:999px;flex-direction:column;flex:none;align-self:flex-start;align-items:center;gap:8px;width:44px;padding:6px 0;display:flex;position:relative}.nesYQG_dockButton{width:34px;height:34px;color:var(--dsw-alias-label-secondary);cursor:pointer;background:0 0;border:none;border-radius:50%;place-items:center;padding:0;transition:background .16s,color .16s;display:grid;position:relative}.nesYQG_dockButton:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.nesYQG_dockButton[aria-pressed=true]{background:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary-inverted)}.nesYQG_dockCount{border:2px solid var(--dsw-alias-bg-overlay);background:var(--team-surface-3);min-width:15px;height:15px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;border-radius:8px;place-items:center;padding:0 4px;font-size:9px;font-weight:600;display:grid;position:absolute;top:-3px;right:-4px}.nesYQG_dockButton[data-fresh=true]{color:var(--team-hue)}.nesYQG_dockButton[data-fresh=true]:after{content:\"\";border:1.5px solid var(--team-hue);pointer-events:none;border-radius:50%;animation:2.2s cubic-bezier(.22,1,.36,1) infinite nesYQG_team-halo;position:absolute;inset:0}.nesYQG_drawer{z-index:50;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb, var(--dsw-alias-bg-overlay) 88%, transparent);backdrop-filter:blur(10px);width:min(408px,78cqw);box-shadow:-12px 10px 34px var(--dsw-alias-bg-mask-1);border-radius:14px;flex-direction:column;animation:.22s cubic-bezier(.22,1,.36,1) both nesYQG_team-drawer-in;display:flex;position:absolute;top:0;bottom:0;right:54px;overflow:hidden}.nesYQG_drawerHead{border-bottom:1px solid var(--dsw-alias-border-l1);flex:none;align-items:center;gap:6px;padding:10px 12px 8px;display:flex}.nesYQG_drawerHead .nesYQG_paneTitle{flex:1;min-width:0;margin:0}.nesYQG_drawerClose{width:24px;height:24px;color:var(--dsw-alias-label-tertiary);cursor:pointer;background:0 0;border:none;border-radius:50%;flex:none;place-items:center;padding:0;font-size:15px;line-height:1;display:grid}.nesYQG_drawerClose:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.nesYQG_drawerBody{overscroll-behavior:contain;flex-direction:column;flex:1;min-height:0;padding:10px 12px 12px;display:flex;overflow-y:auto}.nesYQG_drawer[data-panel=feed] .nesYQG_drawerBody{overflow:hidden}.nesYQG_paneTitle{letter-spacing:.06em;text-transform:uppercase;color:var(--dsw-alias-label-tertiary);flex:none;align-items:center;gap:6px;margin:0 0 8px;font-size:10.5px;font-weight:600;display:flex}.nesYQG_empty{color:var(--dsw-alias-label-tertiary);margin:2px 0;font-size:12px}.nesYQG_blankTitle{text-align:center;color:var(--dsw-alias-label-secondary);margin:40px 0 4px;font-size:13px}.nesYQG_blankHint{text-align:center;color:var(--dsw-alias-label-tertiary);margin:0;font-size:12px}.nesYQG_floor{border:1px solid var(--dsw-alias-border-l2);background:var(--team-page);border-radius:14px;width:100%;height:100%;min-height:300px;position:relative;overflow:hidden;container-type:size}.nesYQG_shell{z-index:0;pointer-events:none;position:absolute;inset:0}.nesYQG_shell>*{content:\"\";position:absolute;inset:0}.nesYQG_ceiling{clip-path:polygon(0 0, 100% 0, calc(100% - var(--team-far-inset)) var(--team-wall-top), var(--team-far-inset) var(--team-wall-top));background:linear-gradient(180deg, color-mix(in srgb, var(--team-ink) 13%, var(--team-page)) 0, color-mix(in srgb, var(--team-ink) 5%, var(--team-page)) 100%)}.nesYQG_wallBack{clip-path:polygon(var(--team-far-inset) var(--team-wall-top), calc(100% - var(--team-far-inset)) var(--team-wall-top), calc(100% - var(--team-far-inset)) var(--team-floor-top), var(--team-far-inset) var(--team-floor-top));background:linear-gradient(180deg, color-mix(in srgb, var(--team-hue) 11%, var(--team-page)) 0, color-mix(in srgb, var(--team-hue) 5%, var(--team-page)) 62%, color-mix(in srgb, var(--team-hue) 8%, var(--team-page)) 100%)}.nesYQG_wallLeft,.nesYQG_wallRight{background:color-mix(in srgb, var(--team-hue) 15%, var(--team-page))}.nesYQG_wallLeft{clip-path:polygon(0 0, var(--team-far-inset) var(--team-wall-top), var(--team-far-inset) var(--team-floor-top), 0 100%);background:linear-gradient(92deg, color-mix(in srgb, var(--team-ink) 17%, var(--team-page)) 0, color-mix(in srgb, var(--team-hue) 12%, var(--team-page)) 100%)}.nesYQG_wallRight{clip-path:polygon(100% 0, calc(100% - var(--team-far-inset)) var(--team-wall-top), calc(100% - var(--team-far-inset)) var(--team-floor-top), 100% 100%);background:linear-gradient(88deg, color-mix(in srgb, var(--team-hue) 12%, var(--team-page)) 0, color-mix(in srgb, var(--team-ink) 21%, var(--team-page)) 100%)}.nesYQG_floorPlane{clip-path:polygon(0 100%, 100% 100%, calc(100% - var(--team-far-inset)) var(--team-floor-top), var(--team-far-inset) var(--team-floor-top));background:radial-gradient(ellipse 26% 30% at 34% 62%, color-mix(in srgb, var(--team-warm) 22%, transparent) 0, transparent 70%), radial-gradient(ellipse 26% 30% at 66% 62%, color-mix(in srgb, var(--team-warm) 22%, transparent) 0, transparent 70%), linear-gradient(180deg, transparent 0 27.4%, color-mix(in srgb, var(--team-warm) 30%, transparent) 27.4% 27.6%, transparent 27.6% 32.2%, color-mix(in srgb, var(--team-warm) 30%, transparent) 32.2% 32.5%, transparent 32.5% 37.6%, color-mix(in srgb, var(--team-warm) 30%, transparent) 37.6% 37.9%, transparent 37.9% 43.5%, color-mix(in srgb, var(--team-warm) 30%, transparent) 43.5% 43.9%, transparent 43.9% 50.2%, color-mix(in srgb, var(--team-warm) 30%, transparent) 50.2% 50.6%, transparent 50.6% 57.7%, color-mix(in srgb, var(--team-warm) 30%, transparent) 57.7% 58.2%, transparent 58.2% 66.2%, color-mix(in srgb, var(--team-warm) 30%, transparent) 66.2% 66.8%, transparent 66.8% 75.8%, color-mix(in srgb, var(--team-warm) 30%, transparent) 75.8% 76.5%, transparent 76.5% 87%, color-mix(in srgb, var(--team-warm) 30%, transparent) 87% 87.8%, transparent 87.8% 100%), linear-gradient(180deg, color-mix(in srgb, var(--team-warm) 13%, var(--team-page)) 0, color-mix(in srgb, var(--team-warm) 19%, var(--team-page)) 100%)}.nesYQG_skirting{clip-path:polygon(var(--team-far-inset) var(--team-floor-top), calc(100% - var(--team-far-inset)) var(--team-floor-top), calc(100% - var(--team-far-inset)) calc(var(--team-floor-top) + 1.5%), var(--team-far-inset) calc(var(--team-floor-top) + 1.5%));background:linear-gradient(180deg, color-mix(in srgb, var(--team-page) 44%, var(--team-ink)) 0 22%, color-mix(in srgb, var(--team-ink) 26%, var(--team-page)) 22% 100%)}.nesYQG_wallLeft:after,.nesYQG_wallRight:after{content:\"\";background:color-mix(in srgb, var(--team-ink) 24%, var(--team-page));position:absolute;inset:0}.nesYQG_wallLeft:after{clip-path:polygon(0 100%, var(--team-far-inset) var(--team-floor-top), var(--team-far-inset) calc(var(--team-floor-top) + 1.5%), 0 calc(100% + 1.5%))}.nesYQG_wallRight:after{clip-path:polygon(100% 100%, calc(100% - var(--team-far-inset)) var(--team-floor-top), calc(100% - var(--team-far-inset)) calc(var(--team-floor-top) + 1.5%), 100% calc(100% + 1.5%))}.nesYQG_wall{--team-unit:clamp(72px, 24cqh, 182px);inset:var(--team-wall-top) var(--team-far-inset) calc(100% - var(--team-floor-top)) var(--team-far-inset);z-index:1;pointer-events:none;position:absolute}.nesYQG_wall>*{position:absolute;transform:translate(-50%)}.nesYQG_window{width:calc(var(--team-unit) * .5);height:60%;top:14%}.nesYQG_pane{box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--team-ink) 30%, var(--team-page)), inset 0 -4px 8px color-mix(in srgb, var(--team-hue) 34%, transparent);border-radius:2px;position:absolute;inset:0;overflow:hidden}.nesYQG_sky{background:linear-gradient(180deg, color-mix(in srgb, var(--team-hue) 16%, var(--team-page)) 0, color-mix(in srgb, var(--team-hue) 30%, var(--team-page)) 100%);position:absolute;inset:0}.nesYQG_cloud{background:color-mix(in srgb, var(--team-page) 74%, transparent);border-radius:50%;animation:42s linear infinite nesYQG_team-drift;position:absolute}.nesYQG_cloud[data-cloud=near]{width:46%;height:16%;box-shadow:26% -60% 0 -4% color-mix(in srgb, var(--team-page) 74%, transparent), 62% -20% 0 -2% color-mix(in srgb, var(--team-page) 74%, transparent);top:14%;left:-40%}.nesYQG_cloud[data-cloud=far]{opacity:.62;width:30%;height:9%;animation-duration:71s;animation-delay:-24s;top:32%;left:-30%}.nesYQG_sea{background:repeating-linear-gradient(180deg, color-mix(in srgb, var(--team-page) 22%, transparent) 0 1px, transparent 1px 7px), linear-gradient(180deg, color-mix(in srgb, var(--team-hue) 52%, var(--team-page)) 0, color-mix(in srgb, var(--team-hue) 74%, var(--team-page)) 100%);position:absolute;inset:52% 0 0}.nesYQG_sail{background:color-mix(in srgb, var(--team-page) 88%, transparent);clip-path:polygon(50% 0,100% 82%,0 82%);width:9%;height:9%;animation:96s linear infinite nesYQG_team-sail;position:absolute;top:47%;left:24%}.nesYQG_reveal{z-index:-1;background:linear-gradient(100deg, color-mix(in srgb, var(--team-ink) 20%, var(--team-page)) 0 46%, color-mix(in srgb, var(--team-ink) 9%, var(--team-page)) 46% 100%);box-shadow:inset 0 3px 5px color-mix(in srgb, var(--team-ink) 22%, transparent);border-radius:3px;position:absolute;inset:-6% -7%}.nesYQG_mullion{background:linear-gradient(90deg, color-mix(in srgb, var(--team-ink) 28%, var(--team-page)) 0 60%, color-mix(in srgb, var(--team-page) 60%, var(--team-ink)) 60% 100%) no-repeat 50% 0 / 2.5px 100%, linear-gradient(180deg, color-mix(in srgb, var(--team-ink) 28%, var(--team-page)) 0 60%, color-mix(in srgb, var(--team-page) 60%, var(--team-ink)) 60% 100%) no-repeat 0 46% / 100% 2.5px;position:absolute;inset:0}.nesYQG_sillTop{background:color-mix(in srgb, var(--team-page) 62%, var(--team-surface-3));clip-path:polygon(4% 0,100% 0,96% 100%,0 100%);height:5%;position:absolute;top:100%;left:-11%;right:-11%}.nesYQG_sill{background:linear-gradient(180deg, var(--team-surface-3) 0 40%, color-mix(in srgb, var(--team-ink) 18%, var(--team-page)) 40% 100%);clip-path:polygon(0 0,100% 0,96% 100%,4% 100%);border-radius:0 0 2px 2px;height:6%;position:absolute;top:105%;left:-11%;right:-11%}.nesYQG_beam{background:linear-gradient(180deg, color-mix(in srgb, var(--team-page) 34%, transparent) 0, transparent 100%);clip-path:polygon(30% 0,70% 0,100% 100%,0 100%);opacity:.5;width:160%;height:320%;position:absolute;top:100%;left:-30%}.nesYQG_whiteboard{width:calc(var(--team-unit) * .78);border:2px solid color-mix(in srgb, var(--team-ink) 18%, var(--team-page));background:linear-gradient(160deg, color-mix(in srgb, var(--team-page) 96%, var(--team-hue)) 0 58%, color-mix(in srgb, var(--team-page) 88%, var(--team-hue)) 58% 100%);height:58%;box-shadow:0 3px 6px var(--dsw-alias-bg-mask-2), inset 0 1px 0 var(--dsw-static-neutral-00);border-radius:3px;top:15%}.nesYQG_boardGhost{background:color-mix(in srgb, var(--team-ink) 5%, transparent);border-radius:40% 60% 55% 45%;position:absolute;inset:14% 10% 30%}.nesYQG_boardInk{background:linear-gradient(90deg, var(--team-hue) 0 60%, transparent 60%) no-repeat 0 4% / 100% 2px, linear-gradient(90deg, var(--dsw-alias-state-error-primary) 0 32%, transparent 32%) no-repeat 0 34% / 100% 2px, linear-gradient(90deg, var(--team-leaf) 0 76%, transparent 76%) no-repeat 0 64% / 100% 2px, linear-gradient(90deg, var(--team-hue) 0 100%, transparent 0) no-repeat 4% 84% / 24% 2px, linear-gradient(180deg, var(--team-hue) 0 100%, transparent 0) no-repeat 4% 84% / 2px 14%;opacity:.72;position:absolute;inset:14% 11%}.nesYQG_boardNote{aspect-ratio:1;width:15%;box-shadow:1px 2px 3px var(--dsw-alias-bg-mask-2);border-radius:1px;position:absolute}.nesYQG_boardNote[data-note=a]{background:color-mix(in srgb, var(--team-warm) 46%, var(--dsw-static-neutral-00));top:16%;right:9%;transform:rotate(-5deg)}.nesYQG_boardNote[data-note=b]{background:color-mix(in srgb, var(--team-leaf) 34%, var(--dsw-static-neutral-00));top:52%;right:8%;transform:rotate(4deg)}.nesYQG_boardTrayTop{background:color-mix(in srgb, var(--team-page) 52%, var(--dsw-static-neutral-400));clip-path:polygon(3% 0,100% 0,97% 100%,0 100%);height:3.5%;position:absolute;top:100%;left:13%;right:13%}.nesYQG_boardTray{background:linear-gradient(180deg, color-mix(in srgb, var(--team-ink) 16%, var(--team-page)) 0 34%, color-mix(in srgb, var(--team-ink) 30%, var(--team-page)) 34% 100%);clip-path:polygon(0 0,100% 0,97% 100%,3% 100%);border-radius:0 0 2px 2px;height:4.5%;position:absolute;top:103.5%;left:13%;right:13%}.nesYQG_boardPens{background:linear-gradient(90deg, var(--dsw-alias-state-error-primary) 0 30%, transparent 30% 36%, var(--team-hue) 36% 66%, transparent 66% 72%, var(--team-leaf) 72% 100%);border-radius:1px;width:34%;height:2.6%;position:absolute;top:101%;left:18%}.nesYQG_boardEraser{background:linear-gradient(180deg, var(--dsw-static-neutral-300) 0 44%, color-mix(in srgb, var(--team-hue) 40%, var(--dsw-static-neutral-500)) 44% 100%);border-radius:1px;width:11%;height:3.4%;position:absolute;top:100.6%;right:18%}.nesYQG_shelf{width:calc(var(--team-unit) * .42);height:calc(var(--team-unit) * .2);top:34%}.nesYQG_plankTop{left:0;right:0;bottom:calc(var(--team-unit) * .035);height:calc(var(--team-unit) * .018);background:color-mix(in srgb, var(--team-warm) 28%, var(--dsw-static-neutral-200));clip-path:polygon(2% 0,100% 0,98% 100%,0 100%);position:absolute}.nesYQG_plank{left:0;right:0;bottom:calc(var(--team-unit) * .017);height:calc(var(--team-unit) * .018);background:linear-gradient(180deg, color-mix(in srgb, var(--team-warm) 40%, var(--dsw-static-neutral-400)) 0 40%, color-mix(in srgb, var(--team-warm) 52%, var(--dsw-static-neutral-600)) 40% 100%);box-shadow:0 3px 5px var(--dsw-alias-bg-mask-2);clip-path:polygon(0 0,100% 0,98% 100%,2% 100%);border-radius:0 0 2px 2px;position:absolute}.nesYQG_plankBracket{height:calc(var(--team-unit) * .02);background:linear-gradient(color-mix(in srgb, var(--team-ink) 32%, var(--team-page)) 0 0) no-repeat 4% 0 / 5% 100%, linear-gradient(color-mix(in srgb, var(--team-ink) 32%, var(--team-page)) 0 0) no-repeat 96% 0 / 5% 100%;clip-path:polygon(0 0,100% 0,84% 100%,16% 100%);position:absolute;bottom:0;left:12%;right:12%}.nesYQG_books{left:6%;bottom:calc(var(--team-unit) * .052);width:62%;height:calc(var(--team-unit) * .11);background:linear-gradient(color-mix(in srgb, var(--team-hue) 66%, var(--dsw-static-neutral-600)) 0 0) no-repeat 0 0 / 12% 100%, linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 70%, var(--dsw-static-neutral-500)) 0 0) no-repeat 15% 8% / 9% 92%, linear-gradient(color-mix(in srgb, var(--team-leaf) 72%, var(--dsw-static-neutral-500)) 0 0) no-repeat 27% 20% / 13% 80%, linear-gradient(color-mix(in srgb, var(--dsw-alias-state-error-primary) 62%, var(--dsw-static-neutral-600)) 0 0) no-repeat 43% 4% / 10% 96%, linear-gradient(color-mix(in srgb, var(--dsw-static-neutral-00) 74%, var(--dsw-static-neutral-400)) 0 0) no-repeat 56% 26% / 11% 74%, linear-gradient(color-mix(in srgb, var(--team-hue) 40%, var(--dsw-static-neutral-700)) 0 0) no-repeat 70% 12% / 8% 88%, linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 40%, var(--dsw-static-neutral-700)) 0 0) no-repeat 81% 30% / 12% 70%;position:absolute}.nesYQG_bookLeaning{left:46%;bottom:calc(var(--team-unit) * .052);width:4%;height:calc(var(--team-unit) * .09);transform-origin:50% 100%;background:color-mix(in srgb, var(--team-leaf) 50%, var(--dsw-static-neutral-700));position:absolute;transform:rotate(15deg)}.nesYQG_trophy{right:6%;bottom:calc(var(--team-unit) * .052);width:8%;height:calc(var(--team-unit) * .06);background:linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 76%, var(--dsw-static-neutral-500)) 0 0) no-repeat 50% 100% / 100% 22%, linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 64%, var(--dsw-static-neutral-300)) 0 0) no-repeat 50% 60% / 26% 40%, radial-gradient(ellipse 60% 100% at 50% 0, color-mix(in srgb, var(--dsw-alias-state-warn-primary) 70%, var(--dsw-static-neutral-300)) 0 96%, transparent 98%) no-repeat 50% 0 / 100% 58%;position:absolute}.nesYQG_shelfPlant{right:20%;bottom:calc(var(--team-unit) * .05);width:calc(var(--team-unit) * .09);height:calc(var(--team-unit) * .115);position:absolute}.nesYQG_clockProp{width:calc(var(--team-unit) * .17);aspect-ratio:1;background:radial-gradient(circle at 50% 50%, var(--team-page) 0 76%, transparent 78%), linear-gradient(150deg, color-mix(in srgb, var(--team-page) 50%, var(--team-ink)) 0, color-mix(in srgb, var(--team-ink) 34%, var(--team-page)) 100%);box-shadow:1px 2px 4px var(--dsw-alias-bg-mask-2);border-radius:50%;top:20%}.nesYQG_clockTicks{background:conic-gradient(from 0deg, var(--dsw-alias-label-tertiary) 0 2deg, transparent 2deg 28deg, var(--dsw-alias-label-tertiary) 28deg 30deg, transparent 30deg 58deg, var(--dsw-alias-label-tertiary) 58deg 60deg, transparent 60deg 88deg, var(--dsw-alias-label-tertiary) 88deg 90deg, transparent 90deg);border-radius:50%;position:absolute;inset:16%;transform:rotate(0);-webkit-mask:radial-gradient(circle,#0000 0 82%,#000 84%);mask:radial-gradient(circle,#0000 0 82%,#000 84%)}.nesYQG_clockHand{background:var(--dsw-alias-label-secondary);transform-origin:50% 100%;border-radius:1px;width:2px;margin-left:-1px;position:absolute;top:50%;left:50%}.nesYQG_clockHand[data-hand=hour]{height:26%;transform:translateY(-100%)rotate(-55deg)}.nesYQG_clockHand[data-hand=minute]{height:34%;transform:translateY(-100%)rotate(55deg)}.nesYQG_clockHand[data-hand=second]{background:var(--dsw-alias-state-error-primary);width:1px;height:36%;margin-left:-.5px;animation:60s steps(60,end) infinite nesYQG_team-tick;transform:translateY(-100%)rotate(0)}.nesYQG_clockPin{aspect-ratio:1;background:var(--dsw-alias-label-secondary);border-radius:50%;width:12%;margin:-6% 0 0 -6%;position:absolute;top:50%;left:50%}.nesYQG_poster{width:calc(var(--team-unit) * .26);background:color-mix(in srgb, var(--team-page) 70%, var(--dsw-static-neutral-400));height:44%;box-shadow:1px 3px 5px var(--dsw-alias-bg-mask-2);border-radius:2px;padding:5%;top:20%}.nesYQG_posterArt{background:radial-gradient(circle at 72% 30%, color-mix(in srgb, var(--dsw-alias-state-warn-primary) 70%, transparent) 0 14%, transparent 16%), linear-gradient(180deg, color-mix(in srgb, var(--team-hue) 26%, var(--team-page)) 0 54%, color-mix(in srgb, var(--team-hue) 66%, var(--team-page)) 54% 100%);position:absolute;inset:6%}.nesYQG_calendar{width:calc(var(--team-unit) * .2);background:var(--dsw-static-neutral-00);height:38%;box-shadow:1px 2px 4px var(--dsw-alias-bg-mask-2);border-radius:2px;top:22%;overflow:hidden}.nesYQG_calendarHead{background:color-mix(in srgb, var(--team-hue) 56%, var(--team-page));height:30%;position:absolute;top:0;left:0;right:0}.nesYQG_calendarGrid{background:repeating-linear-gradient(90deg, var(--dsw-static-neutral-300) 0 1px, transparent 1px 20%), repeating-linear-gradient(180deg, var(--dsw-static-neutral-300) 0 1px, transparent 1px 25%);position:absolute;inset:34% 10% 10%}.nesYQG_hanger{width:calc(var(--team-unit) * .16);height:calc(var(--team-unit) * .24);top:26%}.nesYQG_hangerBracket{background:color-mix(in srgb, var(--team-ink) 34%, var(--team-page));border-radius:0 0 40% 40%;width:46%;height:16%;margin-left:-23%;position:absolute;top:0;left:50%}.nesYQG_hangerPlant{width:100%;height:92%;position:absolute;inset:8% 0 0}.nesYQG_pendant{top:var(--team-wall-top);z-index:2;width:calc(var(--team-unit) * .2);height:calc(var(--team-floor-top) - var(--team-wall-top));pointer-events:none;position:absolute;transform:translate(-50%)}.nesYQG_pendantSvg{width:100%;height:100%;display:block;overflow:visible}.nesYQG_pendantFlex{fill:none;stroke:color-mix(in srgb, var(--team-ink) 46%, var(--team-page));stroke-width:1.6px}.nesYQG_pendantShade{fill:color-mix(in srgb, var(--team-warm) 50%, var(--dsw-static-neutral-600));stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:.8px}.nesYQG_pendantMouth{fill:color-mix(in srgb, var(--team-warm) 68%, var(--dsw-static-neutral-300))}.nesYQG_pendantBulb{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 86%, var(--team-warm));filter:blur(.6px)}.nesYQG_pendantGlow{fill:color-mix(in srgb, var(--team-warm) 26%, transparent);animation:7.5s ease-in-out infinite nesYQG_team-glow}.nesYQG_cat{z-index:40;pointer-events:none;opacity:0;width:clamp(34px,9cqh,74px);animation:47s linear infinite nesYQG_team-prowl;position:absolute;bottom:3%;left:0}.nesYQG_catSvg{width:100%;height:100%;display:block;overflow:visible}.nesYQG_catBody{fill:color-mix(in srgb, var(--team-warm) 46%, var(--dsw-static-neutral-600))}.nesYQG_catLeg,.nesYQG_catTail{fill:color-mix(in srgb, var(--team-warm) 52%, var(--dsw-static-neutral-700))}.nesYQG_catEar{fill:color-mix(in srgb, var(--team-warm) 36%, var(--dsw-static-neutral-700))}.nesYQG_catEye{fill:var(--team-leaf)}.nesYQG_catStripe{fill:none;stroke:color-mix(in srgb, var(--team-ink) 22%, transparent);stroke-width:2px;stroke-linecap:round}.nesYQG_catWhisker{fill:none;stroke:color-mix(in srgb, var(--team-page) 70%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_utility{--team-unit:clamp(72px, 24cqh, 182px);width:calc(var(--team-unit) * .34);height:calc(var(--team-unit) * .62);transform:translate(-50%, -100%) scale(var(--team-scale,1));transform-origin:50% 100%;z-index:calc(6 + var(--team-depth,0));pointer-events:none;position:absolute}.nesYQG_utility>*{display:block;position:absolute}.nesYQG_utilityCabinet{width:74%;height:100%;bottom:0;left:-34%}.nesYQG_utilityPrinter{width:92%;height:46%;bottom:0;left:34%}.nesYQG_utilityCoffee{width:52%;height:46%;bottom:44%;left:46%}.nesYQG_lounge{--team-unit:clamp(72px, 24cqh, 182px);--team-fabric:color-mix(in srgb, var(--team-warm) 52%, var(--dsw-static-neutral-600));--team-fabric-lit:color-mix(in srgb, var(--team-warm) 62%, var(--dsw-static-neutral-300));--team-fabric-dark:color-mix(in srgb, var(--team-ink) 22%, var(--team-fabric));z-index:5;pointer-events:none;position:absolute;inset:0}.nesYQG_lounge>*{position:absolute;transform:translate(-50%,-100%)}.nesYQG_rug{background:repeating-radial-gradient(ellipse at 50% 50%, transparent 0 84%, color-mix(in srgb, var(--team-hue) 12%, transparent) 84% 88%, transparent 88% 94%, color-mix(in srgb, var(--team-hue) 16%, transparent) 94% 97%, transparent 97% 100%), radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--team-hue) 5%, var(--team-page)) 0 56%, color-mix(in srgb, var(--team-hue) 10%, var(--team-page)) 58% 100%);border-radius:50%;width:100%;height:100%}.nesYQG_sofa{background:linear-gradient(color-mix(in srgb, var(--team-ink) 15%, transparent) 0 0) no-repeat 33.3% 16% / 1.5px 70%, linear-gradient(color-mix(in srgb, var(--team-ink) 15%, transparent) 0 0) no-repeat 66.6% 16% / 1.5px 70%, linear-gradient(180deg, var(--team-fabric-lit) 0 26%, var(--team-fabric) 26% 88%, var(--team-fabric-dark) 88% 100%);width:100%;height:100%;box-shadow:0 8px 13px var(--dsw-alias-bg-mask-2);border-radius:9px 9px 2px 2px}.nesYQG_sofa:before{content:\"\";background:linear-gradient(color-mix(in srgb, var(--team-ink) 14%, transparent) 0 0) no-repeat 50% 8% / 1.5px 46%, linear-gradient(180deg, color-mix(in srgb, var(--dsw-static-neutral-00) 22%, var(--team-fabric-lit)) 0 18%, var(--team-fabric-lit) 18% 44%, var(--team-fabric) 44% 66%, var(--team-fabric-dark) 66% 100%);border-radius:5px 5px 4px 4px;height:86%;position:absolute;top:78%;left:-4%;right:-4%}.nesYQG_sofa:after{content:\"\";background:linear-gradient(180deg, var(--team-fabric-lit) 0 26%, var(--team-fabric) 26% 82%, var(--team-fabric-dark) 82% 100%) no-repeat 0 0 / 11% 100%, linear-gradient(180deg, var(--team-fabric-lit) 0 26%, var(--team-fabric) 26% 82%, var(--team-fabric-dark) 82% 100%) no-repeat 100% 0 / 11% 100%;border-radius:7px;height:118%;position:absolute;top:52%;left:-9%;right:-9%}.nesYQG_table{background:radial-gradient(ellipse at 74% 32%, color-mix(in srgb, var(--dsw-alias-state-warn-primary) 74%, var(--dsw-static-neutral-600)) 0 52%, transparent 56%) no-repeat 68% 18% / 16% 18%, linear-gradient(color-mix(in srgb, var(--dsw-static-neutral-00) 62%, transparent) 0 0) no-repeat 16% 20% / 20% 24%, linear-gradient(180deg, color-mix(in srgb, var(--team-warm) 32%, var(--dsw-static-neutral-00)) 0 34%, color-mix(in srgb, var(--team-warm) 40%, var(--dsw-static-neutral-00)) 34% 62%, color-mix(in srgb, var(--team-warm) 52%, var(--dsw-static-neutral-600)) 62% 100%);width:100%;height:100%;box-shadow:0 6px 9px var(--dsw-alias-bg-mask-2);border-radius:3px}.nesYQG_table:before{content:\"\";background:linear-gradient(color-mix(in srgb, var(--team-warm) 32%, var(--dsw-static-neutral-600)) 0 0) no-repeat 3% 0 / 6% 100%, linear-gradient(color-mix(in srgb, var(--team-warm) 32%, var(--dsw-static-neutral-600)) 0 0) no-repeat 97% 0 / 6% 100%;height:150%;position:absolute;top:100%;left:8%;right:8%}.nesYQG_table:after{content:\"\";aspect-ratio:4/5;background:linear-gradient(180deg, var(--dsw-static-neutral-00) 0 26%, color-mix(in srgb, var(--team-hue) 62%, var(--dsw-static-neutral-00)) 26% 100%);border-radius:1px 1px 44% 44%;width:8%;position:absolute;bottom:78%;right:22%}.nesYQG_lamp{pointer-events:none;width:100%;height:100%}.nesYQG_lamp:before{content:\"\";background:linear-gradient(90deg, color-mix(in srgb, var(--team-ink) 38%, var(--team-page)) 0 30%, color-mix(in srgb, var(--team-page) 30%, var(--team-ink)) 30% 60%, color-mix(in srgb, var(--team-ink) 38%, var(--team-page)) 60% 100%) no-repeat 50% 22% / 16% 70%, radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--team-ink) 30%, var(--team-page)) 0 54%, transparent 58%) no-repeat 50% 100% / 92% 13%;height:100%;position:absolute;bottom:0;left:0;right:0}.nesYQG_lamp:after{content:\"\";background:linear-gradient(180deg, color-mix(in srgb, var(--team-warm) 38%, var(--dsw-static-neutral-300)) 0 52%, color-mix(in srgb, var(--team-warm) 62%, var(--dsw-static-neutral-600)) 52% 100%);height:34%;box-shadow:inset 0 -2px 4px color-mix(in srgb, var(--team-warm) 70%, transparent), 0 0 14px color-mix(in srgb, var(--team-warm) 46%, transparent);border-radius:50% 50% 10% 10%/72% 72% 8% 8%;animation:9.2s ease-in-out infinite nesYQG_team-glow;position:absolute;top:0;left:0;right:0}.nesYQG_plant{width:100%;height:136%;filter:drop-shadow(3px 6px 5px var(--dsw-alias-bg-mask-1))}.nesYQG_cooler{--team-cooler:var(--team-surface-2);--team-cooler-lit:color-mix(in srgb, var(--team-page) 30%, var(--team-cooler));--team-cooler-dark:color-mix(in srgb, var(--team-ink) 16%, var(--team-page));--team-cooler-bottle:color-mix(in srgb, var(--team-hue) 30%, var(--team-page));--team-cooler-bottle-lit:color-mix(in srgb, var(--team-page) 26%, var(--team-cooler-bottle));--team-cooler-bottle-dark:color-mix(in srgb, var(--team-hue) 62%, var(--team-page));--team-cooler-water:color-mix(in srgb, var(--team-hue) 58%, var(--team-page));--team-cooler-water-lit:color-mix(in srgb, var(--team-hue) 34%, var(--team-page));pointer-events:none;height:168%;filter:drop-shadow(2px 5px 4px var(--dsw-alias-bg-mask-1))}.nesYQG_coolerSvg{width:100%;height:100%;display:block;overflow:visible}.nesYQG_coolerCabinet{stroke:none}.nesYQG_coolerCabinetEdge{fill:none;stroke:color-mix(in srgb, var(--team-ink) 14%, transparent);stroke-width:1px}.nesYQG_coolerPanel{fill:color-mix(in srgb, var(--team-ink) 5%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 10%, transparent);stroke-width:.8px}.nesYQG_coolerDoorSeam{fill:none;stroke:color-mix(in srgb, var(--team-ink) 10%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_coolerTap{fill:none;stroke:color-mix(in srgb, var(--team-ink) 36%, var(--team-page));stroke-width:2px;stroke-linecap:round}.nesYQG_coolerHandleWarm{fill:var(--dsw-alias-state-error-primary)}.nesYQG_coolerHandleCool{fill:var(--team-hue)}.nesYQG_coolerDrip{fill:color-mix(in srgb, var(--team-ink) 20%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 24%, transparent);stroke-width:.6px}.nesYQG_coolerDripWell{fill:color-mix(in srgb, var(--team-hue) 26%, var(--team-page))}.nesYQG_coolerBottle,.nesYQG_coolerNeck,.nesYQG_coolerWater{stroke:color-mix(in srgb, var(--team-hue) 42%, transparent);stroke-width:.7px}.nesYQG_coolerCap{fill:color-mix(in srgb, var(--team-hue) 66%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 16%, transparent);stroke-width:.6px}.nesYQG_coolerShine{fill:color-mix(in srgb, var(--team-page) 46%, transparent)}.nesYQG_coolerBubble{fill:color-mix(in srgb, var(--team-page) 56%, transparent);transform-box:fill-box;transform-origin:50%;animation:6.4s ease-in infinite nesYQG_team-bubble}.nesYQG_propSvg{width:100%;height:100%;filter:drop-shadow(2px 4px 4px var(--dsw-alias-bg-mask-1));display:block;overflow:visible}.nesYQG_propShade{fill:color-mix(in srgb, var(--team-ink) 11%, transparent)}.nesYQG_propFront{fill:var(--team-surface-2)}.nesYQG_propTop{fill:color-mix(in srgb, var(--team-page) 42%, var(--team-surface-2))}.nesYQG_propSide{fill:color-mix(in srgb, var(--team-ink) 15%, var(--team-surface-2))}.nesYQG_propSeam{fill:none;stroke:color-mix(in srgb, var(--team-ink) 15%, transparent);stroke-width:1px}.nesYQG_propInset{fill:color-mix(in srgb, var(--team-ink) 9%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 12%, transparent);stroke-width:.8px}.nesYQG_propTray{fill:color-mix(in srgb, var(--team-ink) 18%, var(--team-page))}.nesYQG_propPaper{fill:var(--dsw-static-neutral-00);stroke:var(--dsw-static-neutral-300);stroke-width:.7px}.nesYQG_propHandle{fill:color-mix(in srgb, var(--team-ink) 40%, var(--team-page))}.nesYQG_propLabel{fill:color-mix(in srgb, var(--team-warm) 40%, var(--dsw-static-neutral-00))}.nesYQG_propFolder{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 56%, var(--dsw-static-neutral-300))}.nesYQG_propBox{fill:color-mix(in srgb, var(--team-warm) 34%, var(--dsw-static-neutral-300))}.nesYQG_propBoxTop{fill:color-mix(in srgb, var(--team-warm) 22%, var(--dsw-static-neutral-200))}.nesYQG_propGlass{fill:color-mix(in srgb, var(--team-page) 62%, transparent);stroke:color-mix(in srgb, var(--team-ink) 16%, transparent);stroke-width:.7px}.nesYQG_propBrew{fill:color-mix(in srgb, var(--dsw-static-amber-600) 72%, var(--dsw-static-neutral-800))}.nesYQG_propCup{fill:var(--dsw-static-neutral-00);stroke:var(--dsw-static-neutral-300);stroke-width:.7px}.nesYQG_propSpout{fill:none;stroke:color-mix(in srgb, var(--team-ink) 40%, var(--team-page));stroke-width:1.6px;stroke-linecap:round}.nesYQG_propLampLive{fill:var(--team-leaf);animation:3.4s ease-in-out infinite nesYQG_team-blink}.nesYQG_propLampIdle{fill:color-mix(in srgb, var(--team-ink) 22%, var(--team-page))}.nesYQG_flora{width:100%;height:100%;display:block;overflow:visible}.nesYQG_floraShade{fill:color-mix(in srgb, var(--team-ink) 10%, transparent)}.nesYQG_floraSaucer{fill:color-mix(in srgb, var(--dsw-static-amber-600) 60%, var(--dsw-static-neutral-700))}.nesYQG_floraPot{fill:color-mix(in srgb, var(--dsw-static-amber-600) 66%, var(--dsw-static-neutral-500))}.nesYQG_floraPotShade{fill:color-mix(in srgb, var(--team-ink) 16%, transparent)}.nesYQG_floraGlaze{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 34%, transparent)}.nesYQG_floraRim{fill:color-mix(in srgb, var(--dsw-static-amber-600) 56%, var(--dsw-static-neutral-400))}.nesYQG_floraRimLip{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 40%, transparent);stroke-width:1.4px;stroke-linecap:round}.nesYQG_floraSoil{fill:color-mix(in srgb, var(--dsw-static-amber-600) 30%, var(--dsw-static-neutral-800))}.nesYQG_floraCrumb{fill:color-mix(in srgb, var(--dsw-static-amber-600) 50%, var(--dsw-static-neutral-700))}.nesYQG_floraStem{fill:none;stroke:color-mix(in srgb, var(--team-leaf) 46%, var(--dsw-static-neutral-800));stroke-width:2.2px;stroke-linecap:round}.nesYQG_floraBlade{fill:color-mix(in srgb, var(--team-leaf) 62%, var(--dsw-static-neutral-900))}.nesYQG_floraBladeLit{fill:color-mix(in srgb, var(--team-leaf) 74%, var(--dsw-static-neutral-400))}.nesYQG_floraVein{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-900) 22%, transparent);stroke-width:.9px;stroke-linecap:round}.nesYQG_floraLeaf{transform-box:fill-box;transform-origin:50% 100%;animation:7.4s ease-in-out infinite nesYQG_team-sway;animation-delay:var(--team-leaf-delay,0s)}.nesYQG_floraLeaf[data-hang=true]{transform-origin:50% 0;animation-duration:9.1s}.nesYQG_floraSpine{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 70%, transparent);stroke-width:1px;stroke-linecap:round}.nesYQG_floraBloom{fill:color-mix(in srgb, var(--dsw-alias-state-error-primary) 62%, var(--dsw-static-neutral-00))}.nesYQG_floraBloomHeart{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 72%, var(--dsw-static-neutral-00))}.nesYQG_desk{--team-unit:clamp(72px, 24cqh, 182px);--team-figure:calc(var(--team-unit) * .6);--team-wood:color-mix(in srgb, var(--team-warm) 42%, var(--team-surface-2));width:calc(var(--team-figure) * 1.6);height:calc(var(--team-unit) * .13);transform:translate(-56%, calc(-100% - var(--team-unit) * .19)) scale(var(--team-scale,1));transform-origin:56% 100%;z-index:calc(6 + var(--team-depth,0));pointer-events:none;position:absolute}.nesYQG_deskTop{filter:drop-shadow(5px 9px 14px var(--dsw-alias-bg-mask-2));border-radius:2px;position:absolute;inset:0}.nesYQG_deskSurface{background:linear-gradient(200deg, color-mix(in srgb, var(--team-wood) 66%, var(--dsw-static-neutral-00)) 0 40%, var(--team-wood) 40% 82%, color-mix(in srgb, var(--team-ink) 20%, var(--team-wood)) 82% 100%);clip-path:polygon(0 12%,100% 0,100% 100%,0 100%);border-radius:2px;position:absolute;inset:0 5% 22%}.nesYQG_deskApron{background:linear-gradient(180deg, color-mix(in srgb, var(--team-ink) 16%, var(--team-wood)) 0 22%, color-mix(in srgb, var(--team-ink) 30%, var(--team-wood)) 22% 100%);clip-path:polygon(0 0,100% 0,98% 100%,2% 100%);height:18%;position:absolute;bottom:4%;left:5%;right:5%}.nesYQG_deskFlank{background:linear-gradient(180deg, color-mix(in srgb, var(--team-ink) 12%, var(--team-wood)) 0, color-mix(in srgb, var(--team-ink) 26%, var(--team-wood)) 100%);clip-path:polygon(100% 14%,100% 100%,0 100%,0 0);width:10%;height:78%;position:absolute;top:0;right:5%}.nesYQG_deskGrain{background:linear-gradient(105deg, transparent 46%, color-mix(in srgb, var(--team-page) 22%, transparent) 46% 47.4%, transparent 47.4% 72%, color-mix(in srgb, var(--team-page) 18%, transparent) 72% 73.2%, transparent 73.2%);opacity:.8;position:absolute;inset:6% 12% 30%}.nesYQG_deskLegs{background:linear-gradient(color-mix(in srgb, var(--team-ink) 26%, var(--team-page)) 0 0) no-repeat 2% 0 / 4% 100%, linear-gradient(color-mix(in srgb, var(--team-ink) 26%, var(--team-page)) 0 0) no-repeat 98% 0 / 4% 100%;height:150%;position:absolute;top:100%;left:7%;right:7%}.nesYQG_deskModesty{background:linear-gradient(180deg, color-mix(in srgb, var(--team-wood) 60%, var(--dsw-static-neutral-500)) 0, color-mix(in srgb, var(--team-ink) 26%, var(--team-wood)) 100%);clip-path:polygon(0 0,100% 0,98% 100%,2% 100%);height:60%;position:absolute;top:100%;left:7%;right:7%}.nesYQG_chair{--team-unit:clamp(72px, 24cqh, 182px);--team-figure:calc(var(--team-unit) * .6);--team-chair:color-mix(in srgb, var(--team-hue) 26%, var(--dsw-static-neutral-600));--team-chair-lit:color-mix(in srgb, var(--team-hue) 14%, var(--dsw-static-neutral-300));--team-chair-dark:color-mix(in srgb, var(--team-hue) 36%, var(--dsw-static-neutral-800));width:calc(var(--team-figure) * .56);height:calc(var(--team-unit) * .5);transform:translate(-50%, -100%) scale(var(--team-scale,1));transform-origin:50% 100%;z-index:calc(12 + var(--team-depth,0));pointer-events:none;filter:drop-shadow(2px 4px 3px var(--dsw-alias-bg-mask-1));position:absolute}.nesYQG_chairSvg{width:100%;height:100%;display:block;overflow:visible}.nesYQG_chairRide{transform-box:fill-box;transform-origin:50% 100%;animation:6.8s ease-in-out infinite nesYQG_team-chair-rise;animation-delay:var(--team-chair-delay,0s)}.nesYQG_chairShell{stroke:none}.nesYQG_chairShellEdge{fill:none;stroke:color-mix(in srgb, var(--team-ink) 22%, transparent);stroke-width:1.2px}.nesYQG_chairMesh{stroke:color-mix(in srgb, var(--team-ink) 16%, transparent);stroke-width:.8px}.nesYQG_chairMeshLine{fill:none;stroke:color-mix(in srgb, var(--team-ink) 10%, transparent);stroke-width:1px;stroke-linecap:round}.nesYQG_chairLumbar{stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:.9px}.nesYQG_chairPan{fill:var(--team-chair-dark);stroke:color-mix(in srgb, var(--team-ink) 16%, transparent);stroke-width:.8px}.nesYQG_chairPanTop{fill:color-mix(in srgb, var(--team-chair-lit) 70%, var(--team-chair))}.nesYQG_chairSpine,.nesYQG_chairMechanism{fill:var(--team-chair-dark);stroke:color-mix(in srgb, var(--team-ink) 14%, transparent);stroke-width:.7px}.nesYQG_chairLift{transform-box:fill-box;transform-origin:50% 100%;animation:6.8s ease-in-out infinite nesYQG_team-chair-stretch;animation-delay:var(--team-chair-delay,0s);stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.5px}.nesYQG_chairHub{fill:var(--team-chair-dark)}.nesYQG_chairSpokes path{fill:none;stroke:var(--team-chair-dark);stroke-width:3px;stroke-linecap:round}.nesYQG_chairCasters circle,.nesYQG_chairCasters ellipse{fill:var(--dsw-static-neutral-800);stroke:color-mix(in srgb, var(--team-page) 42%, transparent);stroke-width:.8px}.nesYQG_monitor{flex-direction:column;align-items:center;width:58%;display:flex;position:absolute;bottom:88%;left:0}.nesYQG_screen{aspect-ratio:16/10;border:4px solid color-mix(in srgb, var(--team-ink) 62%, var(--team-page));background:color-mix(in srgb, var(--team-hue) 8%, var(--team-page));width:100%;box-shadow:0 5px 10px var(--dsw-alias-bg-mask-2);border-radius:8px 8px 4px 4px;padding:18% 8% 7%;position:relative;overflow:hidden}.nesYQG_screen:before{content:\"\";background:radial-gradient(circle at 8% 50%, var(--dsw-alias-state-error-primary) 0 1.8px, transparent 2.1px), radial-gradient(circle at 18% 50%, var(--team-warm) 0 1.8px, transparent 2.1px), radial-gradient(circle at 28% 50%, var(--team-leaf) 0 1.8px, transparent 2.1px), linear-gradient(90deg, color-mix(in srgb, var(--team-hue) 22%, var(--team-page)) 0 62%, color-mix(in srgb, var(--team-hue) 12%, var(--team-page)) 62%);height:19%;position:absolute;top:0;left:0;right:0}.nesYQG_glare{pointer-events:none;background:linear-gradient(116deg, transparent 0 44%, color-mix(in srgb, var(--team-page) 42%, transparent) 44% 57%, transparent 57%);position:absolute;inset:0}.nesYQG_desk[data-screen=off] .nesYQG_screenApp{opacity:.4;filter:saturate(.5)}.nesYQG_desk[data-screen=working] .nesYQG_screen{background:color-mix(in srgb, var(--team-hue) 15%, var(--team-page));animation:2.4s ease-in-out infinite nesYQG_team-screen}.nesYQG_desk[data-empty=true] .nesYQG_screen{opacity:.86}.nesYQG_screenText{clip-path:inset(50%);white-space:nowrap;width:1px;height:1px;position:absolute;overflow:hidden}.nesYQG_neck{background:color-mix(in srgb, var(--team-ink) 46%, var(--team-page));width:15%;height:13px}.nesYQG_base{background:color-mix(in srgb, var(--team-ink) 52%, var(--team-page));width:52%;height:7px;box-shadow:0 2px 6px var(--dsw-alias-bg-mask-2);border-radius:1px 1px 5px 5px}.nesYQG_keyboard{width:38%;height:calc(var(--team-unit) * .03);background:repeating-linear-gradient(90deg, color-mix(in srgb, var(--team-ink) 30%, var(--team-page)) 0 2.5px, color-mix(in srgb, var(--team-ink) 52%, var(--team-page)) 2.5px 4.5px);box-shadow:0 1.5px 3px var(--dsw-alias-bg-mask-2);border-radius:2.5px;position:absolute;bottom:6%;left:35%}.nesYQG_mug{width:calc(var(--team-unit) * .065);aspect-ratio:3/4;background:color-mix(in srgb, var(--team-hue) 72%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg));box-shadow:0 1.5px 2.5px var(--dsw-alias-bg-mask-2);border-radius:1px 1px 40% 40%;position:absolute;bottom:14%;left:82%}.nesYQG_mug:after{content:\"\";border:1.4px solid color-mix(in srgb, var(--team-hue) 72%, var(--dsw-static-neutral-00));border-left:none;border-radius:0 50% 50% 0;width:58%;height:50%;position:absolute;top:20%;left:88%}.nesYQG_papers{width:calc(var(--team-unit) * .11);height:calc(var(--team-unit) * .024);background:var(--dsw-static-neutral-00);box-shadow:0 0 0 1px var(--dsw-static-neutral-300), 2px -2.5px 0 -1px var(--dsw-static-neutral-00), 2px -2.5px 0 0 var(--dsw-static-neutral-300);border-radius:1px;position:absolute;bottom:8%;left:8%}.nesYQG_deskPlant{width:calc(var(--team-unit) * .09);height:calc(var(--team-unit) * .115);filter:drop-shadow(1px 2px 2px var(--dsw-alias-bg-mask-1));position:absolute;bottom:78%;right:0}.nesYQG_person{--team-unit:clamp(72px, 24cqh, 182px);--team-figure:calc(var(--team-unit) * .6);width:var(--team-figure);cursor:pointer;transform:translate(-50%, -100%) scale(calc(var(--team-scale,1) * var(--team-sit,1)));transform-origin:50% 100%;z-index:calc(10 + var(--team-depth,0));background:0 0;border:none;padding:0;animation:.32s cubic-bezier(.34,1.56,.64,1) both nesYQG_team-person-in;display:block;position:absolute}.nesYQG_person:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:3px;border-radius:10px}.nesYQG_person[data-walk=true]{z-index:calc(14 + var(--team-depth,0))}.nesYQG_body{height:var(--team-unit);filter:drop-shadow(6px 9px 6px var(--dsw-alias-bg-mask-1));transition:transform .18s cubic-bezier(.22,1,.36,1);display:block;position:relative}.nesYQG_person:hover .nesYQG_body,.nesYQG_person[data-focus=true] .nesYQG_body{transform:scale(1.07)}.nesYQG_figure{width:100%;height:100%;display:block;overflow:visible}.nesYQG_person[data-facing=back]{--team-sit:.93;animation:.32s cubic-bezier(.34,1.56,.64,1) both nesYQG_team-person-in,6.8s ease-in-out infinite nesYQG_team-person-sit;animation-delay:0s, var(--team-chair-delay,0s)}.nesYQG_person[data-facing=back] .nesYQG_figure{transform:none}.nesYQG_person[data-facing=back] .nesYQG_crewLimbBack,.nesYQG_person[data-facing=back] .nesYQG_crewLimbFront{display:none}.nesYQG_person[data-facing=right] .nesYQG_figure{transform:rotate(3deg)}.nesYQG_person[data-facing=away] .nesYQG_figure{transform:rotate(-2deg)}.nesYQG_person[data-facing=away] .nesYQG_crewLimbBack,.nesYQG_person[data-facing=away] .nesYQG_crewLimbFront{display:none}.nesYQG_person[data-facing=left] .nesYQG_figure{transform:scaleX(-1)rotate(3deg)}.nesYQG_crew{width:100%;height:100%;overflow:visible}.nesYQG_crewHood{fill:color-mix(in srgb, var(--team-hue) 86%, var(--dsw-static-neutral-1000));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crew[data-kind=beluga] .nesYQG_crewHood{fill:color-mix(in srgb, var(--team-hue) 34%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewBelly,.nesYQG_crewPatch,.nesYQG_crewMelon{fill:color-mix(in srgb, var(--team-hue) 15%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewKnob{fill:var(--dsw-static-neutral-00);opacity:.55}.nesYQG_crewEye{fill:var(--dsw-static-neutral-00)}.nesYQG_crewPupil{fill:var(--dsw-static-neutral-900)}.nesYQG_crewSmile,.nesYQG_crewMouth{fill:none;stroke:var(--dsw-static-neutral-700);stroke-width:1.4px;stroke-linecap:round;opacity:.6}.nesYQG_crewMouth{stroke:var(--dsw-static-neutral-00);opacity:.7}.nesYQG_crewFace,.nesYQG_crewHand,.nesYQG_crewNeck,.nesYQG_crewEar{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 24%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-skin=\"1\"] .nesYQG_crewFace,.nesYQG_crew[data-skin=\"1\"] .nesYQG_crewHand,.nesYQG_crew[data-skin=\"1\"] .nesYQG_crewNeck,.nesYQG_crew[data-skin=\"1\"] .nesYQG_crewEar{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 44%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-skin=\"2\"] .nesYQG_crewFace,.nesYQG_crew[data-skin=\"2\"] .nesYQG_crewHand,.nesYQG_crew[data-skin=\"2\"] .nesYQG_crewNeck,.nesYQG_crew[data-skin=\"2\"] .nesYQG_crewEar{fill:color-mix(in srgb, var(--dsw-static-amber-600) 58%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-skin=\"3\"] .nesYQG_crewFace,.nesYQG_crew[data-skin=\"3\"] .nesYQG_crewHand,.nesYQG_crew[data-skin=\"3\"] .nesYQG_crewNeck,.nesYQG_crew[data-skin=\"3\"] .nesYQG_crewEar{fill:color-mix(in srgb, var(--dsw-static-amber-700) 62%, var(--dsw-static-neutral-00))}.nesYQG_crewBrow{fill:none;stroke:var(--dsw-static-neutral-600);stroke-width:1.1px;stroke-linecap:round;opacity:.6}.nesYQG_crewEyeGlint{fill:var(--dsw-static-neutral-00)}.nesYQG_crewBlush{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 48%, var(--dsw-static-neutral-00));opacity:.45}.nesYQG_crewHair{fill:color-mix(in srgb, var(--dsw-static-amber-700) 38%, var(--dsw-static-neutral-800))}.nesYQG_crew[data-tone=\"1\"] .nesYQG_crewHair{fill:var(--dsw-static-neutral-900)}.nesYQG_crew[data-tone=\"2\"] .nesYQG_crewHair{fill:color-mix(in srgb, var(--dsw-static-amber-600) 52%, var(--dsw-static-neutral-900))}.nesYQG_crew[data-tone=\"3\"] .nesYQG_crewHair{fill:color-mix(in srgb, var(--dsw-static-amber-600) 76%, var(--dsw-static-neutral-400))}.nesYQG_crew[data-tone=\"4\"] .nesYQG_crewHair{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 80%, var(--dsw-static-neutral-600))}.nesYQG_crewHairShine{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 34%, transparent);opacity:.5}.nesYQG_crewHoodSheen{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 46%, var(--team-hue));filter:hue-rotate(var(--team-accent-shift,0deg));opacity:.5}.nesYQG_crewHoodShade{fill:color-mix(in srgb, var(--team-hue) 90%, var(--dsw-static-neutral-1000));filter:hue-rotate(var(--team-accent-shift,0deg));opacity:.24}.nesYQG_crew[data-kind=shark] .nesYQG_crewHood{fill:color-mix(in srgb, var(--team-hue) 30%, var(--dsw-static-neutral-400));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crew[data-kind=shark] .nesYQG_crewBelly{fill:color-mix(in srgb, var(--team-hue) 8%, var(--dsw-static-neutral-00))}.nesYQG_crewGill{fill:none;stroke:color-mix(in srgb, var(--team-hue) 55%, var(--dsw-static-neutral-600));stroke-width:1.1px;stroke-linecap:round;opacity:.75}.nesYQG_crewTusk{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 88%, var(--team-hue));stroke-width:3.4px;stroke-linecap:round}.nesYQG_crewSpout{fill:none;stroke:color-mix(in srgb, var(--team-hue) 45%, transparent);stroke-width:2.6px;stroke-linecap:round}.nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 38%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewSleeve{fill:color-mix(in srgb, var(--team-hue) 52%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crew[data-outfit=tee] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 46%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=polo] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 36%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=sweater] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 50%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=hoodie] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 30%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=tunic] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 44%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=vest] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 26%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=jacket] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=stripes] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 24%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=dungarees] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 36%, var(--dsw-static-neutral-00))}.nesYQG_crewVest,.nesYQG_crewJacket,.nesYQG_crewBib{fill:color-mix(in srgb, var(--team-hue) 46%, var(--dsw-static-neutral-00));stroke:color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));stroke-width:.6px;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewStripes{fill:none;stroke:color-mix(in srgb, var(--team-hue) 62%, var(--dsw-static-neutral-00));stroke-width:1.4px;opacity:.8;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewSeam{fill:none;stroke:color-mix(in srgb, var(--team-hue) 56%, var(--dsw-static-neutral-00));stroke-width:.8px;stroke-linecap:round;opacity:.5}.nesYQG_crewCuff{fill:none;stroke:color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));stroke-width:1px;stroke-linecap:round;opacity:.55}.nesYQG_crewCollar{fill:none;stroke:var(--dsw-static-neutral-00);stroke-width:1.8px;stroke-linecap:round;opacity:.65}.nesYQG_crewPlacket,.nesYQG_crewStitch{fill:none;stroke:color-mix(in srgb, var(--team-hue) 64%, var(--dsw-static-neutral-00));stroke-width:.8px;stroke-linecap:round;opacity:.55}.nesYQG_crewButton{fill:color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 70%, transparent);stroke-width:.4px}.nesYQG_crewRib{fill:color-mix(in srgb, var(--team-hue) 58%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewHoodFabric{fill:color-mix(in srgb, var(--team-hue) 34%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg));opacity:.92}.nesYQG_crewDraw{fill:none;stroke:color-mix(in srgb, var(--team-hue) 64%, var(--dsw-static-neutral-00));stroke-width:1px;stroke-linecap:round}.nesYQG_crewPocket{fill:color-mix(in srgb, var(--team-hue) 20%, var(--dsw-static-neutral-00));stroke:color-mix(in srgb, var(--team-hue) 48%, var(--dsw-static-neutral-00));stroke-width:.7px;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewNeckBand{fill:color-mix(in srgb, var(--team-hue) 54%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewBelt{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-800) 78%, var(--team-hue));stroke-width:2.2px;stroke-linecap:round}.nesYQG_crewCans{pointer-events:none}.nesYQG_crewGlasses rect{fill:color-mix(in srgb, var(--team-hue) 34%, transparent);stroke:var(--dsw-static-neutral-800);stroke-width:1.2px}.nesYQG_crewGlasses path{fill:none;stroke:var(--dsw-static-neutral-800);stroke-width:1px;stroke-linecap:round}.nesYQG_crewCansBand{fill:none;stroke:var(--dsw-static-neutral-800);stroke-width:3.4px}.nesYQG_crewCansCup{fill:color-mix(in srgb, var(--team-hue) 64%, var(--dsw-static-neutral-00));stroke:var(--dsw-static-neutral-800);stroke-width:.8px;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewScarf{fill:color-mix(in srgb, var(--team-hue) 66%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewCord{fill:none;stroke:color-mix(in srgb, var(--team-hue) 72%, var(--dsw-static-neutral-00));stroke-width:1.2px;stroke-linecap:round;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewBadge{fill:var(--dsw-static-neutral-00);stroke:var(--dsw-static-neutral-300);stroke-width:.7px}.nesYQG_crewBadgeLine{fill:none;stroke:var(--dsw-static-neutral-500);stroke-width:.9px;stroke-linecap:round}.nesYQG_crewPack{fill:color-mix(in srgb, var(--team-hue) 52%, var(--dsw-static-neutral-700));stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.8px;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewPackTrim{fill:none;stroke:color-mix(in srgb, var(--team-hue) 72%, var(--dsw-static-neutral-00));stroke-width:1.2px;stroke-linecap:round;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewStrap{fill:none;stroke:color-mix(in srgb, var(--team-hue) 58%, var(--dsw-static-neutral-700));stroke-width:2.4px;stroke-linecap:round;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewTrouser,.nesYQG_crewShoe{fill:color-mix(in srgb, var(--team-hue) 34%, var(--dsw-static-neutral-600));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crew[data-shoes=boot] .nesYQG_crewShoe{fill:color-mix(in srgb, var(--team-hue) 58%, var(--dsw-static-neutral-800))}.nesYQG_crew[data-shoes=loafer] .nesYQG_crewShoe{fill:color-mix(in srgb, var(--team-hue) 16%, var(--dsw-static-neutral-500))}.nesYQG_crew[data-shoes=hightop] .nesYQG_crewShoe{fill:color-mix(in srgb, var(--team-hue) 50%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-shoes=sandal] .nesYQG_crewShoe{fill:color-mix(in srgb, var(--dsw-static-amber-600) 64%, var(--dsw-static-neutral-700))}.nesYQG_crewShoeTrim{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 46%, transparent);stroke-width:1px;stroke-linecap:round}.nesYQG_crew[data-shoes=boot] .nesYQG_crewShoeTrim,.nesYQG_crew[data-shoes=hightop] .nesYQG_crewShoeTrim{stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 30%, transparent)}.nesYQG_crewLimbBack,.nesYQG_crewLimbFront,.nesYQG_crewArmBack,.nesYQG_crewArmFront{transform-box:fill-box;transform-origin:50% 0}.nesYQG_person[data-walk=true] .nesYQG_crewLimbBack,.nesYQG_person[data-walk=true] .nesYQG_crewArmFront{animation:1s linear infinite paused nesYQG_team-swing;animation-delay:calc(var(--team-gait,0) * -1s)}.nesYQG_person[data-walk=true] .nesYQG_crewLimbFront,.nesYQG_person[data-walk=true] .nesYQG_crewArmBack{animation:1s linear infinite reverse paused nesYQG_team-swing;animation-delay:calc(var(--team-gait,0) * -1s)}.nesYQG_person[data-walk=true] .nesYQG_body{animation:1s ease-in-out infinite paused nesYQG_team-bob;animation-delay:calc(var(--team-gait,0) * -1s)}.nesYQG_person[data-pose=working]:not([data-walk=true]) .nesYQG_crewArmFront,.nesYQG_person[data-pose=working]:not([data-walk=true]) .nesYQG_crewArmBack{animation:.9s ease-in-out infinite alternate nesYQG_team-type}.nesYQG_crown{width:20px;height:20px;color:var(--dsw-static-neutral-900);background:var(--dsw-alias-state-warn-secondary);box-shadow:0 1px 3px var(--dsw-alias-bg-mask-2);border-radius:50%;place-items:center;margin-left:-10px;display:grid;position:absolute;top:-6%;left:50%}.nesYQG_load{border:2px solid var(--dsw-alias-bg-overlay);font-variant-numeric:tabular-nums;min-width:16px;height:16px;color:var(--dsw-alias-label-primary-inverted);background:var(--dsw-alias-state-success-primary);border-radius:8px;place-items:center;padding:0 4px;font-size:9.5px;font-weight:600;display:grid;position:absolute;top:47%;right:-13%}.nesYQG_speech{z-index:2;border:1px solid color-mix(in srgb, var(--team-hue) 45%, transparent);background:var(--dsw-alias-bg-overlay);width:max-content;max-width:210px;color:var(--dsw-alias-label-primary);white-space:nowrap;text-overflow:ellipsis;box-shadow:0 3px 10px var(--dsw-alias-bg-mask-1);border-radius:10px 10px 10px 3px;padding:4px 8px;font-size:10.5px;line-height:1.35;animation:.2s cubic-bezier(.22,1,.36,1) both nesYQG_team-say-in;position:absolute;bottom:calc(100% + 2px);left:50%;overflow:hidden;transform:translate(-50%)}.nesYQG_listening,.nesYQG_doze{z-index:2;letter-spacing:.08em;color:var(--dsw-alias-label-dimmed);font-size:11px;font-weight:600;position:absolute;top:4%;right:0}.nesYQG_listening{animation:1.4s ease-in-out infinite nesYQG_team-listen}.nesYQG_doze{animation:3s ease-in-out infinite nesYQG_team-doze}.nesYQG_plate{background:color-mix(in srgb, var(--dsw-alias-bg-overlay) 72%, transparent);border-radius:6px;flex-direction:column;align-items:center;width:150%;padding:1px 4px;display:flex;position:absolute;top:calc(100% + 1px);left:50%;transform:translate(-50%)}.nesYQG_person[data-talking=from] .nesYQG_plate{visibility:hidden}.nesYQG_plateName{max-width:100%;color:var(--dsw-alias-label-primary);white-space:nowrap;text-overflow:ellipsis;font-size:11.5px;font-weight:600;overflow:hidden}.nesYQG_plateMeta{max-width:100%;color:var(--dsw-alias-label-tertiary);white-space:nowrap;text-overflow:ellipsis;font-size:9.5px;overflow:hidden}.nesYQG_state{display:flex;position:absolute;top:45%;left:-9%}.nesYQG_person[data-running=true] .nesYQG_body:after{content:\"\";border:1.5px solid var(--team-hue);pointer-events:none;border-radius:50%;animation:2.2s cubic-bezier(.22,1,.36,1) infinite nesYQG_team-halo;position:absolute;inset:-3% -7% 56%}.nesYQG_person[aria-current=true] .nesYQG_plateName{color:var(--dsw-alias-brand-primary);text-underline-offset:3px;text-decoration:underline}.nesYQG_feed{flex-direction:column;flex:1;gap:8px;min-height:0;display:flex}.nesYQG_crewList{border:1px solid var(--dsw-alias-border-l2);border-radius:10px;flex-direction:column;flex:none;display:flex;overflow:hidden}.nesYQG_crewRow{align-items:center;gap:6px;min-width:0;padding:5px 8px;font-size:11px;transition:background .16s;display:flex}.nesYQG_crewRow+.nesYQG_crewRow{border-top:1px solid var(--dsw-alias-border-l1)}.nesYQG_crewRow[data-focus=true]{background:var(--dsw-alias-interactive-bg-hover)}.nesYQG_crewName{max-width:84px;color:var(--dsw-alias-label-primary);white-space:nowrap;text-overflow:ellipsis;flex:none;font-weight:600;overflow:hidden}.nesYQG_crewState{color:var(--dsw-alias-label-tertiary);background:var(--team-surface-2);border-radius:999px;flex:none;padding:0 5px;font-size:9.5px}.nesYQG_crewState[data-state=running]{color:var(--team-hue);background:color-mix(in srgb, var(--team-hue) 14%, transparent)}.nesYQG_crewOpen{font-variant-numeric:tabular-nums;color:var(--dsw-alias-state-success-primary);border:1px solid color-mix(in srgb, var(--dsw-alias-state-success-primary) 45%, transparent);border-radius:999px;flex:none;padding:0 5px;font-size:9.5px}.nesYQG_crewLine{text-align:right;min-width:0;color:var(--dsw-alias-label-tertiary);white-space:nowrap;text-overflow:ellipsis;flex:1;overflow:hidden}.nesYQG_feedTitle{letter-spacing:.06em;text-transform:uppercase;color:var(--dsw-alias-label-dimmed);flex:none;margin:2px 0 0;font-size:10px;font-weight:600}.nesYQG_log{overscroll-behavior:contain;flex-direction:column;flex:1;gap:6px;min-height:0;padding-right:2px;display:flex;overflow-y:auto}.nesYQG_logRow{border:1px solid var(--dsw-alias-border-l2);background:var(--team-surface-1);border-radius:10px;align-items:flex-start;gap:7px;padding:5px 6px;transition:border-color .16s,background .16s;animation:.24s cubic-bezier(.22,1,.36,1) both nesYQG_team-row-in;display:flex}.nesYQG_logRow[data-focus=true]{border-color:var(--team-hue);background:var(--dsw-alias-interactive-bg-hover)}.nesYQG_logRow[data-message-kind=report]{border-left:2px solid var(--dsw-alias-state-success-primary)}.nesYQG_logRow[data-message-kind=settled]{opacity:.72;border-style:dashed}.nesYQG_logAvatar{width:22px;height:22px;color:var(--dsw-alias-label-secondary);background:var(--team-surface-2);border-radius:50%;flex:none;place-items:center;display:grid;overflow:hidden}.nesYQG_logBody{flex-direction:column;flex:1;gap:1px;min-width:0;display:flex}.nesYQG_logHead{color:var(--dsw-alias-label-tertiary);align-items:center;gap:4px;font-size:10px;display:flex}.nesYQG_logAuthor{color:var(--dsw-alias-label-secondary);font-weight:600}.nesYQG_logArrow{opacity:.55}.nesYQG_logTo{color:var(--dsw-alias-label-secondary);font-weight:600}.nesYQG_logKind{background:var(--team-surface-2);color:var(--dsw-alias-label-secondary);border-radius:999px;padding:0 5px}.nesYQG_logHop{font-variant-numeric:tabular-nums;border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-tertiary);border-radius:999px;padding:0 5px}.nesYQG_logRow[data-hop=\"3\"] .nesYQG_logHop,.nesYQG_logRow[data-hop=\"4\"] .nesYQG_logHop,.nesYQG_logRow[data-hop=\"5\"] .nesYQG_logHop{color:var(--dsw-alias-state-warn-primary);border-color:var(--dsw-alias-state-warn-primary)}.nesYQG_logTime{font-variant-numeric:tabular-nums;margin-left:auto}.nesYQG_logText{color:var(--dsw-alias-label-primary);-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12px;line-height:1.45;display:-webkit-box;overflow:hidden}.nesYQG_logTail{color:var(--dsw-alias-label-dimmed);flex:none;align-self:center;display:flex}.nesYQG_logRow[data-message-kind=message] .nesYQG_logTail{color:var(--team-hue)}.nesYQG_cameo{place-items:center;width:100%;height:100%;display:grid}.nesYQG_cameoCrew{width:88%;height:auto}.nesYQG_cameoDot{background:var(--team-surface-2);border-radius:50%;flex:none;place-items:center;width:18px;height:18px;display:grid;overflow:hidden}.nesYQG_cameoDot .nesYQG_discGlyph{font-size:9px}.nesYQG_discGlyph{font-size:11px;font-weight:600;line-height:1}.nesYQG_paneNote{letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-dimmed);margin-left:auto;font-weight:400}.nesYQG_emptyHint{color:var(--dsw-alias-label-dimmed);margin:2px 0 0;font-size:11.5px}.nesYQG_drawer[data-panel=workspace] .nesYQG_drawerBody{background-image:radial-gradient(var(--team-surface-2) 1px, transparent 1.4px);background-size:14px 14px}.nesYQG_notes{flex-direction:column;gap:10px;padding:4px 2px;display:flex}.nesYQG_note{border:1px solid color-mix(in srgb, var(--dsw-alias-state-warn-primary) 30%, var(--dsw-alias-border-l2));background:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 8%, var(--dsw-alias-bg-overlay));box-shadow:0 4px 9px var(--dsw-alias-bg-mask-1);transform:rotate(var(--team-tilt,0deg));border-radius:8px;flex-direction:column;gap:3px;padding:10px 10px 8px;transition:border-color .16s,background .16s,transform .16s;display:flex;position:relative}.nesYQG_note:nth-child(odd){--team-tilt:-1.2deg}.nesYQG_note:nth-child(2n){--team-tilt:1deg}.nesYQG_note:before{content:\"\";background:var(--dsw-alias-brand-primary);width:8px;height:8px;box-shadow:0 2px 3px var(--dsw-alias-bg-mask-1);border-radius:50%;margin-left:-4px;position:absolute;top:-4px;left:50%}.nesYQG_note:hover,.nesYQG_note[data-focus=true]{transform:none}.nesYQG_note[data-focus=true]{border-color:var(--team-hue);background:var(--dsw-alias-interactive-bg-hover)}.nesYQG_noteKey{color:var(--dsw-alias-label-primary);text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;overflow:hidden}.nesYQG_notePreview{color:var(--dsw-alias-label-secondary);-webkit-line-clamp:3;-webkit-box-orient:vertical;font-size:11.5px;line-height:1.45;display:-webkit-box;overflow:hidden}.nesYQG_noteFoot{color:var(--dsw-alias-label-tertiary);align-items:center;gap:6px;font-size:10.5px;display:flex}.nesYQG_noteAuthor{color:var(--dsw-alias-label-secondary);align-items:center;gap:5px;display:inline-flex}.nesYQG_noteTime{font-variant-numeric:tabular-nums;margin-left:auto}.nesYQG_columns{flex-direction:column;gap:14px;display:flex}.nesYQG_column{flex-direction:column;gap:6px;min-width:0;display:flex}.nesYQG_column+.nesYQG_column{border-top:1px dashed var(--dsw-alias-border-l2);padding-top:12px}.nesYQG_columnTitle{color:var(--dsw-alias-label-secondary);align-items:center;gap:6px;margin:0;font-size:11px;font-weight:600;display:flex}.nesYQG_columnTitle:before{content:\"\";background:var(--team-surface-3);border-radius:50%;width:7px;height:7px}.nesYQG_column[data-column=active] .nesYQG_columnTitle:before{background:var(--team-hue)}.nesYQG_column[data-column=done] .nesYQG_columnTitle:before{background:var(--dsw-alias-state-success-primary)}.nesYQG_columnCount{font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-dimmed)}.nesYQG_card{border:1px solid var(--dsw-alias-border-l2);border-radius:10px;flex-direction:column;gap:4px;padding:7px 9px;transition:border-color .16s,background .16s;animation:.24s cubic-bezier(.22,1,.36,1) both nesYQG_team-row-in;display:flex}.nesYQG_card[data-focus=true]{border-color:var(--team-hue);background:var(--dsw-alias-interactive-bg-hover)}.nesYQG_card[data-task-status=active]{border-left:2px solid var(--team-hue)}.nesYQG_card[data-task-status=done] .nesYQG_cardTitle{color:var(--dsw-alias-label-tertiary);text-decoration:line-through}.nesYQG_cardTitle{color:var(--dsw-alias-label-primary);-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12.5px;line-height:1.4;display:-webkit-box;overflow:hidden}.nesYQG_cardFoot{color:var(--dsw-alias-label-tertiary);align-items:center;gap:6px;font-size:10.5px;display:flex}.nesYQG_cardWho{color:var(--dsw-alias-label-secondary);flex:none;align-items:center;gap:5px;display:inline-flex}.nesYQG_cardNote{text-overflow:ellipsis;white-space:nowrap;min-width:0;overflow:hidden}.nesYQG_screenApp{width:100%;height:100%;display:flex}.nesYQG_screenApp i{font-style:normal;display:block}.nesYQG_screenApp[data-app=chart]{align-items:flex-end;gap:1.5px}.nesYQG_screenApp[data-app=chart] i{background:color-mix(in srgb, var(--team-hue) 85%, var(--dsw-alias-bg-overlay));border-radius:1px;flex:1}.nesYQG_screenApp[data-app=chart] i:first-child{height:38%}.nesYQG_screenApp[data-app=chart] i:nth-child(2){height:72%}.nesYQG_screenApp[data-app=chart] i:nth-child(3){height:52%}.nesYQG_screenApp[data-app=chart] i:nth-child(4){height:92%}.nesYQG_screenApp[data-app=chart] i:nth-child(5){background:color-mix(in srgb, var(--dsw-alias-state-success-primary) 80%, var(--dsw-alias-bg-overlay));height:64%}.nesYQG_screenApp[data-app=code]{flex-direction:column;justify-content:center;gap:2px;padding-left:22%;position:relative}.nesYQG_screenApp[data-app=code]:before{content:\"\";background:var(--team-surface-3);border-radius:1px;width:16%;position:absolute;top:0;bottom:0;left:0}.nesYQG_screenApp[data-app=code] i{background:var(--dsw-alias-label-tertiary);opacity:.85;border-radius:1px;height:2px}.nesYQG_screenApp[data-app=code] i:first-child{background:var(--team-hue);opacity:1;width:62%}.nesYQG_screenApp[data-app=code] i:nth-child(2){width:88%;margin-left:10%}.nesYQG_screenApp[data-app=code] i:nth-child(3){width:46%;margin-left:10%}.nesYQG_screenApp[data-app=code] i:nth-child(4){width:70%;margin-left:20%}.nesYQG_screenApp[data-app=code] i:nth-child(5){width:34%}.nesYQG_screenApp[data-app=doc]{flex-direction:column;gap:2.5px}.nesYQG_screenApp[data-app=doc] i{background:var(--dsw-alias-label-tertiary);opacity:.75;border-radius:1px;height:2px}.nesYQG_screenApp[data-app=doc] i:first-child{background:var(--dsw-alias-label-secondary);opacity:1;width:46%;height:3.5px}.nesYQG_screenApp[data-app=doc] i:nth-child(2){width:94%}.nesYQG_screenApp[data-app=doc] i:nth-child(3){width:88%}.nesYQG_screenApp[data-app=doc] i:nth-child(4){width:62%}.nesYQG_screenApp[data-app=mail]{flex-direction:column;justify-content:center;gap:2.5px}.nesYQG_screenApp[data-app=mail] i{background:var(--dsw-alias-label-dimmed);border-radius:3px;height:26%}.nesYQG_screenApp[data-app=mail] i:first-child{width:62%}.nesYQG_screenApp[data-app=mail] i:nth-child(2){background:var(--team-hue);align-self:flex-end;width:56%}.nesYQG_screenApp[data-app=mail] i:nth-child(3){width:44%}.nesYQG_screenApp[data-app=grid]{grid-template-columns:1fr 1fr;gap:2px;display:grid}.nesYQG_screenApp[data-app=grid] i{background:var(--dsw-alias-label-dimmed);border-radius:1.5px}.nesYQG_screenApp[data-app=grid] i:first-child{background:var(--team-hue)}.nesYQG_screenApp[data-app=grid] i:nth-child(4){background:color-mix(in srgb, var(--dsw-alias-state-success-primary) 75%, var(--dsw-alias-bg-overlay))}.nesYQG_screenApp[data-app=term]{background:color-mix(in srgb, var(--dsw-alias-label-secondary) 92%, transparent);border-radius:1px;flex-direction:column;gap:2.5px;padding:2px}.nesYQG_screenApp[data-app=term] i{background:color-mix(in srgb, var(--dsw-alias-state-success-primary) 92%, transparent);border-radius:1px;height:2px}.nesYQG_screenApp[data-app=term] i:first-child{width:58%}.nesYQG_screenApp[data-app=term] i:nth-child(2){opacity:.6;width:82%}.nesYQG_screenApp[data-app=term] i:nth-child(3){opacity:.6;width:40%}.nesYQG_screenApp[data-app=term] i:nth-child(4){width:12%;height:3px;animation:1.1s step-end infinite nesYQG_team-caret}@container (width<=640px){.nesYQG_barHint,.nesYQG_stat{display:none}.nesYQG_stat:first-child{display:inline-block}}@keyframes nesYQG_team-chair-rise{0%,to{transform:translateY(0)}5%,9%{transform:translateY(-2.5%)}13%{transform:translateY(0)}}@keyframes nesYQG_team-chair-stretch{0%,to{transform:scaleY(1)}5%,9%{transform:scaleY(1.14)}13%{transform:scaleY(1)}}@keyframes nesYQG_team-person-sit{0%,to{transform:translate(-50%, -100%) scale(calc(var(--team-scale,1) * var(--team-sit,1)))}5%,9%{transform:translate(-50%, calc(-100% - 1.15%)) scale(calc(var(--team-scale,1) * var(--team-sit,1)))}13%{transform:translate(-50%, -100%) scale(calc(var(--team-scale,1) * var(--team-sit,1)))}}@keyframes nesYQG_team-stage-in{0%{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}@keyframes nesYQG_team-person-in{0%{opacity:0;transform:translate(-50%, -90%) scale(calc(var(--team-scale,1) * var(--team-sit,1) * .82))}to{opacity:1;transform:translate(-50%, -100%) scale(calc(var(--team-scale,1) * var(--team-sit,1)))}}@keyframes nesYQG_team-row-in{0%{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}@keyframes nesYQG_team-drawer-in{0%{opacity:0;transform:translate(14px)}to{opacity:1;transform:none}}@keyframes nesYQG_team-say-in{0%{opacity:0;transform:translate(-50%,4px)}to{opacity:1;transform:translate(-50%)}}@keyframes nesYQG_team-swing{0%,to{transform:rotate(-17deg)}50%{transform:rotate(17deg)}}@keyframes nesYQG_team-bob{0%,to{transform:translateY(0)}25%{transform:translateY(-3%)}50%{transform:translateY(0)}75%{transform:translateY(-3%)}}@keyframes nesYQG_team-drift{0%{translate:0}to{translate:230%}}@keyframes nesYQG_team-sail{0%{translate:0}to{translate:340%}}@keyframes nesYQG_team-glow{0%,to{opacity:.55}50%{opacity:.95}}@keyframes nesYQG_team-sway{0%,to{transform:rotate(-2.6deg)}50%{transform:rotate(2.6deg)}}@keyframes nesYQG_team-bubble{0%{opacity:0;translate:0}12%{opacity:1}88%{opacity:.8}to{opacity:0;translate:0 -44%}}@keyframes nesYQG_team-prowl{0%,to{opacity:0;left:-12%;transform:scaleX(1)}2%{opacity:1}46%{opacity:1;left:42%;transform:scaleX(1)}50%{opacity:1;left:50%;transform:scaleX(1)}54%{opacity:1;left:62%;transform:scaleX(-1)}92%{opacity:1;left:-12%;transform:scaleX(-1)}94%,to{opacity:0}}@keyframes nesYQG_team-tick{0%{transform:translateY(-100%)rotate(0)}to{transform:translateY(-100%)rotate(360deg)}}@keyframes nesYQG_team-blink{0%,to{opacity:1}50%{opacity:.25}}@keyframes nesYQG_team-type{0%{transform:rotate(-4deg)}to{transform:rotate(4deg)}}@keyframes nesYQG_team-listen{0%,to{opacity:.3}50%{opacity:1}}@keyframes nesYQG_team-doze{0%{opacity:.2;transform:translateY(2px)}50%{opacity:1;transform:translateY(-3px)}to{opacity:.2;transform:translateY(2px)}}@keyframes nesYQG_team-screen{0%,to{filter:brightness()}50%{filter:brightness(1.14)}}@keyframes nesYQG_team-caret{0%,49%{opacity:1}50%,to{opacity:0}}@keyframes nesYQG_team-halo{0%{opacity:.7;transform:scale(1)}70%{opacity:0;transform:scale(1.3)}to{opacity:0;transform:scale(1.3)}}@media (prefers-reduced-motion:reduce){.nesYQG_stage,.nesYQG_person,.nesYQG_drawer,.nesYQG_logRow,.nesYQG_card,.nesYQG_note,.nesYQG_speech,.nesYQG_chairRide,.nesYQG_chairLift,.nesYQG_lamp:after,.nesYQG_pendantGlow,.nesYQG_cloud,.nesYQG_sail,.nesYQG_coolerBubble,.nesYQG_floraLeaf,.nesYQG_cat,.nesYQG_clockHand[data-hand=second],.nesYQG_propLampLive,.nesYQG_chairRide,.nesYQG_chairLift,.nesYQG_person[data-facing=back],.nesYQG_person[data-walk=true] .nesYQG_body,.nesYQG_person[data-walk=true] .nesYQG_crewLimbBack,.nesYQG_person[data-walk=true] .nesYQG_crewLimbFront,.nesYQG_person[data-walk=true] .nesYQG_crewArmBack,.nesYQG_person[data-walk=true] .nesYQG_crewArmFront,.nesYQG_person[data-pose=working] .nesYQG_crewArmFront,.nesYQG_person[data-pose=working] .nesYQG_crewArmBack,.nesYQG_person[data-running=true] .nesYQG_body:after,.nesYQG_desk[data-screen=working] .nesYQG_screen,.nesYQG_dockButton[data-fresh=true]:after,.nesYQG_screenApp[data-app=term] i:nth-child(4),.nesYQG_listening,.nesYQG_doze{animation:none}.nesYQG_person,.nesYQG_body,.nesYQG_dockButton,.nesYQG_card{transition:none}}";
+		const css = ".nesYQG_stage,.nesYQG_stage *,.nesYQG_stage :before,.nesYQG_stage :after{box-sizing:border-box}.nesYQG_stage{--team-page:var(--dsw-alias-bg-base);--team-ink:var(--dsw-alias-label-primary);--team-surface-1:color-mix(in srgb, var(--team-ink) 4%, var(--team-page));--team-surface-2:color-mix(in srgb, var(--team-ink) 9%, var(--team-page));--team-surface-3:color-mix(in srgb, var(--team-ink) 16%, var(--team-page));--team-hue:var(--dsw-alias-state-business-primary);--team-warm:var(--dsw-alias-state-warn-primary);--team-leaf:var(--dsw-alias-state-success-primary);flex-direction:column;gap:8px;height:100%;min-height:0;padding:10px 14px 12px;animation:.26s cubic-bezier(.22,1,.36,1) both nesYQG_team-stage-in;display:flex;overflow:hidden;container-type:inline-size}.nesYQG_composerAway{pointer-events:none;height:0;display:block;overflow:hidden}.nesYQG_bar{flex:none;align-items:center;gap:10px;display:flex}.nesYQG_barTitle{color:var(--dsw-alias-label-primary);align-items:center;gap:7px;font-size:13px;font-weight:600;display:flex}.nesYQG_barIcon{color:var(--team-hue)}.nesYQG_barStats{align-items:center;gap:6px;margin-left:auto;display:flex}.nesYQG_stat{border:1px solid var(--dsw-alias-border-l2);font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-tertiary);white-space:nowrap;border-radius:999px;padding:1px 8px;font-size:11px}.nesYQG_statLive{color:var(--team-hue);border-color:var(--team-hue)}.nesYQG_barHint{white-space:nowrap;text-overflow:ellipsis;min-width:0;color:var(--dsw-alias-label-tertiary);align-items:center;gap:5px;font-size:10.5px;display:flex;overflow:hidden}.nesYQG_scene{flex:1;gap:10px;min-height:0;display:flex;position:relative}.nesYQG_roomPane{z-index:0;isolation:isolate;flex:1;min-width:0;min-height:0;position:relative}.nesYQG_dock{z-index:40;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-overlay);border-radius:999px;flex-direction:column;flex:none;align-self:flex-start;align-items:center;gap:8px;width:44px;padding:6px 0;display:flex;position:relative}.nesYQG_dockButton{width:34px;height:34px;color:var(--dsw-alias-label-secondary);cursor:pointer;background:0 0;border:none;border-radius:50%;place-items:center;padding:0;transition:background .16s,color .16s;display:grid;position:relative}.nesYQG_dockButton:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.nesYQG_dockButton[aria-pressed=true]{background:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary-inverted)}.nesYQG_dockCount{border:2px solid var(--dsw-alias-bg-overlay);background:var(--team-surface-3);min-width:15px;height:15px;color:var(--dsw-alias-label-secondary);font-variant-numeric:tabular-nums;border-radius:8px;place-items:center;padding:0 4px;font-size:9px;font-weight:600;display:grid;position:absolute;top:-3px;right:-4px}.nesYQG_dockButton[data-fresh=true]{color:var(--team-hue)}.nesYQG_dockButton[data-fresh=true]:after{content:\"\";border:1.5px solid var(--team-hue);pointer-events:none;border-radius:50%;animation:2.2s cubic-bezier(.22,1,.36,1) infinite nesYQG_team-halo;position:absolute;inset:0}.nesYQG_drawer{z-index:50;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb, var(--dsw-alias-bg-overlay) 88%, transparent);backdrop-filter:blur(10px);width:min(408px,78cqw);box-shadow:-12px 10px 34px var(--dsw-alias-bg-mask-1);border-radius:14px;flex-direction:column;animation:.22s cubic-bezier(.22,1,.36,1) both nesYQG_team-drawer-in;display:flex;position:absolute;top:0;bottom:0;right:54px;overflow:hidden}.nesYQG_drawerHead{border-bottom:1px solid var(--dsw-alias-border-l1);flex:none;align-items:center;gap:6px;padding:10px 12px 8px;display:flex}.nesYQG_drawerHead .nesYQG_paneTitle{flex:1;min-width:0;margin:0}.nesYQG_drawerClose{width:24px;height:24px;color:var(--dsw-alias-label-tertiary);cursor:pointer;background:0 0;border:none;border-radius:50%;flex:none;place-items:center;padding:0;font-size:15px;line-height:1;display:grid}.nesYQG_drawerClose:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}.nesYQG_drawerBody{overscroll-behavior:contain;flex-direction:column;flex:1;min-height:0;padding:10px 12px 12px;display:flex;overflow-y:auto}.nesYQG_drawer[data-panel=feed] .nesYQG_drawerBody{overflow:hidden}.nesYQG_paneTitle{letter-spacing:.06em;text-transform:uppercase;color:var(--dsw-alias-label-tertiary);flex:none;align-items:center;gap:6px;margin:0 0 8px;font-size:10.5px;font-weight:600;display:flex}.nesYQG_empty{color:var(--dsw-alias-label-tertiary);margin:2px 0;font-size:12px}.nesYQG_blankTitle{text-align:center;color:var(--dsw-alias-label-secondary);margin:40px 0 4px;font-size:13px}.nesYQG_blankHint{text-align:center;color:var(--dsw-alias-label-tertiary);margin:0;font-size:12px}.nesYQG_floor{border:1px solid var(--dsw-alias-border-l2);background:var(--team-page);border-radius:14px;width:100%;height:100%;min-height:300px;position:relative;overflow:hidden;container-type:size}.nesYQG_shell{z-index:0;pointer-events:none;position:absolute;inset:0}.nesYQG_shell>*{content:\"\";position:absolute;inset:0}.nesYQG_ceiling{clip-path:polygon(0 0, 100% 0, calc(100% - var(--team-far-inset)) var(--team-wall-top), var(--team-far-inset) var(--team-wall-top));background: radial-gradient(ellipse 35% 55% at 35% 100%, color-mix(in srgb, var(--team-warm) 18%, transparent) 0%, transparent 70%), radial-gradient(ellipse 35% 55% at 65% 100%, color-mix(in srgb, var(--team-warm) 18%, transparent) 0%, transparent 70%), linear-gradient(180deg, color-mix(in srgb, var(--team-ink) 18%, var(--team-page)) 0%, color-mix(in srgb, var(--team-ink) 10%, var(--team-page)) 70%, color-mix(in srgb, var(--team-ink) 5%, var(--team-page)) 100%);box-shadow:inset 0 -3px 8px color-mix(in srgb, var(--team-ink) 25%, transparent)}.nesYQG_wallBack{clip-path:polygon(var(--team-far-inset) var(--team-wall-top), calc(100% - var(--team-far-inset)) var(--team-wall-top), calc(100% - var(--team-far-inset)) var(--team-floor-top), var(--team-far-inset) var(--team-floor-top));background: radial-gradient(ellipse 20% 40% at 18% 0%, color-mix(in srgb, var(--team-warm) 16%, transparent) 0%, transparent 75%), radial-gradient(ellipse 22% 45% at 50% 0%, color-mix(in srgb, var(--team-warm) 20%, transparent) 0%, transparent 75%), radial-gradient(ellipse 20% 40% at 82% 0%, color-mix(in srgb, var(--team-warm) 16%, transparent) 0%, transparent 75%),  linear-gradient(90deg, color-mix(in srgb, var(--team-ink) 12%, transparent) 0%, transparent 6%, transparent 94%, color-mix(in srgb, var(--team-ink) 14%, transparent) 100%),  linear-gradient(180deg, transparent 0% 74%, color-mix(in srgb, var(--team-ink) 18%, transparent) 74% 75%, color-mix(in srgb, var(--dsw-static-neutral-00) 25%, transparent) 75% 75.5%, transparent 75.5% 100%),  repeating-linear-gradient(90deg, transparent 0, transparent 14px, color-mix(in srgb, var(--dsw-static-neutral-00) 12%, transparent) 14px, color-mix(in srgb, var(--dsw-static-neutral-00) 12%, transparent) 14.8px, color-mix(in srgb, var(--team-ink) 8%, transparent) 14.8px, color-mix(in srgb, var(--team-ink) 8%, transparent) 16px),  linear-gradient(180deg, color-mix(in srgb, var(--team-hue) 14%, var(--team-page)) 0%, color-mix(in srgb, var(--team-hue) 8%, var(--team-page)) 58%, color-mix(in srgb, var(--team-warm) 10%, var(--team-page)) 58% 74%, color-mix(in srgb, var(--team-hue) 12%, var(--team-page)) 74% 100%)}.nesYQG_wallLeft,.nesYQG_wallRight{background:color-mix(in srgb, var(--team-hue) 15%, var(--team-page))}.nesYQG_wallLeft{clip-path:polygon(0 0, var(--team-far-inset) var(--team-wall-top), var(--team-far-inset) var(--team-floor-top), 0 100%);background:linear-gradient(92deg, color-mix(in srgb, var(--team-ink) 22%, var(--team-page)) 0%, color-mix(in srgb, var(--team-hue) 14%, var(--team-page)) 100%);box-shadow:inset -4px 0 10px color-mix(in srgb, var(--team-ink) 20%, transparent)}.nesYQG_wallRight{clip-path:polygon(100% 0, calc(100% - var(--team-far-inset)) var(--team-wall-top), calc(100% - var(--team-far-inset)) var(--team-floor-top), 100% 100%);background:linear-gradient(88deg, color-mix(in srgb, var(--team-hue) 12%, var(--team-page)) 0%, color-mix(in srgb, var(--team-ink) 25%, var(--team-page)) 100%);box-shadow:inset 4px 0 12px color-mix(in srgb, var(--team-ink) 30%, transparent)}.nesYQG_floorPlane{clip-path:polygon(0 100%, 100% 100%, calc(100% - var(--team-far-inset)) var(--team-floor-top), var(--team-far-inset) var(--team-floor-top));background: radial-gradient(ellipse 32% 38% at 30% 64%, color-mix(in srgb, var(--team-warm) 26%, transparent) 0, transparent 72%), radial-gradient(ellipse 32% 38% at 64% 64%, color-mix(in srgb, var(--team-warm) 26%, transparent) 0, transparent 72%),  repeating-linear-gradient(90deg, transparent 0, transparent 64px, color-mix(in srgb, var(--team-ink) 7%, transparent) 64px, color-mix(in srgb, var(--team-ink) 7%, transparent) 65px),  linear-gradient(180deg, transparent 0 27.4%, color-mix(in srgb, var(--team-warm) 36%, transparent) 27.4% 27.6%, transparent 27.6% 32.2%, color-mix(in srgb, var(--team-warm) 36%, transparent) 32.2% 32.5%, transparent 32.5% 37.6%, color-mix(in srgb, var(--team-warm) 36%, transparent) 37.6% 37.9%, transparent 37.9% 43.5%, color-mix(in srgb, var(--team-warm) 36%, transparent) 43.5% 43.9%, transparent 43.9% 50.2%, color-mix(in srgb, var(--team-warm) 36%, transparent) 50.2% 50.6%, transparent 50.6% 57.7%, color-mix(in srgb, var(--team-warm) 36%, transparent) 57.7% 58.2%, transparent 58.2% 66.2%, color-mix(in srgb, var(--team-warm) 36%, transparent) 66.2% 66.8%, transparent 66.8% 75.8%, color-mix(in srgb, var(--team-warm) 36%, transparent) 75.8% 76.5%, transparent 76.5% 87%, color-mix(in srgb, var(--team-warm) 36%, transparent) 87% 87.8%, transparent 87.8% 100%), linear-gradient(180deg, color-mix(in srgb, var(--team-warm) 15%, var(--team-page)) 0, color-mix(in srgb, var(--team-warm) 22%, var(--team-page)) 100%)}.nesYQG_skirting{clip-path:polygon(var(--team-far-inset) var(--team-floor-top), calc(100% - var(--team-far-inset)) var(--team-floor-top), calc(100% - var(--team-far-inset)) calc(var(--team-floor-top) + 1.8%), var(--team-far-inset) calc(var(--team-floor-top) + 1.8%));background:linear-gradient(180deg, color-mix(in srgb, var(--team-page) 65%, var(--team-ink)) 0% 25%, color-mix(in srgb, var(--team-ink) 24%, var(--team-page)) 25% 65%, color-mix(in srgb, var(--team-ink) 45%, var(--team-page)) 65% 100%);box-shadow:0 2px 6px color-mix(in srgb, var(--team-ink) 35%, transparent)}.nesYQG_wallLeft:after,.nesYQG_wallRight:after{content:\"\";background:color-mix(in srgb, var(--team-ink) 28%, var(--team-page));position:absolute;inset:0}.nesYQG_wallLeft:after{clip-path:polygon(0 100%, var(--team-far-inset) var(--team-floor-top), var(--team-far-inset) calc(var(--team-floor-top) + 1.8%), 0 calc(100% + 1.8%))}.nesYQG_wallRight:after{clip-path:polygon(100% 100%, calc(100% - var(--team-far-inset)) var(--team-floor-top), calc(100% - var(--team-far-inset)) calc(var(--team-floor-top) + 1.8%), 100% calc(100% + 1.8%))}.nesYQG_wall{--team-unit:clamp(84px, 25cqh, 192px);inset:var(--team-wall-top) var(--team-far-inset) calc(100% - var(--team-floor-top)) var(--team-far-inset);z-index:1;pointer-events:none;position:absolute}.nesYQG_wall>*{position:absolute;transform:translate(-50%)}.nesYQG_window{width:calc(var(--team-unit) * .64);height:68%;filter:drop-shadow(0 6px 14px var(--dsw-alias-bg-mask-2));top:10%}.nesYQG_pane{box-shadow:inset 0 0 0 2.5px color-mix(in srgb, var(--team-ink) 40%, var(--team-page)), inset 0 -8px 16px color-mix(in srgb, var(--team-hue) 45%, transparent);border-radius:3px;position:absolute;inset:0;overflow:hidden}.nesYQG_sky{background:linear-gradient(180deg, color-mix(in srgb, var(--team-hue) 26%, var(--team-page)) 0%, color-mix(in srgb, var(--team-warm) 24%, var(--team-page)) 65%, color-mix(in srgb, var(--team-warm) 42%, var(--team-page)) 100%);position:absolute;inset:0}.nesYQG_cloud{background:color-mix(in srgb, var(--team-page) 82%, transparent);border-radius:50%;animation:42s linear infinite nesYQG_team-drift;position:absolute}.nesYQG_cloud[data-cloud=near]{width:46%;height:16%;box-shadow:26% -60% 0 -4% color-mix(in srgb, var(--team-page) 86%, transparent), 62% -20% 0 -2% color-mix(in srgb, var(--team-page) 86%, transparent);top:14%;left:-40%}.nesYQG_cloud[data-cloud=far]{opacity:.72;width:30%;height:9%;animation-duration:71s;animation-delay:-24s;top:32%;left:-30%}.nesYQG_sea{background:repeating-linear-gradient(180deg, color-mix(in srgb, var(--team-page) 32%, transparent) 0 1px, transparent 1px 5px), linear-gradient(180deg, color-mix(in srgb, var(--team-hue) 62%, var(--team-page)) 0%, color-mix(in srgb, var(--team-hue) 84%, var(--team-page)) 100%);position:absolute;inset:52% 0 0}.nesYQG_sail{background:color-mix(in srgb, var(--team-page) 95%, transparent);clip-path:polygon(50% 0,100% 82%,0 82%);width:9%;height:9%;animation:96s linear infinite nesYQG_team-sail;position:absolute;top:47%;left:24%}.nesYQG_reveal{z-index:-1;background:linear-gradient(100deg, color-mix(in srgb, var(--team-ink) 26%, var(--team-page)) 0 46%, color-mix(in srgb, var(--team-ink) 12%, var(--team-page)) 46% 100%);box-shadow:inset 0 4px 8px color-mix(in srgb, var(--team-ink) 35%, transparent), 0 4px 10px var(--dsw-alias-bg-mask-2);border-radius:4px;position:absolute;inset:-6% -7%}.nesYQG_mullion{background:linear-gradient(90deg, color-mix(in srgb, var(--team-ink) 34%, var(--team-page)) 0 50%, color-mix(in srgb, var(--team-page) 65%, var(--team-ink)) 50% 100%) no-repeat 50% 0 / 3px 100%, linear-gradient(180deg, color-mix(in srgb, var(--team-ink) 34%, var(--team-page)) 0 50%, color-mix(in srgb, var(--team-page) 65%, var(--team-ink)) 50% 100%) no-repeat 0 46% / 100% 3px;position:absolute;inset:0}.nesYQG_sillTop{background:color-mix(in srgb, var(--team-page) 68%, var(--team-surface-3));clip-path:polygon(4% 0,100% 0,96% 100%,0 100%);height:5.5%;box-shadow:inset 0 1px 0 color-mix(in srgb, var(--dsw-static-neutral-00) 40%, transparent);position:absolute;top:100%;left:-11%;right:-11%}.nesYQG_sill{background:linear-gradient(180deg, var(--team-surface-3) 0 40%, color-mix(in srgb, var(--team-ink) 24%, var(--team-page)) 40% 100%);clip-path:polygon(0 0,100% 0,96% 100%,4% 100%);height:6.5%;box-shadow:0 3px 6px color-mix(in srgb, var(--team-ink) 30%, transparent);border-radius:0 0 2px 2px;position:absolute;top:105.5%;left:-11%;right:-11%}.nesYQG_beam{background:linear-gradient(180deg, color-mix(in srgb, var(--team-warm) 38%, transparent) 0%, color-mix(in srgb, var(--team-warm) 18%, transparent) 50%, transparent 100%);clip-path:polygon(30% 0,70% 0,100% 100%,0 100%);opacity:.7;width:160%;height:320%;position:absolute;top:100%;left:-30%}.nesYQG_whiteboard{width:calc(var(--team-unit) * .78);border:3px solid color-mix(in srgb, var(--team-ink) 30%, var(--team-page));background:linear-gradient(160deg, color-mix(in srgb, var(--team-page) 97%, var(--team-hue)) 0 58%, color-mix(in srgb, var(--team-page) 90%, var(--team-hue)) 58% 100%);height:65%;box-shadow:0 6px 16px var(--dsw-alias-bg-mask-2), inset 0 1.5px 0 var(--dsw-static-neutral-00), inset 0 0 0 1px color-mix(in srgb, var(--team-ink) 12%, transparent);border-radius:4px;top:11%}.nesYQG_boardGhost{background:color-mix(in srgb, var(--team-ink) 5%, transparent);border-radius:40% 60% 55% 45%;position:absolute;inset:14% 10% 30%}.nesYQG_boardInk{background:linear-gradient(90deg, var(--team-hue) 0 60%, transparent 60%) no-repeat 0 4% / 100% 2.5px, linear-gradient(90deg, var(--dsw-alias-state-error-primary) 0 32%, transparent 32%) no-repeat 0 34% / 100% 2.5px, linear-gradient(90deg, var(--team-leaf) 0 76%, transparent 76%) no-repeat 0 64% / 100% 2.5px, linear-gradient(90deg, var(--team-hue) 0 100%, transparent 0) no-repeat 4% 84% / 24% 2.5px, linear-gradient(180deg, var(--team-hue) 0 100%, transparent 0) no-repeat 4% 84% / 2.5px 14%;opacity:.85;position:absolute;inset:14% 11%}.nesYQG_boardNote{aspect-ratio:1;width:16%;box-shadow:1.5px 3.5px 6px var(--dsw-alias-bg-mask-2);border-radius:1.5px;position:absolute}.nesYQG_boardNote[data-note=a]{background:color-mix(in srgb, var(--team-warm) 54%, var(--dsw-static-neutral-00));top:16%;right:9%;transform:rotate(-5deg)}.nesYQG_boardNote[data-note=b]{background:color-mix(in srgb, var(--team-leaf) 42%, var(--dsw-static-neutral-00));top:52%;right:8%;transform:rotate(4deg)}.nesYQG_boardTrayTop{background:color-mix(in srgb, var(--team-page) 56%, var(--dsw-static-neutral-400));clip-path:polygon(3% 0,100% 0,97% 100%,0 100%);height:4%;box-shadow:inset 0 1px 0 color-mix(in srgb, var(--dsw-static-neutral-00) 50%, transparent);position:absolute;top:100%;left:10%;right:10%}.nesYQG_boardTray{background:linear-gradient(180deg, color-mix(in srgb, var(--team-ink) 20%, var(--team-page)) 0 34%, color-mix(in srgb, var(--team-ink) 36%, var(--team-page)) 34% 100%);clip-path:polygon(0 0,100% 0,97% 100%,3% 100%);height:5%;box-shadow:0 2px 5px var(--dsw-alias-bg-mask-2);border-radius:0 0 2px 2px;position:absolute;top:104%;left:10%;right:10%}.nesYQG_boardPens{background:linear-gradient(90deg, var(--dsw-alias-state-error-primary) 0 30%, transparent 30% 36%, var(--team-hue) 36% 66%, transparent 66% 72%, var(--team-leaf) 72% 100%);border-radius:1px;width:36%;height:3%;position:absolute;top:101%;left:16%}.nesYQG_boardEraser{background:linear-gradient(180deg, var(--dsw-static-neutral-300) 0 44%, color-mix(in srgb, var(--team-hue) 42%, var(--dsw-static-neutral-500)) 44% 100%);width:12%;height:3.8%;box-shadow:1px 1px 3px var(--dsw-alias-bg-mask-2);border-radius:1.5px;position:absolute;top:100.6%;right:16%}.nesYQG_shelf{width:calc(var(--team-unit) * .52);height:calc(var(--team-unit) * .24);top:26%}.nesYQG_plankTop{left:0;right:0;bottom:calc(var(--team-unit) * .04);height:calc(var(--team-unit) * .02);background:color-mix(in srgb, var(--team-warm) 34%, var(--dsw-static-neutral-200));clip-path:polygon(2% 0,100% 0,98% 100%,0 100%);position:absolute}.nesYQG_plank{left:0;right:0;bottom:calc(var(--team-unit) * .02);height:calc(var(--team-unit) * .02);background:linear-gradient(180deg, color-mix(in srgb, var(--team-warm) 46%, var(--dsw-static-neutral-400)) 0 40%, color-mix(in srgb, var(--team-warm) 58%, var(--dsw-static-neutral-600)) 40% 100%);box-shadow:0 4px 8px var(--dsw-alias-bg-mask-2);clip-path:polygon(0 0,100% 0,98% 100%,2% 100%);border-radius:0 0 2px 2px;position:absolute}.nesYQG_plankBracket{height:calc(var(--team-unit) * .024);background:linear-gradient(color-mix(in srgb, var(--team-ink) 36%, var(--team-page)) 0 0) no-repeat 4% 0 / 5% 100%, linear-gradient(color-mix(in srgb, var(--team-ink) 36%, var(--team-page)) 0 0) no-repeat 96% 0 / 5% 100%;clip-path:polygon(0 0,100% 0,84% 100%,16% 100%);position:absolute;bottom:0;left:10%;right:10%}.nesYQG_books{left:6%;bottom:calc(var(--team-unit) * .055);width:60%;height:calc(var(--team-unit) * .13);background:linear-gradient(color-mix(in srgb, var(--team-hue) 68%, var(--dsw-static-neutral-600)) 0 0) no-repeat 0 0 / 12% 100%, linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 72%, var(--dsw-static-neutral-500)) 0 0) no-repeat 15% 8% / 9% 92%, linear-gradient(color-mix(in srgb, var(--team-leaf) 74%, var(--dsw-static-neutral-500)) 0 0) no-repeat 27% 20% / 13% 80%, linear-gradient(color-mix(in srgb, var(--dsw-alias-state-error-primary) 66%, var(--dsw-static-neutral-600)) 0 0) no-repeat 43% 4% / 10% 96%, linear-gradient(color-mix(in srgb, var(--dsw-static-neutral-00) 76%, var(--dsw-static-neutral-400)) 0 0) no-repeat 56% 26% / 11% 74%, linear-gradient(color-mix(in srgb, var(--team-hue) 44%, var(--dsw-static-neutral-700)) 0 0) no-repeat 70% 12% / 8% 88%, linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 44%, var(--dsw-static-neutral-700)) 0 0) no-repeat 81% 30% / 12% 70%;position:absolute}.nesYQG_bookLeaning{left:45%;bottom:calc(var(--team-unit) * .055);width:5%;height:calc(var(--team-unit) * .11);transform-origin:50% 100%;background:color-mix(in srgb, var(--team-leaf) 54%, var(--dsw-static-neutral-700));position:absolute;transform:rotate(15deg)}.nesYQG_trophy{right:6%;bottom:calc(var(--team-unit) * .055);width:10%;height:calc(var(--team-unit) * .08);background:linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 80%, var(--dsw-static-neutral-500)) 0 0) no-repeat 50% 100% / 100% 22%, linear-gradient(color-mix(in srgb, var(--dsw-alias-state-warn-primary) 68%, var(--dsw-static-neutral-300)) 0 0) no-repeat 50% 60% / 26% 40%, radial-gradient(ellipse 60% 100% at 50% 0, color-mix(in srgb, var(--dsw-alias-state-warn-primary) 74%, var(--dsw-static-neutral-300)) 0 96%, transparent 98%) no-repeat 50% 0 / 100% 58%;position:absolute}.nesYQG_shelfPlant{right:18%;bottom:calc(var(--team-unit) * .05);width:calc(var(--team-unit) * .14);height:calc(var(--team-unit) * .18);position:absolute}.nesYQG_clockProp{width:calc(var(--team-unit) * .22);aspect-ratio:1;background:radial-gradient(circle at 50% 50%, var(--team-page) 0 76%, transparent 78%), linear-gradient(150deg, color-mix(in srgb, var(--team-page) 50%, var(--team-ink)) 0, color-mix(in srgb, var(--team-ink) 36%, var(--team-page)) 100%);box-shadow:1px 3px 6px var(--dsw-alias-bg-mask-2);border-radius:50%;top:18%}.nesYQG_clockTicks{background:conic-gradient(from 0deg, var(--dsw-alias-label-tertiary) 0 2deg, transparent 2deg 28deg, var(--dsw-alias-label-tertiary) 28deg 30deg, transparent 30deg 58deg, var(--dsw-alias-label-tertiary) 58deg 60deg, transparent 60deg 88deg, var(--dsw-alias-label-tertiary) 88deg 90deg, transparent 90deg);border-radius:50%;position:absolute;inset:14%;-webkit-mask:radial-gradient(circle,#0000 0 82%,#000 84%);mask:radial-gradient(circle,#0000 0 82%,#000 84%)}.nesYQG_clockHand{background:var(--dsw-alias-label-secondary);transform-origin:50% 100%;border-radius:1px;width:2px;margin-left:-1px;position:absolute;top:50%;left:50%}.nesYQG_clockHand[data-hand=hour]{height:26%;transform:translateY(-100%)rotate(-55deg)}.nesYQG_clockHand[data-hand=minute]{height:36%;transform:translateY(-100%)rotate(55deg)}.nesYQG_clockHand[data-hand=second]{background:var(--dsw-alias-state-error-primary);width:1.1px;height:38%;margin-left:-.55px;animation:60s steps(60,end) infinite nesYQG_team-tick;transform:translateY(-100%)rotate(0)}.nesYQG_clockPin{aspect-ratio:1;background:var(--dsw-alias-label-secondary);border-radius:50%;width:12%;margin:-6% 0 0 -6%;position:absolute;top:50%;left:50%}.nesYQG_calendar{width:calc(var(--team-unit) * .23);background:var(--dsw-static-neutral-00);height:42%;box-shadow:1px 3px 6px var(--dsw-alias-bg-mask-2);border-radius:2px;top:19%;overflow:hidden}.nesYQG_calendarHead{background:color-mix(in srgb, var(--team-hue) 56%, var(--team-page));height:30%;position:absolute;top:0;left:0;right:0}.nesYQG_calendarGrid{background:repeating-linear-gradient(90deg, var(--dsw-static-neutral-300) 0 1px, transparent 1px 20%), repeating-linear-gradient(180deg, var(--dsw-static-neutral-300) 0 1px, transparent 1px 25%);position:absolute;inset:34% 10% 10%}.nesYQG_airConditioner{width:calc(var(--team-unit) * .56);height:35%;filter:drop-shadow(0 4px 10px var(--dsw-alias-bg-mask-2));top:6%}.nesYQG_acSvg{width:100%;height:100%;display:block;overflow:visible}.nesYQG_acBody{fill:color-mix(in srgb, var(--team-page) 82%, var(--dsw-static-neutral-00))}.nesYQG_acEdge{fill:none;stroke:color-mix(in srgb, var(--team-ink) 16%, transparent);stroke-width:.8px}.nesYQG_acGrille{fill:none;stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.7px;stroke-linecap:round}.nesYQG_acSeam{fill:none;stroke:color-mix(in srgb, var(--team-ink) 12%, transparent);stroke-width:.7px}.nesYQG_acLouver{fill:color-mix(in srgb, var(--team-ink) 14%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:.6px}.nesYQG_acTemp{fill:color-mix(in srgb, var(--team-hue) 85%, var(--dsw-static-neutral-00));font-family:monospace;font-size:8px;font-weight:700}.nesYQG_acLedPower{fill:var(--team-leaf)}.nesYQG_acLedCool{fill:var(--team-hue)}.nesYQG_acBreeze{fill:none;stroke:color-mix(in srgb, var(--team-hue) 45%, transparent);stroke-width:1px;stroke-linecap:round;animation:3.8s ease-in-out infinite nesYQG_team-breeze}.nesYQG_hanger{width:calc(var(--team-unit) * .22);height:calc(var(--team-unit) * .34);top:24%}.nesYQG_hangerBracket{background:color-mix(in srgb, var(--team-ink) 34%, var(--team-page));border-radius:0 0 40% 40%;width:46%;height:16%;margin-left:-23%;position:absolute;top:0;left:50%}.nesYQG_hangerPlant{width:100%;height:92%;position:absolute;inset:8% 0 0}.nesYQG_pendant{--team-unit:clamp(84px, 25cqh, 192px);top:var(--team-wall-top);z-index:2;width:calc(var(--team-unit) * .22);height:calc(var(--team-floor-top) - var(--team-wall-top));pointer-events:none;position:absolute;transform:translate(-50%)}.nesYQG_pendantSvg{width:100%;height:100%;display:block;overflow:visible}.nesYQG_pendantRose{fill:color-mix(in srgb, var(--team-warm) 65%, var(--dsw-static-neutral-500));stroke:color-mix(in srgb, var(--team-ink) 24%, transparent);stroke-width:.5px}.nesYQG_pendantFlex{fill:none;stroke:color-mix(in srgb, var(--team-ink) 54%, var(--team-page));stroke-width:1.8px;stroke-linecap:round}.nesYQG_pendantNeck{fill:color-mix(in srgb, var(--team-warm) 78%, var(--dsw-static-neutral-400));stroke:color-mix(in srgb, var(--team-ink) 24%, transparent);stroke-width:.5px}.nesYQG_pendantShade{fill:color-mix(in srgb, var(--team-warm) 52%, var(--dsw-static-neutral-600));stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.8px;filter:drop-shadow(0 4px 6px var(--dsw-alias-bg-mask-2))}.nesYQG_pendantMouth{fill:color-mix(in srgb, var(--team-warm) 74%, var(--dsw-static-neutral-200));stroke:color-mix(in srgb, var(--team-warm) 82%, var(--dsw-static-neutral-00));stroke-width:.8px}.nesYQG_pendantBulb{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 90%, var(--team-warm));filter:blur(.8px)}.nesYQG_pendantFilament{fill:var(--dsw-static-neutral-00);opacity:.95}.nesYQG_pendantGlow{pointer-events:none;animation:6.5s ease-in-out infinite nesYQG_team-glow}.nesYQG_cat{z-index:40;pointer-events:none;opacity:0;width:clamp(36px,9.5cqh,78px);filter:drop-shadow(2px 5px 4px var(--dsw-alias-bg-mask-1));animation:47s linear infinite nesYQG_team-prowl;position:absolute;bottom:3%;left:0}.nesYQG_catSvg{width:100%;height:100%;display:block;overflow:visible}.nesYQG_catBody{fill:color-mix(in srgb, var(--team-warm) 50%, var(--dsw-static-neutral-600))}.nesYQG_catLeg,.nesYQG_catTail{fill:color-mix(in srgb, var(--team-warm) 55%, var(--dsw-static-neutral-700))}.nesYQG_catTailTip{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 80%, var(--team-warm))}.nesYQG_catEar{fill:color-mix(in srgb, var(--team-warm) 40%, var(--dsw-static-neutral-700))}.nesYQG_catEarInner{fill:color-mix(in srgb, var(--dsw-alias-state-error-primary) 46%, var(--dsw-static-neutral-00))}.nesYQG_catEye{fill:var(--team-leaf)}.nesYQG_catPupil{fill:var(--dsw-static-neutral-900)}.nesYQG_catGlint{fill:var(--dsw-static-neutral-00)}.nesYQG_catNose{fill:color-mix(in srgb, var(--dsw-alias-state-error-primary) 55%, var(--dsw-static-neutral-00))}.nesYQG_catStripe{fill:none;stroke:color-mix(in srgb, var(--team-ink) 26%, transparent);stroke-width:2.2px;stroke-linecap:round}.nesYQG_catWhisker{fill:none;stroke:color-mix(in srgb, var(--team-page) 78%, transparent);stroke-width:.85px;stroke-linecap:round}.nesYQG_treadmill{--team-unit:clamp(84px, 25cqh, 192px);width:calc(var(--team-unit) * .78);height:calc(var(--team-unit) * .85);transform:translate(-50%, -100%) scale(var(--team-scale,1));transform-origin:50% 100%;z-index:calc(6 + var(--team-depth,0));pointer-events:none;filter:drop-shadow(3px 8px 8px var(--dsw-alias-bg-mask-1));position:absolute}.nesYQG_treadmillSvg{width:100%;height:100%;display:block;overflow:visible}.nesYQG_treadmillBase{fill:color-mix(in srgb, var(--team-ink) 22%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.8px}.nesYQG_treadmillHood{fill:color-mix(in srgb, var(--team-ink) 46%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 24%, transparent);stroke-width:.8px}.nesYQG_treadmillHoodSheen{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 45%, transparent);stroke-width:1.2px;stroke-linecap:round}.nesYQG_treadmillHoodVent{fill:none;stroke:color-mix(in srgb, var(--team-ink) 28%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_treadmillBelt{stroke:color-mix(in srgb, var(--team-ink) 30%, transparent);stroke-width:.6px}.nesYQG_treadmillTread{fill:none;stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:.8px}.nesYQG_treadmillRail{fill:color-mix(in srgb, var(--team-warm) 80%, var(--dsw-static-neutral-00))}.nesYQG_treadmillPost{fill:none;stroke:color-mix(in srgb, var(--team-ink) 45%, var(--team-page));stroke-width:3.2px;stroke-linecap:round}.nesYQG_treadmillArm{fill:color-mix(in srgb, var(--team-ink) 40%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.7px}.nesYQG_treadmillSensor{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 70%, var(--team-ink));stroke-width:1.5px;stroke-linecap:round}.nesYQG_treadmillConsole{fill:color-mix(in srgb, var(--team-ink) 50%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 25%, transparent);stroke-width:.8px}.nesYQG_treadmillScreen{fill:color-mix(in srgb, var(--dsw-static-neutral-1000) 90%, var(--team-hue))}.nesYQG_treadmillMetrics{fill:none;stroke:var(--team-hue);stroke-width:1.2px;stroke-linecap:round}.nesYQG_treadmillStopKey{fill:var(--dsw-alias-state-error-primary)}.nesYQG_treadmillKeyCord{fill:none;stroke:var(--dsw-alias-state-error-primary);stroke-width:.8px}.nesYQG_treadmillBottle{fill:var(--team-hue);stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 50%, transparent);stroke-width:.5px}.nesYQG_utility{--team-unit:clamp(84px, 25cqh, 192px);width:calc(var(--team-unit) * .58);height:calc(var(--team-unit) * .85);transform:translate(-50%, -100%) scale(var(--team-scale,1));transform-origin:50% 100%;z-index:calc(6 + var(--team-depth,0));pointer-events:none;position:absolute}.nesYQG_utility>*{display:block;position:absolute}.nesYQG_utilityCabinet{width:78%;height:96%;bottom:0;left:-32%}.nesYQG_utilityPrinter{width:94%;height:50%;bottom:0;left:36%}.nesYQG_utilityCoffee{width:58%;height:50%;bottom:46%;left:50%}.nesYQG_lounge{--team-unit:clamp(84px, 25cqh, 192px);--team-fabric:color-mix(in srgb, var(--team-warm) 52%, var(--dsw-static-neutral-600));--team-fabric-lit:color-mix(in srgb, var(--team-warm) 64%, var(--dsw-static-neutral-300));--team-fabric-dark:color-mix(in srgb, var(--team-ink) 24%, var(--team-fabric));z-index:5;pointer-events:none;position:absolute;inset:0}.nesYQG_lounge>*{position:absolute;transform:translate(-50%,-100%)}.nesYQG_rug{width:calc(var(--team-unit) * 2.1);height:calc(var(--team-unit) * 1.05);transform:translate(-50%, -50%) scale(var(--team-scale,1));transform-origin:50%;background:repeating-radial-gradient(ellipse at 50% 50%, transparent 0 84%, color-mix(in srgb, var(--team-hue) 14%, transparent) 84% 88%, transparent 88% 94%, color-mix(in srgb, var(--team-hue) 20%, transparent) 94% 97%, transparent 97% 100%), radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--team-hue) 6%, var(--team-page)) 0 56%, color-mix(in srgb, var(--team-hue) 12%, var(--team-page)) 58% 100%);box-shadow:0 4px 12px var(--dsw-alias-bg-mask-1);border-radius:50%}.nesYQG_sofa{width:calc(var(--team-unit) * 1.55);height:calc(var(--team-unit) * .95);transform:translate(-50%, -100%) scale(var(--team-scale,1));transform-origin:50% 100%;pointer-events:none;z-index:calc(5 + var(--team-depth,0))}.nesYQG_sofaSvg{width:100%;height:100%;filter:drop-shadow(3px 8px 8px var(--dsw-alias-bg-mask-2));display:block;overflow:visible}.nesYQG_sofaLeg{fill:color-mix(in srgb, var(--team-warm) 42%, var(--dsw-static-neutral-700))}.nesYQG_sofaBack{stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:.8px}.nesYQG_sofaBackTop{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 40%, transparent);stroke-width:1.2px;stroke-linecap:round}.nesYQG_sofaSeam{fill:none;stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:1.2px;stroke-linecap:round}.nesYQG_sofaButton{fill:color-mix(in srgb, var(--team-ink) 35%, var(--team-fabric))}.nesYQG_sofaSeat{stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.8px}.nesYQG_sofaSeatSeam{fill:none;stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:1.2px}.nesYQG_sofaSeatPiping{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 30%, transparent);stroke-width:.8px}.nesYQG_sofaArm{fill:var(--team-fabric);stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.8px}.nesYQG_sofaArmTop{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 45%, transparent);stroke-width:1.4px;stroke-linecap:round}.nesYQG_sofaPillowWarm{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 70%, var(--dsw-static-neutral-600));stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.7px}.nesYQG_sofaPillowCool{fill:color-mix(in srgb, var(--team-hue) 70%, var(--dsw-static-neutral-600));stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.7px}.nesYQG_sofaPillowLine{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 35%, transparent);stroke-width:1px}.nesYQG_table{width:calc(var(--team-unit) * 1.05);height:calc(var(--team-unit) * .58);transform:translate(-50%, -100%) scale(var(--team-scale,1));transform-origin:50% 100%;pointer-events:none;z-index:calc(6 + var(--team-depth,0))}.nesYQG_tableSvg{width:100%;height:100%;filter:drop-shadow(2px 6px 6px var(--dsw-alias-bg-mask-2));display:block;overflow:visible}.nesYQG_tableLeg{fill:color-mix(in srgb, var(--team-warm) 36%, var(--dsw-static-neutral-700))}.nesYQG_tableTop{stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:.8px}.nesYQG_tableSurface{fill:color-mix(in srgb, var(--team-warm) 45%, var(--dsw-static-neutral-00));stroke:color-mix(in srgb, var(--team-ink) 14%, transparent);stroke-width:.6px}.nesYQG_tableEdge{fill:color-mix(in srgb, var(--team-warm) 55%, var(--dsw-static-neutral-600))}.nesYQG_tableGrain{fill:none;stroke:color-mix(in srgb, var(--team-page) 30%, transparent);stroke-width:.8px}.nesYQG_tableMagazine{fill:color-mix(in srgb, var(--team-hue) 80%, var(--dsw-static-neutral-00));stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.6px}.nesYQG_tableMagPage{fill:none;stroke:var(--dsw-static-neutral-00);stroke-width:.8px}.nesYQG_tableSaucer{fill:var(--dsw-static-neutral-200)}.nesYQG_tableCup{fill:var(--dsw-static-neutral-00);stroke:var(--dsw-static-neutral-400);stroke-width:.6px}.nesYQG_tableMugHandle{fill:none;stroke:var(--dsw-static-neutral-400);stroke-width:1px}.nesYQG_lamp{width:calc(var(--team-unit) * .44);height:calc(var(--team-unit) * 1.15);transform:translate(-50%, -100%) scale(var(--team-scale,1));transform-origin:50% 100%;pointer-events:none;z-index:calc(5 + var(--team-depth,0))}.nesYQG_lampSvg{width:100%;height:100%;display:block;overflow:visible}.nesYQG_lampBeam{fill:color-mix(in srgb, var(--team-warm) 22%, transparent)}.nesYQG_lampBase{fill:color-mix(in srgb, var(--team-ink) 30%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.6px}.nesYQG_lampStem{fill:none;stroke:color-mix(in srgb, var(--team-warm) 75%, var(--dsw-static-neutral-400));stroke-width:2.2px;stroke-linecap:round}.nesYQG_lampFinial{fill:color-mix(in srgb, var(--team-warm) 85%, var(--dsw-static-neutral-400))}.nesYQG_lampShade{fill:color-mix(in srgb, var(--team-warm) 45%, var(--dsw-static-neutral-200));stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:.8px}.nesYQG_lampShadeTop,.nesYQG_lampShadeBottom{fill:color-mix(in srgb, var(--team-warm) 65%, var(--dsw-static-neutral-100));stroke:color-mix(in srgb, var(--team-warm) 80%, var(--dsw-static-neutral-00));stroke-width:.8px}.nesYQG_lampBulb{fill:var(--dsw-static-neutral-00);filter:blur(.8px);animation:9.2s ease-in-out infinite nesYQG_team-glow}.nesYQG_plant{width:calc(var(--team-unit) * .72);height:calc(var(--team-unit) * .96);transform:translate(-50%, -100%) scale(var(--team-scale,1));transform-origin:50% 100%;pointer-events:none;z-index:calc(5 + var(--team-depth,0));filter:drop-shadow(3px 8px 6px var(--dsw-alias-bg-mask-1))}.nesYQG_cooler{--team-cooler:var(--team-surface-2);--team-cooler-lit:color-mix(in srgb, var(--team-page) 34%, var(--team-cooler));--team-cooler-dark:color-mix(in srgb, var(--team-ink) 18%, var(--team-page));--team-cooler-bottle:color-mix(in srgb, var(--team-hue) 34%, var(--team-page));--team-cooler-bottle-lit:color-mix(in srgb, var(--team-page) 30%, var(--team-cooler-bottle));--team-cooler-bottle-dark:color-mix(in srgb, var(--team-hue) 66%, var(--team-page));--team-cooler-water:color-mix(in srgb, var(--team-hue) 62%, var(--team-page));--team-cooler-water-lit:color-mix(in srgb, var(--team-hue) 36%, var(--team-page));width:calc(var(--team-unit) * .62);height:calc(var(--team-unit) * .88);transform:translate(-50%, -100%) scale(var(--team-scale,1));transform-origin:50% 100%;pointer-events:none;z-index:calc(5 + var(--team-depth,0));filter:drop-shadow(3px 8px 6px var(--dsw-alias-bg-mask-1))}.nesYQG_coolerSvg{width:100%;height:100%;display:block;overflow:visible}.nesYQG_coolerCabinet{stroke:none}.nesYQG_coolerCabinetEdge{fill:none;stroke:color-mix(in srgb, var(--team-ink) 16%, transparent);stroke-width:1px}.nesYQG_coolerPanel{fill:color-mix(in srgb, var(--team-ink) 6%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 12%, transparent);stroke-width:.8px}.nesYQG_coolerPanelDepth{fill:none;stroke:color-mix(in srgb, var(--team-ink) 14%, transparent);stroke-width:.7px}.nesYQG_coolerDoorSeam{fill:none;stroke:color-mix(in srgb, var(--team-ink) 12%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_coolerTap{fill:none;stroke:color-mix(in srgb, var(--team-ink) 42%, var(--team-page));stroke-width:2.2px;stroke-linecap:round}.nesYQG_coolerFaucet{fill:none;stroke:color-mix(in srgb, var(--team-ink) 50%, var(--team-page));stroke-width:1.6px;stroke-linecap:round}.nesYQG_coolerHandleWarm{fill:var(--dsw-alias-state-error-primary);stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 40%, transparent);stroke-width:.5px}.nesYQG_coolerHandleCool{fill:var(--team-hue);stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 40%, transparent);stroke-width:.5px}.nesYQG_coolerDrip{fill:color-mix(in srgb, var(--team-ink) 22%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 26%, transparent);stroke-width:.6px}.nesYQG_coolerDripWell{fill:color-mix(in srgb, var(--team-hue) 28%, var(--team-page))}.nesYQG_coolerGrille{fill:none;stroke:color-mix(in srgb, var(--team-ink) 30%, transparent);stroke-width:.6px;stroke-linecap:round}.nesYQG_coolerLedPower{fill:var(--team-leaf);box-shadow:0 0 2px var(--team-leaf)}.nesYQG_coolerLedCold{fill:var(--team-hue);box-shadow:0 0 2px var(--team-hue)}.nesYQG_coolerBottle,.nesYQG_coolerNeck,.nesYQG_coolerWater{stroke:color-mix(in srgb, var(--team-hue) 44%, transparent);stroke-width:.7px}.nesYQG_coolerRib{fill:none;stroke:color-mix(in srgb, var(--team-page) 36%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_coolerCap{fill:color-mix(in srgb, var(--team-hue) 70%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:.6px}.nesYQG_coolerCapTop{fill:color-mix(in srgb, var(--team-page) 50%, var(--team-hue))}.nesYQG_coolerShine{fill:color-mix(in srgb, var(--team-page) 52%, transparent)}.nesYQG_coolerShineRim{fill:none;stroke:color-mix(in srgb, var(--team-page) 36%, transparent);stroke-width:.9px;stroke-linecap:round}.nesYQG_coolerBubble{fill:color-mix(in srgb, var(--team-page) 64%, transparent);transform-box:fill-box;transform-origin:50%;animation:6.4s ease-in infinite nesYQG_team-bubble}.nesYQG_propSvg{width:100%;height:100%;filter:drop-shadow(2px 5px 5px var(--dsw-alias-bg-mask-1));display:block;overflow:visible}.nesYQG_propShade{fill:color-mix(in srgb, var(--team-ink) 12%, transparent)}.nesYQG_propFront{fill:var(--team-surface-2)}.nesYQG_propTop{fill:color-mix(in srgb, var(--team-page) 44%, var(--team-surface-2))}.nesYQG_propSide{fill:color-mix(in srgb, var(--team-ink) 16%, var(--team-surface-2))}.nesYQG_propSeam{fill:none;stroke:color-mix(in srgb, var(--team-ink) 16%, transparent);stroke-width:1px}.nesYQG_propInset{fill:color-mix(in srgb, var(--team-ink) 10%, var(--team-page));stroke:color-mix(in srgb, var(--team-ink) 14%, transparent);stroke-width:.8px}.nesYQG_propScannerHandle{fill:none;stroke:color-mix(in srgb, var(--team-ink) 34%, transparent);stroke-width:1.2px;stroke-linecap:round}.nesYQG_propScreen{fill:color-mix(in srgb, var(--team-hue) 74%, var(--dsw-static-neutral-900));stroke:color-mix(in srgb, var(--team-ink) 24%, transparent);stroke-width:.6px}.nesYQG_propScreenGlint{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 80%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_propTray{fill:color-mix(in srgb, var(--team-ink) 20%, var(--team-page))}.nesYQG_propPaper{fill:var(--dsw-static-neutral-00);stroke:var(--dsw-static-neutral-300);stroke-width:.7px}.nesYQG_propPaperLine{fill:none;stroke:var(--dsw-static-neutral-400);stroke-width:.6px}.nesYQG_propTextLines{fill:none;stroke:color-mix(in srgb, var(--team-ink) 34%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_propDrawerHandle{fill:color-mix(in srgb, var(--team-ink) 44%, var(--team-page))}.nesYQG_propPaperGauge{fill:color-mix(in srgb, var(--team-page) 80%, var(--team-ink));stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.5px}.nesYQG_propHandle{fill:color-mix(in srgb, var(--team-ink) 42%, var(--team-page))}.nesYQG_propLabel{fill:color-mix(in srgb, var(--team-warm) 42%, var(--dsw-static-neutral-00))}.nesYQG_propLabelLine{fill:none;stroke:color-mix(in srgb, var(--team-ink) 30%, transparent);stroke-width:.6px}.nesYQG_propFolder{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 58%, var(--dsw-static-neutral-300))}.nesYQG_propFolderTab{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 68%, var(--dsw-static-neutral-100))}.nesYQG_propBox{fill:color-mix(in srgb, var(--team-warm) 36%, var(--dsw-static-neutral-300))}.nesYQG_propBoxTop{fill:color-mix(in srgb, var(--team-warm) 24%, var(--dsw-static-neutral-200))}.nesYQG_propBoxHole{fill:color-mix(in srgb, var(--team-ink) 32%, var(--team-page))}.nesYQG_propGlass{fill:color-mix(in srgb, var(--team-page) 64%, transparent);stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:.7px}.nesYQG_propBean{fill:color-mix(in srgb, var(--dsw-static-amber-700) 80%, var(--dsw-static-neutral-900))}.nesYQG_propGauge{fill:var(--dsw-static-neutral-00);stroke:color-mix(in srgb, var(--team-ink) 30%, transparent);stroke-width:.6px}.nesYQG_propGaugeNeedle{fill:none;stroke:var(--dsw-alias-state-error-primary);stroke-width:.7px;stroke-linecap:round}.nesYQG_propPortafilter{fill:none;stroke:color-mix(in srgb, var(--team-ink) 54%, var(--team-page));stroke-width:1.8px;stroke-linecap:round}.nesYQG_propSteam{fill:none;stroke:color-mix(in srgb, var(--team-page) 54%, transparent);stroke-width:.8px;stroke-linecap:round;animation:3.6s ease-in-out infinite nesYQG_team-steam}.nesYQG_propWarmerPlate{fill:none;stroke:color-mix(in srgb, var(--team-ink) 32%, transparent);stroke-width:.7px}.nesYQG_propCarafeHandle{fill:none;stroke:color-mix(in srgb, var(--team-ink) 50%, var(--team-page));stroke-width:1.5px;stroke-linecap:round}.nesYQG_propMugHandle{fill:none;stroke:var(--dsw-static-neutral-400);stroke-width:1.2px;stroke-linecap:round}.nesYQG_propBrew{fill:color-mix(in srgb, var(--dsw-static-amber-600) 74%, var(--dsw-static-neutral-800))}.nesYQG_propCup{fill:var(--dsw-static-neutral-00);stroke:var(--dsw-static-neutral-300);stroke-width:.7px}.nesYQG_propSpout{fill:none;stroke:color-mix(in srgb, var(--team-ink) 42%, var(--team-page));stroke-width:1.6px;stroke-linecap:round}.nesYQG_propLampLive{fill:var(--team-leaf);animation:3.4s ease-in-out infinite nesYQG_team-blink}.nesYQG_propLampWifi{fill:var(--team-hue);opacity:.85}.nesYQG_propLampIdle{fill:color-mix(in srgb, var(--team-ink) 24%, var(--team-page))}.nesYQG_flora{width:100%;height:100%;display:block;overflow:visible}.nesYQG_floraShade{fill:color-mix(in srgb, var(--team-ink) 12%, transparent)}.nesYQG_floraSaucer{fill:color-mix(in srgb, var(--dsw-static-amber-600) 62%, var(--dsw-static-neutral-700))}.nesYQG_floraSaucerLip{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 30%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_floraPot{fill:color-mix(in srgb, var(--dsw-static-amber-600) 68%, var(--dsw-static-neutral-500))}.nesYQG_floraPotShade{fill:color-mix(in srgb, var(--team-ink) 18%, transparent)}.nesYQG_floraGlaze{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 36%, transparent)}.nesYQG_floraRim{fill:color-mix(in srgb, var(--dsw-static-amber-600) 58%, var(--dsw-static-neutral-400))}.nesYQG_floraRimLip{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 44%, transparent);stroke-width:1.4px;stroke-linecap:round}.nesYQG_floraSoil{fill:color-mix(in srgb, var(--dsw-static-amber-600) 32%, var(--dsw-static-neutral-800))}.nesYQG_floraCrumb{fill:color-mix(in srgb, var(--dsw-static-amber-600) 52%, var(--dsw-static-neutral-700))}.nesYQG_floraMoss{fill:color-mix(in srgb, var(--team-leaf) 70%, var(--dsw-static-neutral-800));opacity:.85}.nesYQG_floraStem{fill:none;stroke:color-mix(in srgb, var(--team-leaf) 48%, var(--dsw-static-neutral-800));stroke-width:2.4px;stroke-linecap:round}.nesYQG_floraBlade{fill:color-mix(in srgb, var(--team-leaf) 64%, var(--dsw-static-neutral-900))}.nesYQG_floraBladeLit{fill:color-mix(in srgb, var(--team-leaf) 76%, var(--dsw-static-neutral-400))}.nesYQG_floraBladeDetail{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 70%, var(--dsw-static-neutral-00));opacity:.65}.nesYQG_floraVein{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-900) 24%, transparent);stroke-width:.95px;stroke-linecap:round}.nesYQG_floraLeaf{transform-box:fill-box;transform-origin:50% 100%;animation:7.4s ease-in-out infinite nesYQG_team-sway;animation-delay:var(--team-leaf-delay,0s)}.nesYQG_floraLeaf[data-hang=true]{transform-origin:50% 0;animation-duration:9.1s}.nesYQG_floraCactusDetails{pointer-events:none}.nesYQG_floraSpine{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 74%, transparent);stroke-width:1.1px;stroke-linecap:round}.nesYQG_floraBloomOuter{fill:color-mix(in srgb, var(--dsw-alias-state-error-primary) 40%, transparent)}.nesYQG_floraBloom{fill:color-mix(in srgb, var(--dsw-alias-state-error-primary) 68%, var(--dsw-static-neutral-00))}.nesYQG_floraBloomHeart{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 76%, var(--dsw-static-neutral-00))}.nesYQG_floraBloomStamen{fill:var(--dsw-static-neutral-00)}.nesYQG_desk{--team-unit:clamp(84px, 25cqh, 192px);--team-figure:calc(var(--team-unit) * .65);--team-wood:color-mix(in srgb, var(--team-warm) 42%, var(--team-surface-2));width:calc(var(--team-figure) * 1.68);height:calc(var(--team-unit) * .135);transform:translate(-56%, calc(-100% - var(--team-unit) * .19)) scale(var(--team-scale,1));transform-origin:56% 100%;z-index:calc(6 + var(--team-depth,0));pointer-events:none;position:absolute}.nesYQG_deskTop{filter:drop-shadow(5px 10px 16px var(--dsw-alias-bg-mask-2));border-radius:2px;position:absolute;inset:0}.nesYQG_deskSurface{background:linear-gradient(200deg, color-mix(in srgb, var(--team-wood) 70%, var(--dsw-static-neutral-00)) 0 38%, var(--team-wood) 38% 82%, color-mix(in srgb, var(--team-ink) 22%, var(--team-wood)) 82% 100%);clip-path:polygon(0 12%,100% 0,100% 100%,0 100%);border-radius:2px;position:absolute;inset:0 5% 22%}.nesYQG_deskApron{background:linear-gradient(180deg, color-mix(in srgb, var(--team-ink) 16%, var(--team-wood)) 0 22%, color-mix(in srgb, var(--team-ink) 30%, var(--team-wood)) 22% 100%);clip-path:polygon(0 0,100% 0,98% 100%,2% 100%);height:18%;position:absolute;bottom:4%;left:5%;right:5%}.nesYQG_deskFlank{background:linear-gradient(180deg, color-mix(in srgb, var(--team-ink) 12%, var(--team-wood)) 0, color-mix(in srgb, var(--team-ink) 26%, var(--team-wood)) 100%);clip-path:polygon(100% 14%,100% 100%,0 100%,0 0);width:10%;height:78%;position:absolute;top:0;right:5%}.nesYQG_deskGrain{background:linear-gradient(105deg, transparent 46%, color-mix(in srgb, var(--team-page) 26%, transparent) 46% 47.4%, transparent 47.4% 72%, color-mix(in srgb, var(--team-page) 22%, transparent) 72% 73.2%, transparent 73.2%);opacity:.85;position:absolute;inset:6% 12% 30%}.nesYQG_deskLegs{background:linear-gradient(color-mix(in srgb, var(--team-ink) 28%, var(--team-page)) 0 0) no-repeat 2% 0 / 4% 100%, linear-gradient(color-mix(in srgb, var(--team-ink) 28%, var(--team-page)) 0 0) no-repeat 98% 0 / 4% 100%;height:150%;position:absolute;top:100%;left:7%;right:7%}.nesYQG_deskModesty{background:linear-gradient(180deg, color-mix(in srgb, var(--team-wood) 62%, var(--dsw-static-neutral-500)) 0, color-mix(in srgb, var(--team-ink) 28%, var(--team-wood)) 100%);clip-path:polygon(0 0,100% 0,98% 100%,2% 100%);height:60%;position:absolute;top:100%;left:7%;right:7%}.nesYQG_chair{--team-unit:clamp(84px, 25cqh, 192px);--team-figure:calc(var(--team-unit) * .65);--team-chair:color-mix(in srgb, var(--team-hue) 26%, var(--dsw-static-neutral-600));--team-chair-lit:color-mix(in srgb, var(--team-hue) 14%, var(--dsw-static-neutral-300));--team-chair-dark:color-mix(in srgb, var(--team-hue) 36%, var(--dsw-static-neutral-800));width:calc(var(--team-figure) * .58);height:calc(var(--team-unit) * .5);transform:translate(-50%, -100%) scale(var(--team-scale,1));transform-origin:50% 100%;z-index:calc(12 + var(--team-depth,0));pointer-events:none;filter:drop-shadow(2px 5px 4px var(--dsw-alias-bg-mask-1));position:absolute}.nesYQG_chairSvg{width:100%;height:100%;display:block;overflow:visible}.nesYQG_chairRide{transform-box:fill-box;transform-origin:50% 100%;animation:6.8s ease-in-out infinite nesYQG_team-chair-rise;animation-delay:var(--team-chair-delay,0s)}.nesYQG_chairArmrest{fill:var(--team-chair-dark);stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.7px}.nesYQG_chairShell{stroke:none}.nesYQG_chairShellEdge{fill:none;stroke:color-mix(in srgb, var(--team-ink) 24%, transparent);stroke-width:1.2px}.nesYQG_chairMesh{stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:.8px}.nesYQG_chairMeshLine{fill:none;stroke:color-mix(in srgb, var(--team-ink) 12%, transparent);stroke-width:1px;stroke-linecap:round}.nesYQG_chairMeshSpine{fill:none;stroke:color-mix(in srgb, var(--team-ink) 24%, transparent);stroke-width:1.5px;stroke-linecap:round}.nesYQG_chairLumbar{stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.9px}.nesYQG_chairLumbarKnob{fill:color-mix(in srgb, var(--team-ink) 40%, var(--team-chair-dark))}.nesYQG_chairPan{fill:var(--team-chair-dark);stroke:color-mix(in srgb, var(--team-ink) 18%, transparent);stroke-width:.8px}.nesYQG_chairPanTop{fill:color-mix(in srgb, var(--team-chair-lit) 70%, var(--team-chair))}.nesYQG_chairPanStitch{fill:none;stroke:color-mix(in srgb, var(--team-ink) 16%, transparent);stroke-width:.6px;stroke-dasharray:2 1.5}.nesYQG_chairSpine,.nesYQG_chairMechanism{fill:var(--team-chair-dark);stroke:color-mix(in srgb, var(--team-ink) 16%, transparent);stroke-width:.7px}.nesYQG_chairLift{transform-box:fill-box;transform-origin:50% 100%;animation:6.8s ease-in-out infinite nesYQG_team-chair-stretch;animation-delay:var(--team-chair-delay,0s);stroke:color-mix(in srgb, var(--team-ink) 22%, transparent);stroke-width:.5px}.nesYQG_chairHub{fill:var(--team-chair-dark)}.nesYQG_chairSpokes path{fill:none;stroke:var(--team-chair-dark);stroke-width:3px;stroke-linecap:round}.nesYQG_chairCasters circle,.nesYQG_chairCasters ellipse{fill:var(--dsw-static-neutral-800);stroke:color-mix(in srgb, var(--team-page) 46%, transparent);stroke-width:.8px}.nesYQG_monitor{flex-direction:column;align-items:center;width:58%;display:flex;position:absolute;bottom:88%;left:0}.nesYQG_screen{aspect-ratio:16/10;border:3.5px solid color-mix(in srgb, var(--team-ink) 68%, var(--team-page));background:color-mix(in srgb, var(--team-hue) 10%, var(--team-page));width:100%;box-shadow:0 6px 14px var(--dsw-alias-bg-mask-2);border-radius:8px 8px 4px 4px;padding:18% 8% 7%;position:relative;overflow:hidden}.nesYQG_screen:before{content:\"\";background:radial-gradient(circle at 8% 50%, var(--dsw-alias-state-error-primary) 0 1.8px, transparent 2.1px), radial-gradient(circle at 18% 50%, var(--team-warm) 0 1.8px, transparent 2.1px), radial-gradient(circle at 28% 50%, var(--team-leaf) 0 1.8px, transparent 2.1px), linear-gradient(90deg, color-mix(in srgb, var(--team-hue) 24%, var(--team-page)) 0 62%, color-mix(in srgb, var(--team-hue) 14%, var(--team-page)) 62%);height:19%;position:absolute;top:0;left:0;right:0}.nesYQG_glare{pointer-events:none;background:linear-gradient(116deg, transparent 0 44%, color-mix(in srgb, var(--team-page) 44%, transparent) 44% 57%, transparent 57%);position:absolute;inset:0}.nesYQG_desk[data-screen=off] .nesYQG_screenApp{opacity:.45;filter:saturate(.5)}.nesYQG_desk[data-screen=working] .nesYQG_screen{background:color-mix(in srgb, var(--team-hue) 16%, var(--team-page));animation:2.4s ease-in-out infinite nesYQG_team-screen}.nesYQG_desk[data-empty=true] .nesYQG_screen{opacity:.88}.nesYQG_screenText{clip-path:inset(50%);white-space:nowrap;width:1px;height:1px;position:absolute;overflow:hidden}.nesYQG_neck{background:color-mix(in srgb, var(--team-ink) 48%, var(--team-page));width:15%;height:13px}.nesYQG_base{background:color-mix(in srgb, var(--team-ink) 54%, var(--team-page));width:52%;height:7px;box-shadow:0 2px 6px var(--dsw-alias-bg-mask-2);border-radius:1px 1px 5px 5px}.nesYQG_keyboard{width:40%;height:calc(var(--team-unit) * .034);background:repeating-linear-gradient(90deg, color-mix(in srgb, var(--team-ink) 32%, var(--team-page)) 0 3px, color-mix(in srgb, var(--team-ink) 54%, var(--team-page)) 3px 6px);box-shadow:0 1.5px 3px var(--dsw-alias-bg-mask-2);border-radius:2.5px;position:absolute;bottom:6%;left:32%}.nesYQG_mug{width:calc(var(--team-unit) * .07);aspect-ratio:3/4;background:color-mix(in srgb, var(--team-hue) 74%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg));box-shadow:0 1.5px 3px var(--dsw-alias-bg-mask-2);border-radius:1px 1px 40% 40%;position:absolute;bottom:12%;left:80%}.nesYQG_mug:after{content:\"\";border:1.5px solid color-mix(in srgb, var(--team-hue) 74%, var(--dsw-static-neutral-00));border-left:none;border-radius:0 50% 50% 0;width:58%;height:50%;position:absolute;top:20%;left:88%}.nesYQG_papers{width:calc(var(--team-unit) * .13);height:calc(var(--team-unit) * .026);background:var(--dsw-static-neutral-00);box-shadow:0 0 0 1px var(--dsw-static-neutral-300), 2px -2.5px 0 -1px var(--dsw-static-neutral-00), 2px -2.5px 0 0 var(--dsw-static-neutral-300);border-radius:1px;position:absolute;bottom:8%;left:6%}.nesYQG_deskPlant{width:calc(var(--team-unit) * .15);height:calc(var(--team-unit) * .19);filter:drop-shadow(1px 3px 3px var(--dsw-alias-bg-mask-1));position:absolute;bottom:72%;right:-1%}.nesYQG_person{--team-unit:clamp(84px, 25cqh, 192px);--team-figure:calc(var(--team-unit) * .65);width:var(--team-figure);cursor:pointer;transform:translate(-50%, -100%) scale(calc(var(--team-scale,1) * var(--team-sit,1)));transform-origin:50% 100%;z-index:calc(10 + var(--team-depth,0));background:0 0;border:none;padding:0;animation:.32s cubic-bezier(.34,1.56,.64,1) both nesYQG_team-person-in;display:block;position:absolute}.nesYQG_person:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:3px;border-radius:10px}.nesYQG_person[data-walk=true]{z-index:calc(14 + var(--team-depth,0))}.nesYQG_body{height:var(--team-unit);filter:drop-shadow(6px 10px 8px var(--dsw-alias-bg-mask-1));transition:transform .18s cubic-bezier(.22,1,.36,1);display:block;position:relative}.nesYQG_person:hover .nesYQG_body,.nesYQG_person[data-focus=true] .nesYQG_body{transform:scale(1.07)}.nesYQG_figure{width:100%;height:100%;display:block;overflow:visible}.nesYQG_person[data-facing=back]{--team-sit:.93;animation:.32s cubic-bezier(.34,1.56,.64,1) both nesYQG_team-person-in,6.8s ease-in-out infinite nesYQG_team-person-sit;animation-delay:0s, var(--team-chair-delay,0s)}.nesYQG_person[data-facing=back] .nesYQG_figure{transform:none}.nesYQG_person[data-facing=back] .nesYQG_crewLimbBack,.nesYQG_person[data-facing=back] .nesYQG_crewLimbFront{display:none}.nesYQG_person[data-facing=right] .nesYQG_figure{transform:rotate(3deg)}.nesYQG_person[data-facing=away] .nesYQG_figure{transform:rotate(-2deg)}.nesYQG_person[data-facing=away] .nesYQG_crewLimbBack,.nesYQG_person[data-facing=away] .nesYQG_crewLimbFront{display:none}.nesYQG_person[data-facing=left] .nesYQG_figure{transform:scaleX(-1)rotate(3deg)}.nesYQG_crew{width:100%;height:100%;overflow:visible}.nesYQG_crewHood{fill:color-mix(in srgb, var(--team-hue) 86%, var(--dsw-static-neutral-1000));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crew[data-kind=beluga] .nesYQG_crewHood{fill:color-mix(in srgb, var(--team-hue) 34%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewBelly,.nesYQG_crewPatch,.nesYQG_crewMelon{fill:color-mix(in srgb, var(--team-hue) 15%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewHoodOpening{fill:color-mix(in srgb, var(--team-ink) 22%, transparent)}.nesYQG_crewSaddle{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 65%, var(--team-hue));filter:hue-rotate(var(--team-accent-shift,0deg));opacity:.75}.nesYQG_crewFlipperTrim{fill:none;stroke:var(--dsw-static-neutral-00);stroke-width:1.2px;stroke-linecap:round;opacity:.85}.nesYQG_crewTuskGroup{pointer-events:none}.nesYQG_crewTusk{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 90%, var(--team-hue));stroke-width:3.4px;stroke-linecap:round}.nesYQG_crewTuskSpiral{fill:none;stroke:color-mix(in srgb, var(--dsw-static-amber-600) 50%, var(--dsw-static-neutral-600));stroke-width:1px;stroke-linecap:round;opacity:.75}.nesYQG_crewWrinkle{fill:none;stroke:color-mix(in srgb, var(--team-ink) 24%, transparent);stroke-width:.9px;stroke-linecap:round}.nesYQG_crewKnob{fill:var(--dsw-static-neutral-00);opacity:.75}.nesYQG_crewKnobHighlight{fill:var(--dsw-static-neutral-00);opacity:.95}.nesYQG_crewMelonHighlight{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 80%, transparent);stroke-width:1.4px;stroke-linecap:round}.nesYQG_crewEye{fill:var(--dsw-static-neutral-00)}.nesYQG_crewPupil{fill:var(--dsw-static-neutral-900)}.nesYQG_crewSmile,.nesYQG_crewMouth{fill:none;stroke:var(--dsw-static-neutral-700);stroke-width:1.4px;stroke-linecap:round;opacity:.65}.nesYQG_crewMouth{stroke:var(--dsw-static-neutral-00);opacity:.8}.nesYQG_crewNose{fill:color-mix(in srgb, var(--dsw-alias-state-error-primary) 60%, var(--dsw-static-neutral-700));opacity:.55}.nesYQG_crewFacialGroup{pointer-events:none}.nesYQG_crewFace,.nesYQG_crewHand,.nesYQG_crewNeck,.nesYQG_crewEar{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 24%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-skin=\"1\"] .nesYQG_crewFace,.nesYQG_crew[data-skin=\"1\"] .nesYQG_crewHand,.nesYQG_crew[data-skin=\"1\"] .nesYQG_crewNeck,.nesYQG_crew[data-skin=\"1\"] .nesYQG_crewEar{fill:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 44%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-skin=\"2\"] .nesYQG_crewFace,.nesYQG_crew[data-skin=\"2\"] .nesYQG_crewHand,.nesYQG_crew[data-skin=\"2\"] .nesYQG_crewNeck,.nesYQG_crew[data-skin=\"2\"] .nesYQG_crewEar{fill:color-mix(in srgb, var(--dsw-static-amber-600) 58%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-skin=\"3\"] .nesYQG_crewFace,.nesYQG_crew[data-skin=\"3\"] .nesYQG_crewHand,.nesYQG_crew[data-skin=\"3\"] .nesYQG_crewNeck,.nesYQG_crew[data-skin=\"3\"] .nesYQG_crewEar{fill:color-mix(in srgb, var(--dsw-static-amber-700) 62%, var(--dsw-static-neutral-00))}.nesYQG_crewBrow{fill:none;stroke:var(--dsw-static-neutral-700);stroke-width:1.2px;stroke-linecap:round;opacity:.7}.nesYQG_crewEyeGlint{fill:var(--dsw-static-neutral-00)}.nesYQG_crewEyeGlintSub{fill:var(--dsw-static-neutral-00);opacity:.85}.nesYQG_crewBlush{fill:color-mix(in srgb, var(--dsw-alias-state-error-primary) 42%, var(--dsw-static-neutral-00));opacity:.5}.nesYQG_crewHair{fill:color-mix(in srgb, var(--dsw-static-amber-700) 38%, var(--dsw-static-neutral-800))}.nesYQG_crew[data-tone=\"1\"] .nesYQG_crewHair{fill:var(--dsw-static-neutral-900)}.nesYQG_crew[data-tone=\"2\"] .nesYQG_crewHair{fill:color-mix(in srgb, var(--dsw-static-amber-600) 52%, var(--dsw-static-neutral-900))}.nesYQG_crew[data-tone=\"3\"] .nesYQG_crewHair{fill:color-mix(in srgb, var(--dsw-static-amber-600) 76%, var(--dsw-static-neutral-400))}.nesYQG_crew[data-tone=\"4\"] .nesYQG_crewHair{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 80%, var(--dsw-static-neutral-600))}.nesYQG_crewHairShine{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 38%, transparent);opacity:.6}.nesYQG_crewHairHighlight{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 32%, transparent);stroke-width:1.2px;stroke-linecap:round}.nesYQG_crewScrunchie{fill:var(--team-hue);stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 40%, transparent);stroke-width:.6px}.nesYQG_crewHoodSheen{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 48%, var(--team-hue));filter:hue-rotate(var(--team-accent-shift,0deg));opacity:.55}.nesYQG_crewHoodRidge{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 55%, transparent);stroke-width:1.2px;stroke-linecap:round}.nesYQG_crewHoodShade{fill:color-mix(in srgb, var(--team-hue) 90%, var(--dsw-static-neutral-1000));filter:hue-rotate(var(--team-accent-shift,0deg));opacity:.28}.nesYQG_crew[data-kind=shark] .nesYQG_crewHood{fill:color-mix(in srgb, var(--team-hue) 30%, var(--dsw-static-neutral-400));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crew[data-kind=shark] .nesYQG_crewBelly{fill:color-mix(in srgb, var(--team-hue) 8%, var(--dsw-static-neutral-00))}.nesYQG_crewGill{fill:none;stroke:color-mix(in srgb, var(--team-hue) 55%, var(--dsw-static-neutral-600));stroke-width:1.1px;stroke-linecap:round;opacity:.75}.nesYQG_crewPleat{fill:none;stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.9px;stroke-linecap:round}.nesYQG_crewSpout{fill:none;stroke:color-mix(in srgb, var(--team-hue) 55%, transparent);stroke-width:2.6px;stroke-linecap:round}.nesYQG_crewDroplet{fill:color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));opacity:.9}.nesYQG_crewBlowhole{fill:color-mix(in srgb, var(--team-ink) 35%, transparent)}.nesYQG_crewSpeckle{fill:color-mix(in srgb, var(--dsw-static-neutral-00) 50%, transparent)}.nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 38%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewSleeve{fill:color-mix(in srgb, var(--team-hue) 52%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crew[data-outfit=tee] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 46%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=polo] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 36%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=sweater] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 50%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=hoodie] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 30%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=tunic] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 44%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=vest] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 26%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=jacket] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=stripes] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 24%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-outfit=dungarees] .nesYQG_crewShirt{fill:color-mix(in srgb, var(--team-hue) 36%, var(--dsw-static-neutral-00))}.nesYQG_crewVest,.nesYQG_crewJacket,.nesYQG_crewBib{fill:color-mix(in srgb, var(--team-hue) 46%, var(--dsw-static-neutral-00));stroke:color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));stroke-width:.6px;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewStripes{fill:none;stroke:color-mix(in srgb, var(--team-hue) 62%, var(--dsw-static-neutral-00));stroke-width:1.4px;opacity:.8;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewSeam{fill:none;stroke:color-mix(in srgb, var(--team-hue) 56%, var(--dsw-static-neutral-00));stroke-width:.8px;stroke-linecap:round;opacity:.5}.nesYQG_crewCuff{fill:none;stroke:color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));stroke-width:1px;stroke-linecap:round;opacity:.55}.nesYQG_crewCollar{fill:none;stroke:var(--dsw-static-neutral-00);stroke-width:1.8px;stroke-linecap:round;opacity:.75}.nesYQG_crewPlacket,.nesYQG_crewStitch{fill:none;stroke:color-mix(in srgb, var(--team-hue) 64%, var(--dsw-static-neutral-00));stroke-width:.8px;stroke-linecap:round;opacity:.55}.nesYQG_crewButton{fill:color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 70%, transparent);stroke-width:.4px}.nesYQG_crewPocketStitch{fill:none;stroke:color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));stroke-width:.8px}.nesYQG_crewPenClip{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 90%, var(--team-ink));stroke-width:.9px;stroke-linecap:round}.nesYQG_crewCrest{fill:color-mix(in srgb, var(--team-hue) 70%, var(--dsw-static-neutral-00));opacity:.8}.nesYQG_crewRib{fill:color-mix(in srgb, var(--team-hue) 58%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewKnitLine{fill:none;stroke:color-mix(in srgb, var(--team-ink) 12%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_crewHoodFabric{fill:color-mix(in srgb, var(--team-hue) 34%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg));opacity:.92}.nesYQG_crewDraw{fill:none;stroke:color-mix(in srgb, var(--team-hue) 64%, var(--dsw-static-neutral-00));stroke-width:1px;stroke-linecap:round}.nesYQG_crewAglet{fill:var(--dsw-static-neutral-400)}.nesYQG_crewPocket{fill:color-mix(in srgb, var(--team-hue) 20%, var(--dsw-static-neutral-00));stroke:color-mix(in srgb, var(--team-hue) 48%, var(--dsw-static-neutral-00));stroke-width:.7px;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewNeckBand{fill:color-mix(in srgb, var(--team-hue) 54%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewBelt{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-800) 78%, var(--team-hue));stroke-width:2.2px;stroke-linecap:round}.nesYQG_crewBuckle{fill:var(--dsw-static-neutral-400);stroke:var(--dsw-static-neutral-700);stroke-width:.5px}.nesYQG_crewCrossStrap{fill:none;stroke:color-mix(in srgb, var(--team-hue) 60%, var(--dsw-static-neutral-00));stroke-width:1px;stroke-linecap:round}.nesYQG_crewCans,.nesYQG_crewGlasses{pointer-events:none}.nesYQG_crewGlassesFrame{fill:color-mix(in srgb, var(--team-hue) 34%, transparent);stroke:var(--dsw-static-neutral-800);stroke-width:1.2px}.nesYQG_crewGlassesGlass{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 80%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_crewGlassesBridge{fill:none;stroke:var(--dsw-static-neutral-800);stroke-width:1px;stroke-linecap:round}.nesYQG_crewCansBand{fill:none;stroke:var(--dsw-static-neutral-800);stroke-width:3.4px}.nesYQG_crewCansCup{fill:color-mix(in srgb, var(--team-hue) 64%, var(--dsw-static-neutral-00));stroke:var(--dsw-static-neutral-800);stroke-width:.8px;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewCansCushion{fill:var(--dsw-static-neutral-900)}.nesYQG_crewCansPivot{fill:var(--dsw-static-neutral-400)}.nesYQG_crewScarf{fill:color-mix(in srgb, var(--team-hue) 66%, var(--dsw-static-neutral-00));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewScarfPattern{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 40%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_crewScarfFringe{fill:none;stroke:color-mix(in srgb, var(--team-hue) 74%, var(--dsw-static-neutral-00));stroke-width:1px;stroke-linecap:round;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewCord{fill:none;stroke:color-mix(in srgb, var(--team-hue) 72%, var(--dsw-static-neutral-00));stroke-width:1.2px;stroke-linecap:round;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewClip{fill:var(--dsw-static-neutral-400)}.nesYQG_crewBadge{fill:var(--dsw-static-neutral-00);stroke:var(--dsw-static-neutral-300);stroke-width:.7px}.nesYQG_crewBadgePhoto{fill:color-mix(in srgb, var(--team-hue) 50%, var(--dsw-static-neutral-400))}.nesYQG_crewBadgeLine{fill:none;stroke:var(--dsw-static-neutral-500);stroke-width:.9px;stroke-linecap:round}.nesYQG_crewPack{fill:color-mix(in srgb, var(--team-hue) 52%, var(--dsw-static-neutral-700));stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.8px;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewPackPocket{fill:color-mix(in srgb, var(--team-hue) 44%, var(--dsw-static-neutral-800));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewPackTrim{fill:none;stroke:color-mix(in srgb, var(--team-hue) 72%, var(--dsw-static-neutral-00));stroke-width:1.2px;stroke-linecap:round;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewPackZip{fill:var(--dsw-static-neutral-300)}.nesYQG_crewPackHandle{fill:none;stroke:var(--dsw-static-neutral-800);stroke-width:1.6px;stroke-linecap:round}.nesYQG_crewStrap{fill:none;stroke:color-mix(in srgb, var(--team-hue) 58%, var(--dsw-static-neutral-700));stroke-width:2.4px;stroke-linecap:round;filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewStrapBuckle{fill:var(--dsw-static-neutral-400)}.nesYQG_crewTrouser{fill:color-mix(in srgb, var(--team-hue) 34%, var(--dsw-static-neutral-600));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crewTrouserCrease{fill:none;stroke:color-mix(in srgb, var(--team-ink) 20%, transparent);stroke-width:.8px;stroke-linecap:round}.nesYQG_crewShoe{fill:color-mix(in srgb, var(--team-hue) 34%, var(--dsw-static-neutral-600));filter:hue-rotate(var(--team-accent-shift,0deg))}.nesYQG_crew[data-shoes=boot] .nesYQG_crewShoe{fill:color-mix(in srgb, var(--team-hue) 58%, var(--dsw-static-neutral-800))}.nesYQG_crew[data-shoes=loafer] .nesYQG_crewShoe{fill:color-mix(in srgb, var(--team-hue) 16%, var(--dsw-static-neutral-500))}.nesYQG_crew[data-shoes=hightop] .nesYQG_crewShoe{fill:color-mix(in srgb, var(--team-hue) 50%, var(--dsw-static-neutral-00))}.nesYQG_crew[data-shoes=sandal] .nesYQG_crewShoe{fill:color-mix(in srgb, var(--dsw-static-amber-600) 64%, var(--dsw-static-neutral-700))}.nesYQG_crewShoeTrim{fill:none;stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 46%, transparent);stroke-width:1px;stroke-linecap:round}.nesYQG_crewShoeSole{fill:none;stroke:var(--dsw-static-neutral-800);stroke-width:1.2px;stroke-linecap:round}.nesYQG_crewShoeEyelet{fill:var(--dsw-static-neutral-400)}.nesYQG_crewShoeBadge{fill:var(--dsw-static-neutral-00);stroke:var(--dsw-alias-state-error-primary);stroke-width:.4px}.nesYQG_crewShoeToe{fill:none;stroke:var(--dsw-static-neutral-00);stroke-width:1.4px;stroke-linecap:round}.nesYQG_crewShoeBuckle{fill:var(--dsw-static-neutral-300)}.nesYQG_crewShoeStripe{fill:none;stroke:var(--dsw-static-neutral-00);stroke-width:1px;stroke-linecap:round;opacity:.85}.nesYQG_crew[data-shoes=boot] .nesYQG_crewShoeTrim,.nesYQG_crew[data-shoes=hightop] .nesYQG_crewShoeTrim{stroke:color-mix(in srgb, var(--dsw-static-neutral-00) 30%, transparent)}.nesYQG_crewLimbBack,.nesYQG_crewLimbFront,.nesYQG_crewArmBack,.nesYQG_crewArmFront{transform-box:fill-box;transform-origin:50% 0}.nesYQG_person[data-walk=true] .nesYQG_crewLimbBack,.nesYQG_person[data-walk=true] .nesYQG_crewArmFront{animation:1s linear infinite paused nesYQG_team-swing;animation-delay:calc(var(--team-gait,0) * -1s)}.nesYQG_person[data-walk=true] .nesYQG_crewLimbFront,.nesYQG_person[data-walk=true] .nesYQG_crewArmBack{animation:1s linear infinite reverse paused nesYQG_team-swing;animation-delay:calc(var(--team-gait,0) * -1s)}.nesYQG_person[data-walk=true] .nesYQG_body{animation:1s ease-in-out infinite paused nesYQG_team-bob;animation-delay:calc(var(--team-gait,0) * -1s)}.nesYQG_person[data-pose=working]:not([data-walk=true]) .nesYQG_crewArmFront,.nesYQG_person[data-pose=working]:not([data-walk=true]) .nesYQG_crewArmBack{animation:.9s ease-in-out infinite alternate nesYQG_team-type}.nesYQG_crown{width:20px;height:20px;color:var(--dsw-static-neutral-900);background:var(--dsw-alias-state-warn-secondary);box-shadow:0 1px 3px var(--dsw-alias-bg-mask-2);border-radius:50%;place-items:center;margin-left:-10px;display:grid;position:absolute;top:-6%;left:50%}.nesYQG_load{border:2px solid var(--dsw-alias-bg-overlay);font-variant-numeric:tabular-nums;min-width:16px;height:16px;color:var(--dsw-alias-label-primary-inverted);background:var(--dsw-alias-state-success-primary);border-radius:8px;place-items:center;padding:0 4px;font-size:9.5px;font-weight:600;display:grid;position:absolute;top:47%;right:-13%}.nesYQG_speech{z-index:20;border:1px solid color-mix(in srgb, var(--team-hue) 55%, transparent);background:color-mix(in srgb, var(--dsw-alias-bg-overlay) 92%, transparent);backdrop-filter:blur(8px);width:max-content;max-width:240px;color:var(--dsw-alias-label-primary);white-space:nowrap;text-overflow:ellipsis;box-shadow:0 4px 14px var(--dsw-alias-bg-mask-2), 0 0 0 1px color-mix(in srgb, var(--dsw-static-neutral-00) 10%, transparent);border-radius:12px 12px 12px 2px;padding:6px 10px;font-size:11px;font-weight:500;line-height:1.4;animation:.22s cubic-bezier(.34,1.56,.64,1) both nesYQG_team-say-in;position:absolute;bottom:calc(100% + 4px);left:50%;overflow:hidden;transform:translate(-50%)}.nesYQG_listening,.nesYQG_doze{z-index:20;letter-spacing:.1em;color:var(--team-hue);text-shadow:0 1px 3px var(--dsw-alias-bg-mask-2);font-size:12px;font-weight:700;position:absolute;top:2%;right:-4px}.nesYQG_listening{animation:1.2s ease-in-out infinite nesYQG_team-listen}.nesYQG_doze{color:color-mix(in srgb, var(--team-warm) 85%, var(--dsw-static-neutral-00));animation:2.8s ease-in-out infinite nesYQG_team-doze}.nesYQG_plate{background:color-mix(in srgb, var(--dsw-alias-bg-overlay) 72%, transparent);border-radius:6px;flex-direction:column;align-items:center;width:150%;padding:1px 4px;display:flex;position:absolute;top:calc(100% + 1px);left:50%;transform:translate(-50%)}.nesYQG_person[data-talking=from] .nesYQG_plate{visibility:hidden}.nesYQG_plateName{max-width:100%;color:var(--dsw-alias-label-primary);white-space:nowrap;text-overflow:ellipsis;font-size:11.5px;font-weight:600;overflow:hidden}.nesYQG_plateMeta{max-width:100%;color:var(--dsw-alias-label-tertiary);white-space:nowrap;text-overflow:ellipsis;font-size:9.5px;overflow:hidden}.nesYQG_state{display:flex;position:absolute;top:45%;left:-9%}.nesYQG_person[data-running=true] .nesYQG_body:after{content:\"\";border:1.5px solid var(--team-hue);pointer-events:none;border-radius:50%;animation:2.2s cubic-bezier(.22,1,.36,1) infinite nesYQG_team-halo;position:absolute;inset:-3% -7% 56%}.nesYQG_person[aria-current=true] .nesYQG_plateName{color:var(--dsw-alias-brand-primary);text-underline-offset:3px;text-decoration:underline}.nesYQG_feed{flex-direction:column;flex:1;gap:8px;min-height:0;display:flex}.nesYQG_crewList{border:1px solid var(--dsw-alias-border-l2);border-radius:10px;flex-direction:column;flex:none;display:flex;overflow:hidden}.nesYQG_crewRow{align-items:center;gap:6px;min-width:0;padding:5px 8px;font-size:11px;transition:background .16s;display:flex}.nesYQG_crewRow+.nesYQG_crewRow{border-top:1px solid var(--dsw-alias-border-l1)}.nesYQG_crewRow[data-focus=true]{background:var(--dsw-alias-interactive-bg-hover)}.nesYQG_crewName{max-width:84px;color:var(--dsw-alias-label-primary);white-space:nowrap;text-overflow:ellipsis;flex:none;font-weight:600;overflow:hidden}.nesYQG_crewState{color:var(--dsw-alias-label-tertiary);background:var(--team-surface-2);border-radius:999px;flex:none;padding:0 5px;font-size:9.5px}.nesYQG_crewState[data-state=running]{color:var(--team-hue);background:color-mix(in srgb, var(--team-hue) 14%, transparent)}.nesYQG_crewOpen{font-variant-numeric:tabular-nums;color:var(--dsw-alias-state-success-primary);border:1px solid color-mix(in srgb, var(--dsw-alias-state-success-primary) 45%, transparent);border-radius:999px;flex:none;padding:0 5px;font-size:9.5px}.nesYQG_crewLine{text-align:right;min-width:0;color:var(--dsw-alias-label-tertiary);white-space:nowrap;text-overflow:ellipsis;flex:1;overflow:hidden}.nesYQG_feedTitle{letter-spacing:.06em;text-transform:uppercase;color:var(--dsw-alias-label-dimmed);flex:none;margin:2px 0 0;font-size:10px;font-weight:600}.nesYQG_log{overscroll-behavior:contain;flex-direction:column;flex:1;gap:6px;min-height:0;padding-right:2px;display:flex;overflow-y:auto}.nesYQG_logRow{border:1px solid var(--dsw-alias-border-l2);background:var(--team-surface-1);border-radius:10px;align-items:flex-start;gap:7px;padding:5px 6px;transition:border-color .16s,background .16s;animation:.24s cubic-bezier(.22,1,.36,1) both nesYQG_team-row-in;display:flex}.nesYQG_logRow[data-focus=true]{border-color:var(--team-hue);background:var(--dsw-alias-interactive-bg-hover)}.nesYQG_logRow[data-message-kind=report]{border-left:2px solid var(--dsw-alias-state-success-primary)}.nesYQG_logRow[data-message-kind=settled]{opacity:.72;border-style:dashed}.nesYQG_logAvatar{width:22px;height:22px;color:var(--dsw-alias-label-secondary);background:var(--team-surface-2);border-radius:50%;flex:none;place-items:center;display:grid;overflow:hidden}.nesYQG_logBody{flex-direction:column;flex:1;gap:1px;min-width:0;display:flex}.nesYQG_logHead{color:var(--dsw-alias-label-tertiary);align-items:center;gap:4px;font-size:10px;display:flex}.nesYQG_logAuthor{color:var(--dsw-alias-label-secondary);font-weight:600}.nesYQG_logArrow{opacity:.55}.nesYQG_logTo{color:var(--dsw-alias-label-secondary);font-weight:600}.nesYQG_logKind{background:var(--team-surface-2);color:var(--dsw-alias-label-secondary);border-radius:999px;padding:0 5px}.nesYQG_logHop{font-variant-numeric:tabular-nums;border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-tertiary);border-radius:999px;padding:0 5px}.nesYQG_logRow[data-hop=\"3\"] .nesYQG_logHop,.nesYQG_logRow[data-hop=\"4\"] .nesYQG_logHop,.nesYQG_logRow[data-hop=\"5\"] .nesYQG_logHop{color:var(--dsw-alias-state-warn-primary);border-color:var(--dsw-alias-state-warn-primary)}.nesYQG_logTime{font-variant-numeric:tabular-nums;margin-left:auto}.nesYQG_logText{color:var(--dsw-alias-label-primary);-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12px;line-height:1.45;display:-webkit-box;overflow:hidden}.nesYQG_logTail{color:var(--dsw-alias-label-dimmed);flex:none;align-self:center;display:flex}.nesYQG_logRow[data-message-kind=message] .nesYQG_logTail{color:var(--team-hue)}.nesYQG_cameo{place-items:center;width:100%;height:100%;display:grid}.nesYQG_cameoCrew{width:88%;height:auto}.nesYQG_cameoDot{background:var(--team-surface-2);border-radius:50%;flex:none;place-items:center;width:18px;height:18px;display:grid;overflow:hidden}.nesYQG_cameoDot .nesYQG_discGlyph{font-size:9px}.nesYQG_discGlyph{font-size:11px;font-weight:600;line-height:1}.nesYQG_paneNote{letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-dimmed);margin-left:auto;font-weight:400}.nesYQG_emptyHint{color:var(--dsw-alias-label-dimmed);margin:2px 0 0;font-size:11.5px}.nesYQG_drawer[data-panel=workspace] .nesYQG_drawerBody{background-image:radial-gradient(var(--team-surface-2) 1px, transparent 1.4px);background-size:14px 14px}.nesYQG_notes{flex-direction:column;gap:10px;padding:4px 2px;display:flex}.nesYQG_note{border:1px solid color-mix(in srgb, var(--dsw-alias-state-warn-primary) 30%, var(--dsw-alias-border-l2));background:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 8%, var(--dsw-alias-bg-overlay));box-shadow:0 4px 9px var(--dsw-alias-bg-mask-1);transform:rotate(var(--team-tilt,0deg));border-radius:8px;flex-direction:column;gap:3px;padding:10px 10px 8px;transition:border-color .16s,background .16s,transform .16s;display:flex;position:relative}.nesYQG_note:nth-child(odd){--team-tilt:-1.2deg}.nesYQG_note:nth-child(2n){--team-tilt:1deg}.nesYQG_note:before{content:\"\";background:var(--dsw-alias-brand-primary);width:8px;height:8px;box-shadow:0 2px 3px var(--dsw-alias-bg-mask-1);border-radius:50%;margin-left:-4px;position:absolute;top:-4px;left:50%}.nesYQG_note:hover,.nesYQG_note[data-focus=true]{transform:none}.nesYQG_note[data-focus=true]{border-color:var(--team-hue);background:var(--dsw-alias-interactive-bg-hover)}.nesYQG_noteKey{color:var(--dsw-alias-label-primary);text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;overflow:hidden}.nesYQG_notePreview{color:var(--dsw-alias-label-secondary);-webkit-line-clamp:3;-webkit-box-orient:vertical;font-size:11.5px;line-height:1.45;display:-webkit-box;overflow:hidden}.nesYQG_noteFoot{color:var(--dsw-alias-label-tertiary);align-items:center;gap:6px;font-size:10.5px;display:flex}.nesYQG_noteAuthor{color:var(--dsw-alias-label-secondary);align-items:center;gap:5px;display:inline-flex}.nesYQG_noteTime{font-variant-numeric:tabular-nums;margin-left:auto}.nesYQG_columns{flex-direction:column;gap:14px;display:flex}.nesYQG_column{flex-direction:column;gap:6px;min-width:0;display:flex}.nesYQG_column+.nesYQG_column{border-top:1px dashed var(--dsw-alias-border-l2);padding-top:12px}.nesYQG_columnTitle{color:var(--dsw-alias-label-secondary);align-items:center;gap:6px;margin:0;font-size:11px;font-weight:600;display:flex}.nesYQG_columnTitle:before{content:\"\";background:var(--team-surface-3);border-radius:50%;width:7px;height:7px}.nesYQG_column[data-column=active] .nesYQG_columnTitle:before{background:var(--team-hue)}.nesYQG_column[data-column=done] .nesYQG_columnTitle:before{background:var(--dsw-alias-state-success-primary)}.nesYQG_columnCount{font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-dimmed)}.nesYQG_card{border:1px solid var(--dsw-alias-border-l2);border-radius:10px;flex-direction:column;gap:4px;padding:7px 9px;transition:border-color .16s,background .16s;animation:.24s cubic-bezier(.22,1,.36,1) both nesYQG_team-row-in;display:flex}.nesYQG_card[data-focus=true]{border-color:var(--team-hue);background:var(--dsw-alias-interactive-bg-hover)}.nesYQG_card[data-task-status=active]{border-left:2px solid var(--team-hue)}.nesYQG_card[data-task-status=done] .nesYQG_cardTitle{color:var(--dsw-alias-label-tertiary);text-decoration:line-through}.nesYQG_cardTitle{color:var(--dsw-alias-label-primary);-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12.5px;line-height:1.4;display:-webkit-box;overflow:hidden}.nesYQG_cardFoot{color:var(--dsw-alias-label-tertiary);align-items:center;gap:6px;font-size:10.5px;display:flex}.nesYQG_cardWho{color:var(--dsw-alias-label-secondary);flex:none;align-items:center;gap:5px;display:inline-flex}.nesYQG_cardNote{text-overflow:ellipsis;white-space:nowrap;min-width:0;overflow:hidden}.nesYQG_screenApp{width:100%;height:100%;display:flex}.nesYQG_screenApp i{font-style:normal;display:block}.nesYQG_screenApp[data-app=chart]{align-items:flex-end;gap:2px;padding:4% 6%}.nesYQG_screenApp[data-app=chart] i{background:linear-gradient(180deg, var(--team-hue) 0%, color-mix(in srgb, var(--team-hue) 40%, var(--dsw-alias-bg-overlay)) 100%);box-shadow:0 1px 3px color-mix(in srgb, var(--team-hue) 30%, transparent);border-radius:1.5px 1.5px .5px .5px;flex:1}.nesYQG_screenApp[data-app=chart] i:first-child{height:42%}.nesYQG_screenApp[data-app=chart] i:nth-child(2){height:78%}.nesYQG_screenApp[data-app=chart] i:nth-child(3){height:56%}.nesYQG_screenApp[data-app=chart] i:nth-child(4){height:96%}.nesYQG_screenApp[data-app=chart] i:nth-child(5){background:linear-gradient(180deg, var(--dsw-alias-state-success-primary) 0%, color-mix(in srgb, var(--dsw-alias-state-success-primary) 40%, var(--dsw-alias-bg-overlay)) 100%);height:68%;box-shadow:0 1px 3px color-mix(in srgb, var(--dsw-alias-state-success-primary) 30%, transparent)}.nesYQG_screenApp[data-app=code]{flex-direction:column;justify-content:center;gap:2px;padding-left:22%;position:relative}.nesYQG_screenApp[data-app=code]:before{content:\"\";background:linear-gradient(180deg, var(--team-surface-3) 0%, color-mix(in srgb, var(--team-ink) 20%, var(--team-page)) 100%);width:16%;box-shadow:inset -1px 0 0 color-mix(in srgb, var(--team-ink) 12%, transparent);border-radius:1px;position:absolute;top:0;bottom:0;left:0}.nesYQG_screenApp[data-app=code] i{background:var(--dsw-alias-label-tertiary);opacity:.85;border-radius:1px;height:2px}.nesYQG_screenApp[data-app=code] i:first-child{background:var(--team-hue);opacity:1;width:62%}.nesYQG_screenApp[data-app=code] i:nth-child(2){background:color-mix(in srgb, var(--team-warm) 80%, var(--dsw-static-neutral-00));width:88%;margin-left:10%}.nesYQG_screenApp[data-app=code] i:nth-child(3){background:color-mix(in srgb, var(--team-leaf) 80%, var(--dsw-static-neutral-00));width:46%;margin-left:10%}.nesYQG_screenApp[data-app=code] i:nth-child(4){background:color-mix(in srgb, var(--dsw-alias-state-error-primary) 70%, var(--dsw-static-neutral-00));width:70%;margin-left:20%}.nesYQG_screenApp[data-app=code] i:nth-child(5){background:var(--team-hue);width:34%}.nesYQG_screenApp[data-app=doc]{flex-direction:column;gap:2.5px;padding:4%}.nesYQG_screenApp[data-app=doc] i{background:var(--dsw-alias-label-tertiary);opacity:.75;border-radius:1px;height:2px}.nesYQG_screenApp[data-app=doc] i:first-child{background:var(--dsw-alias-label-secondary);opacity:1;width:52%;height:3.5px}.nesYQG_screenApp[data-app=doc] i:nth-child(2){width:94%}.nesYQG_screenApp[data-app=doc] i:nth-child(3){width:88%}.nesYQG_screenApp[data-app=doc] i:nth-child(4){width:62%}.nesYQG_screenApp[data-app=mail]{flex-direction:column;justify-content:center;gap:3px;padding:3%}.nesYQG_screenApp[data-app=mail] i{background:color-mix(in srgb, var(--team-ink) 18%, var(--team-page));border-radius:3px;height:26%}.nesYQG_screenApp[data-app=mail] i:first-child{border-bottom-left-radius:.5px;width:62%}.nesYQG_screenApp[data-app=mail] i:nth-child(2){background:var(--team-hue);border-bottom-right-radius:.5px;align-self:flex-end;width:56%}.nesYQG_screenApp[data-app=mail] i:nth-child(3){border-bottom-left-radius:.5px;width:44%}.nesYQG_screenApp[data-app=grid]{grid-template-columns:1fr 1fr;gap:2.5px;padding:4%;display:grid}.nesYQG_screenApp[data-app=grid] i{background:color-mix(in srgb, var(--team-ink) 14%, var(--team-page));border:.5px solid color-mix(in srgb, var(--team-ink) 10%, transparent);border-radius:2px}.nesYQG_screenApp[data-app=grid] i:first-child{background:color-mix(in srgb, var(--team-hue) 45%, var(--team-page));border-color:var(--team-hue)}.nesYQG_screenApp[data-app=grid] i:nth-child(4){background:color-mix(in srgb, var(--dsw-alias-state-success-primary) 45%, var(--team-page));border-color:var(--dsw-alias-state-success-primary)}.nesYQG_screenApp[data-app=term]{background:color-mix(in srgb, var(--dsw-static-neutral-1000) 90%, var(--team-hue));border-radius:2px;flex-direction:column;gap:2.5px;padding:3px 4px}.nesYQG_screenApp[data-app=term] i{background:color-mix(in srgb, var(--dsw-alias-state-success-primary) 92%, transparent);border-radius:1px;height:2px}.nesYQG_screenApp[data-app=term] i:first-child{background:var(--dsw-alias-state-success-primary);width:58%}.nesYQG_screenApp[data-app=term] i:nth-child(2){opacity:.7;background:var(--dsw-static-neutral-200);width:82%}.nesYQG_screenApp[data-app=term] i:nth-child(3){opacity:.7;background:var(--dsw-static-neutral-200);width:40%}.nesYQG_screenApp[data-app=term] i:nth-child(4){background:var(--dsw-alias-state-success-primary);width:6px;height:3px;animation:1.1s step-end infinite nesYQG_team-caret}@container (width<=640px){.nesYQG_barHint,.nesYQG_stat{display:none}.nesYQG_stat:first-child{display:inline-block}}@keyframes nesYQG_team-chair-rise{0%,to{transform:translateY(0)}5%,9%{transform:translateY(-2.5%)}13%{transform:translateY(0)}}@keyframes nesYQG_team-chair-stretch{0%,to{transform:scaleY(1)}5%,9%{transform:scaleY(1.14)}13%{transform:scaleY(1)}}@keyframes nesYQG_team-person-sit{0%,to{transform:translate(-50%, -100%) scale(calc(var(--team-scale,1) * var(--team-sit,1)))}5%,9%{transform:translate(-50%, calc(-100% - 1.15%)) scale(calc(var(--team-scale,1) * var(--team-sit,1)))}13%{transform:translate(-50%, -100%) scale(calc(var(--team-scale,1) * var(--team-sit,1)))}}@keyframes nesYQG_team-stage-in{0%{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}@keyframes nesYQG_team-person-in{0%{opacity:0;transform:translate(-50%, -90%) scale(calc(var(--team-scale,1) * var(--team-sit,1) * .82))}to{opacity:1;transform:translate(-50%, -100%) scale(calc(var(--team-scale,1) * var(--team-sit,1)))}}@keyframes nesYQG_team-row-in{0%{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}@keyframes nesYQG_team-drawer-in{0%{opacity:0;transform:translate(14px)}to{opacity:1;transform:none}}@keyframes nesYQG_team-say-in{0%{opacity:0;transform:translate(-50%,4px)}to{opacity:1;transform:translate(-50%)}}@keyframes nesYQG_team-swing{0%,to{transform:rotate(-17deg)}50%{transform:rotate(17deg)}}@keyframes nesYQG_team-bob{0%,to{transform:translateY(0)}25%{transform:translateY(-3%)}50%{transform:translateY(0)}75%{transform:translateY(-3%)}}@keyframes nesYQG_team-drift{0%{translate:0}to{translate:230%}}@keyframes nesYQG_team-sail{0%{translate:0}to{translate:340%}}@keyframes nesYQG_team-glow{0%,to{opacity:.55}50%{opacity:.95}}@keyframes nesYQG_team-sway{0%,to{transform:rotate(-2.6deg)}50%{transform:rotate(2.6deg)}}@keyframes nesYQG_team-bubble{0%{opacity:0;translate:0}12%{opacity:1}88%{opacity:.8}to{opacity:0;translate:0 -44%}}@keyframes nesYQG_team-prowl{0%,to{opacity:0;left:-12%;transform:scaleX(1)}2%{opacity:1}46%{opacity:1;left:42%;transform:scaleX(1)}50%{opacity:1;left:50%;transform:scaleX(1)}54%{opacity:1;left:62%;transform:scaleX(-1)}92%{opacity:1;left:-12%;transform:scaleX(-1)}94%,to{opacity:0}}@keyframes nesYQG_team-tick{0%{transform:translateY(-100%)rotate(0)}to{transform:translateY(-100%)rotate(360deg)}}@keyframes nesYQG_team-steam{0%{opacity:0;transform:translateY(0)scale(.9)}50%{opacity:.8;transform:translateY(-2px)scale(1.05)}to{opacity:0;transform:translateY(-4px)scale(1.2)}}@keyframes nesYQG_team-breeze{0%{opacity:0;transform:translateY(0)scaleY(.8)}50%{opacity:.75;transform:translateY(3px)scaleY(1.1)}to{opacity:0;transform:translateY(7px)scaleY(1.3)}}@keyframes nesYQG_team-blink{0%,to{opacity:1}50%{opacity:.25}}@keyframes nesYQG_team-type{0%{transform:rotate(-4deg)}to{transform:rotate(4deg)}}@keyframes nesYQG_team-listen{0%,to{opacity:.3}50%{opacity:1}}@keyframes nesYQG_team-doze{0%{opacity:.2;transform:translateY(2px)}50%{opacity:1;transform:translateY(-3px)}to{opacity:.2;transform:translateY(2px)}}@keyframes nesYQG_team-screen{0%,to{filter:brightness()}50%{filter:brightness(1.14)}}@keyframes nesYQG_team-caret{0%,49%{opacity:1}50%,to{opacity:0}}@keyframes nesYQG_team-halo{0%{opacity:.7;transform:scale(1)}70%{opacity:0;transform:scale(1.3)}to{opacity:0;transform:scale(1.3)}}@media (prefers-reduced-motion:reduce){.nesYQG_stage,.nesYQG_person,.nesYQG_drawer,.nesYQG_logRow,.nesYQG_card,.nesYQG_note,.nesYQG_speech,.nesYQG_chairRide,.nesYQG_chairLift,.nesYQG_lamp:after,.nesYQG_pendantGlow,.nesYQG_cloud,.nesYQG_sail,.nesYQG_coolerBubble,.nesYQG_floraLeaf,.nesYQG_cat,.nesYQG_clockHand[data-hand=second],.nesYQG_propLampLive,.nesYQG_propSteam,.nesYQG_acBreeze,.nesYQG_chairRide,.nesYQG_chairLift,.nesYQG_person[data-facing=back],.nesYQG_person[data-walk=true] .nesYQG_body,.nesYQG_person[data-walk=true] .nesYQG_crewLimbBack,.nesYQG_person[data-walk=true] .nesYQG_crewLimbFront,.nesYQG_person[data-walk=true] .nesYQG_crewArmBack,.nesYQG_person[data-walk=true] .nesYQG_crewArmFront,.nesYQG_person[data-pose=working] .nesYQG_crewArmFront,.nesYQG_person[data-pose=working] .nesYQG_crewArmBack,.nesYQG_person[data-running=true] .nesYQG_body:after,.nesYQG_desk[data-screen=working] .nesYQG_screen,.nesYQG_dockButton[data-fresh=true]:after,.nesYQG_screenApp[data-app=term] i:nth-child(4),.nesYQG_listening,.nesYQG_doze{animation:none}.nesYQG_person,.nesYQG_body,.nesYQG_dockButton,.nesYQG_card{transition:none}}";
 		const tagId = "dsh-team/TeamStage.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
 			const tag = document.createElement("style");
@@ -1041,331 +1062,484 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var TeamStage_module_css_default = {
-			"screenApp": "nesYQG_screenApp",
-			"books": "nesYQG_books",
-			"crewCansBand": "nesYQG_crewCansBand",
-			"floraGlaze": "nesYQG_floraGlaze",
-			"boardPens": "nesYQG_boardPens",
-			"blankHint": "nesYQG_blankHint",
-			"crewLimbFront": "nesYQG_crewLimbFront",
-			"coolerSvg": "nesYQG_coolerSvg",
-			"crewJacket": "nesYQG_crewJacket",
-			"wallBack": "nesYQG_wallBack",
-			"wallLeft": "nesYQG_wallLeft",
-			"floraShade": "nesYQG_floraShade",
-			"team-screen": "nesYQG_team-screen",
-			"crewSpout": "nesYQG_crewSpout",
-			"mug": "nesYQG_mug",
-			"crewBadge": "nesYQG_crewBadge",
-			"team-say-in": "nesYQG_team-say-in",
-			"stage": "nesYQG_stage",
-			"person": "nesYQG_person",
-			"chairLift": "nesYQG_chairLift",
-			"team-doze": "nesYQG_team-doze",
-			"floraSoil": "nesYQG_floraSoil",
-			"neck": "nesYQG_neck",
-			"crewVest": "nesYQG_crewVest",
-			"shelfPlant": "nesYQG_shelfPlant",
-			"team-drawer-in": "nesYQG_team-drawer-in",
-			"crewPackTrim": "nesYQG_crewPackTrim",
-			"logRow": "nesYQG_logRow",
-			"chairSpine": "nesYQG_chairSpine",
-			"logKind": "nesYQG_logKind",
-			"floraRimLip": "nesYQG_floraRimLip",
-			"papers": "nesYQG_papers",
-			"plank": "nesYQG_plank",
-			"floraPot": "nesYQG_floraPot",
-			"propHandle": "nesYQG_propHandle",
-			"team-halo": "nesYQG_team-halo",
-			"monitor": "nesYQG_monitor",
-			"crewBelt": "nesYQG_crewBelt",
-			"crewScarf": "nesYQG_crewScarf",
-			"crewHair": "nesYQG_crewHair",
-			"deskApron": "nesYQG_deskApron",
-			"crewHoodShade": "nesYQG_crewHoodShade",
-			"catSvg": "nesYQG_catSvg",
-			"boardEraser": "nesYQG_boardEraser",
-			"coolerWater": "nesYQG_coolerWater",
-			"noteTime": "nesYQG_noteTime",
-			"crewShoe": "nesYQG_crewShoe",
-			"drawer": "nesYQG_drawer",
-			"floraBladeLit": "nesYQG_floraBladeLit",
-			"crewHoodSheen": "nesYQG_crewHoodSheen",
-			"crewGlasses": "nesYQG_crewGlasses",
-			"barTitle": "nesYQG_barTitle",
-			"skirting": "nesYQG_skirting",
-			"propTop": "nesYQG_propTop",
-			"plankTop": "nesYQG_plankTop",
-			"catEar": "nesYQG_catEar",
-			"propFolder": "nesYQG_propFolder",
-			"cameoDot": "nesYQG_cameoDot",
-			"body": "nesYQG_body",
-			"chairRide": "nesYQG_chairRide",
-			"coolerHandleWarm": "nesYQG_coolerHandleWarm",
-			"crewPack": "nesYQG_crewPack",
-			"shelf": "nesYQG_shelf",
-			"trophy": "nesYQG_trophy",
-			"floraVein": "nesYQG_floraVein",
-			"dockCount": "nesYQG_dockCount",
-			"doze": "nesYQG_doze",
-			"crewList": "nesYQG_crewList",
-			"logTail": "nesYQG_logTail",
-			"paneTitle": "nesYQG_paneTitle",
-			"cardTitle": "nesYQG_cardTitle",
-			"propGlass": "nesYQG_propGlass",
-			"coolerCap": "nesYQG_coolerCap",
-			"deskSurface": "nesYQG_deskSurface",
-			"statLive": "nesYQG_statLive",
-			"coolerShine": "nesYQG_coolerShine",
-			"floraCrumb": "nesYQG_floraCrumb",
-			"deskModesty": "nesYQG_deskModesty",
-			"crewNeckBand": "nesYQG_crewNeckBand",
-			"coolerTap": "nesYQG_coolerTap",
-			"composerAway": "nesYQG_composerAway",
-			"team-stage-in": "nesYQG_team-stage-in",
-			"barStats": "nesYQG_barStats",
-			"ceiling": "nesYQG_ceiling",
-			"catStripe": "nesYQG_catStripe",
-			"propBrew": "nesYQG_propBrew",
-			"flora": "nesYQG_flora",
-			"chairCasters": "nesYQG_chairCasters",
-			"crewStripes": "nesYQG_crewStripes",
-			"floorPlane": "nesYQG_floorPlane",
-			"team-blink": "nesYQG_team-blink",
-			"crown": "nesYQG_crown",
-			"feed": "nesYQG_feed",
-			"pendantBulb": "nesYQG_pendantBulb",
-			"utility": "nesYQG_utility",
-			"screenText": "nesYQG_screenText",
-			"note": "nesYQG_note",
-			"column": "nesYQG_column",
-			"cardWho": "nesYQG_cardWho",
-			"team-sway": "nesYQG_team-sway",
-			"coolerCabinetEdge": "nesYQG_coolerCabinetEdge",
-			"dock": "nesYQG_dock",
-			"logHead": "nesYQG_logHead",
-			"chairShellEdge": "nesYQG_chairShellEdge",
-			"listening": "nesYQG_listening",
-			"floraSpine": "nesYQG_floraSpine",
-			"floraSaucer": "nesYQG_floraSaucer",
-			"crewNeck": "nesYQG_crewNeck",
-			"sillTop": "nesYQG_sillTop",
-			"stat": "nesYQG_stat",
-			"chairHub": "nesYQG_chairHub",
-			"desk": "nesYQG_desk",
-			"propSpout": "nesYQG_propSpout",
-			"cat": "nesYQG_cat",
-			"table": "nesYQG_table",
-			"clockTicks": "nesYQG_clockTicks",
-			"coolerDripWell": "nesYQG_coolerDripWell",
-			"floraBlade": "nesYQG_floraBlade",
-			"team-listen": "nesYQG_team-listen",
-			"pendantMouth": "nesYQG_pendantMouth",
-			"cameoCrew": "nesYQG_cameoCrew",
-			"pendantFlex": "nesYQG_pendantFlex",
-			"feedTitle": "nesYQG_feedTitle",
-			"deskTop": "nesYQG_deskTop",
-			"chairMeshLine": "nesYQG_chairMeshLine",
-			"lounge": "nesYQG_lounge",
-			"noteAuthor": "nesYQG_noteAuthor",
-			"calendar": "nesYQG_calendar",
-			"chair": "nesYQG_chair",
-			"sea": "nesYQG_sea",
-			"crew": "nesYQG_crew",
-			"crewShirt": "nesYQG_crewShirt",
-			"roomPane": "nesYQG_roomPane",
-			"blankTitle": "nesYQG_blankTitle",
-			"whiteboard": "nesYQG_whiteboard",
-			"coolerNeck": "nesYQG_coolerNeck",
-			"barHint": "nesYQG_barHint",
-			"boardTrayTop": "nesYQG_boardTrayTop",
-			"cloud": "nesYQG_cloud",
-			"team-chair-rise": "nesYQG_team-chair-rise",
-			"cardFoot": "nesYQG_cardFoot",
-			"screen": "nesYQG_screen",
-			"crewCuff": "nesYQG_crewCuff",
-			"chairShell": "nesYQG_chairShell",
-			"coolerHandleCool": "nesYQG_coolerHandleCool",
-			"catTail": "nesYQG_catTail",
-			"crewOpen": "nesYQG_crewOpen",
-			"crewTusk": "nesYQG_crewTusk",
-			"coolerDrip": "nesYQG_coolerDrip",
-			"crewDraw": "nesYQG_crewDraw",
-			"crewShoeTrim": "nesYQG_crewShoeTrim",
-			"propSvg": "nesYQG_propSvg",
-			"hanger": "nesYQG_hanger",
-			"coolerBubble": "nesYQG_coolerBubble",
-			"logArrow": "nesYQG_logArrow",
-			"crewBelly": "nesYQG_crewBelly",
-			"deskFlank": "nesYQG_deskFlank",
-			"hangerPlant": "nesYQG_hangerPlant",
-			"team-bob": "nesYQG_team-bob",
-			"drawerHead": "nesYQG_drawerHead",
-			"emptyHint": "nesYQG_emptyHint",
-			"noteFoot": "nesYQG_noteFoot",
-			"crewEye": "nesYQG_crewEye",
-			"crewKnob": "nesYQG_crewKnob",
-			"propInset": "nesYQG_propInset",
-			"pendant": "nesYQG_pendant",
-			"crewSeam": "nesYQG_crewSeam",
-			"crewPocket": "nesYQG_crewPocket",
-			"chairSvg": "nesYQG_chairSvg",
-			"coolerPanel": "nesYQG_coolerPanel",
-			"sky": "nesYQG_sky",
-			"chairLumbar": "nesYQG_chairLumbar",
-			"pane": "nesYQG_pane",
-			"boardGhost": "nesYQG_boardGhost",
-			"team-person-sit": "nesYQG_team-person-sit",
-			"crewLimbBack": "nesYQG_crewLimbBack",
-			"crewCollar": "nesYQG_crewCollar",
-			"shell": "nesYQG_shell",
-			"paneNote": "nesYQG_paneNote",
-			"drawerClose": "nesYQG_drawerClose",
-			"coolerBottle": "nesYQG_coolerBottle",
-			"notePreview": "nesYQG_notePreview",
-			"logHop": "nesYQG_logHop",
-			"crewCansCup": "nesYQG_crewCansCup",
-			"logAvatar": "nesYQG_logAvatar",
-			"team-glow": "nesYQG_team-glow",
-			"drawerBody": "nesYQG_drawerBody",
-			"crewLine": "nesYQG_crewLine",
-			"barIcon": "nesYQG_barIcon",
-			"posterArt": "nesYQG_posterArt",
-			"window": "nesYQG_window",
-			"lamp": "nesYQG_lamp",
-			"boardTray": "nesYQG_boardTray",
-			"catWhisker": "nesYQG_catWhisker",
-			"coolerCabinet": "nesYQG_coolerCabinet",
-			"plateName": "nesYQG_plateName",
-			"clockPin": "nesYQG_clockPin",
-			"team-person-in": "nesYQG_team-person-in",
-			"hangerBracket": "nesYQG_hangerBracket",
-			"propBoxTop": "nesYQG_propBoxTop",
-			"sofa": "nesYQG_sofa",
-			"propTray": "nesYQG_propTray",
-			"deskGrain": "nesYQG_deskGrain",
-			"deskPlant": "nesYQG_deskPlant",
-			"floraPotShade": "nesYQG_floraPotShade",
-			"crewSmile": "nesYQG_crewSmile",
-			"crewStrap": "nesYQG_crewStrap",
-			"card": "nesYQG_card",
-			"load": "nesYQG_load",
-			"boardInk": "nesYQG_boardInk",
-			"logAuthor": "nesYQG_logAuthor",
-			"utilityCabinet": "nesYQG_utilityCabinet",
-			"crewMelon": "nesYQG_crewMelon",
-			"cameo": "nesYQG_cameo",
-			"calendarHead": "nesYQG_calendarHead",
-			"crewPupil": "nesYQG_crewPupil",
-			"crewButton": "nesYQG_crewButton",
-			"columnCount": "nesYQG_columnCount",
-			"logBody": "nesYQG_logBody",
-			"speech": "nesYQG_speech",
-			"deskLegs": "nesYQG_deskLegs",
-			"floraStem": "nesYQG_floraStem",
-			"propLampIdle": "nesYQG_propLampIdle",
-			"rug": "nesYQG_rug",
-			"coolerDoorSeam": "nesYQG_coolerDoorSeam",
-			"glare": "nesYQG_glare",
-			"logTime": "nesYQG_logTime",
-			"logText": "nesYQG_logText",
-			"cardNote": "nesYQG_cardNote",
-			"propLabel": "nesYQG_propLabel",
-			"pendantGlow": "nesYQG_pendantGlow",
-			"chairMechanism": "nesYQG_chairMechanism",
-			"crewArmFront": "nesYQG_crewArmFront",
-			"noteKey": "nesYQG_noteKey",
-			"propShade": "nesYQG_propShade",
-			"floraBloom": "nesYQG_floraBloom",
-			"utilityCoffee": "nesYQG_utilityCoffee",
-			"crewPatch": "nesYQG_crewPatch",
-			"crewFace": "nesYQG_crewFace",
-			"propFront": "nesYQG_propFront",
-			"crewArmBack": "nesYQG_crewArmBack",
-			"plate": "nesYQG_plate",
-			"state": "nesYQG_state",
-			"boardNote": "nesYQG_boardNote",
-			"wall": "nesYQG_wall",
-			"clockHand": "nesYQG_clockHand",
-			"propBox": "nesYQG_propBox",
-			"crewGill": "nesYQG_crewGill",
-			"chairMesh": "nesYQG_chairMesh",
-			"discGlyph": "nesYQG_discGlyph",
-			"catBody": "nesYQG_catBody",
-			"team-sail": "nesYQG_team-sail",
-			"crewEar": "nesYQG_crewEar",
-			"crewTrouser": "nesYQG_crewTrouser",
-			"floor": "nesYQG_floor",
-			"bookLeaning": "nesYQG_bookLeaning",
-			"plateMeta": "nesYQG_plateMeta",
-			"crewStitch": "nesYQG_crewStitch",
-			"crewBib": "nesYQG_crewBib",
-			"floraBloomHeart": "nesYQG_floraBloomHeart",
-			"dockButton": "nesYQG_dockButton",
-			"propSide": "nesYQG_propSide",
-			"team-caret": "nesYQG_team-caret",
-			"catLeg": "nesYQG_catLeg",
-			"poster": "nesYQG_poster",
-			"chairPanTop": "nesYQG_chairPanTop",
-			"clockProp": "nesYQG_clockProp",
-			"crewHoodFabric": "nesYQG_crewHoodFabric",
-			"crewCord": "nesYQG_crewCord",
-			"team-drift": "nesYQG_team-drift",
-			"catEye": "nesYQG_catEye",
-			"plant": "nesYQG_plant",
-			"propCup": "nesYQG_propCup",
-			"floraRim": "nesYQG_floraRim",
-			"chairSpokes": "nesYQG_chairSpokes",
-			"floraLeaf": "nesYQG_floraLeaf",
-			"crewHood": "nesYQG_crewHood",
-			"wallRight": "nesYQG_wallRight",
-			"crewBadgeLine": "nesYQG_crewBadgeLine",
-			"crewHairShine": "nesYQG_crewHairShine",
-			"team-swing": "nesYQG_team-swing",
-			"team-bubble": "nesYQG_team-bubble",
-			"pendantSvg": "nesYQG_pendantSvg",
-			"propLampLive": "nesYQG_propLampLive",
-			"keyboard": "nesYQG_keyboard",
-			"propSeam": "nesYQG_propSeam",
-			"figure": "nesYQG_figure",
-			"crewState": "nesYQG_crewState",
-			"sill": "nesYQG_sill",
-			"beam": "nesYQG_beam",
-			"scene": "nesYQG_scene",
-			"base": "nesYQG_base",
-			"utilityPrinter": "nesYQG_utilityPrinter",
-			"crewPlacket": "nesYQG_crewPlacket",
-			"crewName": "nesYQG_crewName",
-			"calendarGrid": "nesYQG_calendarGrid",
-			"mullion": "nesYQG_mullion",
-			"crewHand": "nesYQG_crewHand",
-			"team-row-in": "nesYQG_team-row-in",
-			"columns": "nesYQG_columns",
-			"team-type": "nesYQG_team-type",
-			"crewSleeve": "nesYQG_crewSleeve",
-			"chairPan": "nesYQG_chairPan",
-			"team-chair-stretch": "nesYQG_team-chair-stretch",
-			"crewRow": "nesYQG_crewRow",
 			"cooler": "nesYQG_cooler",
-			"reveal": "nesYQG_reveal",
-			"crewMouth": "nesYQG_crewMouth",
-			"team-prowl": "nesYQG_team-prowl",
-			"sail": "nesYQG_sail",
-			"team-tick": "nesYQG_team-tick",
-			"empty": "nesYQG_empty",
-			"logTo": "nesYQG_logTo",
-			"notes": "nesYQG_notes",
-			"log": "nesYQG_log",
-			"pendantShade": "nesYQG_pendantShade",
-			"plankBracket": "nesYQG_plankBracket",
-			"crewBrow": "nesYQG_crewBrow",
+			"doze": "nesYQG_doze",
+			"sofaBackTop": "nesYQG_sofaBackTop",
+			"coolerTap": "nesYQG_coolerTap",
+			"acTemp": "nesYQG_acTemp",
+			"roomPane": "nesYQG_roomPane",
+			"wallBack": "nesYQG_wallBack",
 			"crewBlush": "nesYQG_crewBlush",
-			"crewRib": "nesYQG_crewRib",
+			"chairSpokes": "nesYQG_chairSpokes",
+			"crewPupil": "nesYQG_crewPupil",
+			"clockPin": "nesYQG_clockPin",
+			"coolerCabinet": "nesYQG_coolerCabinet",
+			"crewMelon": "nesYQG_crewMelon",
+			"crewSmile": "nesYQG_crewSmile",
+			"person": "nesYQG_person",
+			"crewHoodShade": "nesYQG_crewHoodShade",
+			"crewPleat": "nesYQG_crewPleat",
+			"treadmillTread": "nesYQG_treadmillTread",
+			"crewSpout": "nesYQG_crewSpout",
+			"propTop": "nesYQG_propTop",
+			"floraBladeDetail": "nesYQG_floraBladeDetail",
+			"lampFinial": "nesYQG_lampFinial",
+			"coolerFaucet": "nesYQG_coolerFaucet",
+			"propBoxTop": "nesYQG_propBoxTop",
+			"blankTitle": "nesYQG_blankTitle",
+			"crewHand": "nesYQG_crewHand",
+			"utilityPrinter": "nesYQG_utilityPrinter",
 			"bar": "nesYQG_bar",
-			"propPaper": "nesYQG_propPaper",
+			"crewArmFront": "nesYQG_crewArmFront",
+			"crewVest": "nesYQG_crewVest",
+			"boardEraser": "nesYQG_boardEraser",
+			"lampBulb": "nesYQG_lampBulb",
+			"propTray": "nesYQG_propTray",
+			"utility": "nesYQG_utility",
+			"crewPackZip": "nesYQG_crewPackZip",
+			"crewHoodFabric": "nesYQG_crewHoodFabric",
+			"sofaSeat": "nesYQG_sofaSeat",
+			"crewTusk": "nesYQG_crewTusk",
+			"pendantFlex": "nesYQG_pendantFlex",
+			"coolerPanel": "nesYQG_coolerPanel",
+			"team-bubble": "nesYQG_team-bubble",
+			"crewScarfPattern": "nesYQG_crewScarfPattern",
+			"clockTicks": "nesYQG_clockTicks",
+			"logTail": "nesYQG_logTail",
+			"sofaArm": "nesYQG_sofaArm",
+			"propFolder": "nesYQG_propFolder",
+			"chairLumbarKnob": "nesYQG_chairLumbarKnob",
+			"utilityCabinet": "nesYQG_utilityCabinet",
+			"catGlint": "nesYQG_catGlint",
+			"floraBladeLit": "nesYQG_floraBladeLit",
+			"books": "nesYQG_books",
+			"propBean": "nesYQG_propBean",
+			"sofaButton": "nesYQG_sofaButton",
+			"hanger": "nesYQG_hanger",
+			"crewPackPocket": "nesYQG_crewPackPocket",
+			"logHop": "nesYQG_logHop",
+			"cameoCrew": "nesYQG_cameoCrew",
+			"catSvg": "nesYQG_catSvg",
+			"stat": "nesYQG_stat",
+			"coolerHandleCool": "nesYQG_coolerHandleCool",
+			"crewCansPivot": "nesYQG_crewCansPivot",
+			"propMugHandle": "nesYQG_propMugHandle",
+			"crewNeck": "nesYQG_crewNeck",
+			"crewTuskSpiral": "nesYQG_crewTuskSpiral",
+			"blankHint": "nesYQG_blankHint",
+			"acSeam": "nesYQG_acSeam",
+			"crewHairShine": "nesYQG_crewHairShine",
+			"crewHood": "nesYQG_crewHood",
+			"crewEar": "nesYQG_crewEar",
+			"crewScrunchie": "nesYQG_crewScrunchie",
+			"crewTrouser": "nesYQG_crewTrouser",
+			"team-chair-stretch": "nesYQG_team-chair-stretch",
+			"crewPatch": "nesYQG_crewPatch",
+			"crewLimbFront": "nesYQG_crewLimbFront",
+			"crewGlassesBridge": "nesYQG_crewGlassesBridge",
+			"coolerCabinetEdge": "nesYQG_coolerCabinetEdge",
+			"catWhisker": "nesYQG_catWhisker",
+			"crewFace": "nesYQG_crewFace",
+			"floraSaucerLip": "nesYQG_floraSaucerLip",
+			"coolerShineRim": "nesYQG_coolerShineRim",
+			"propGauge": "nesYQG_propGauge",
+			"crewFacialGroup": "nesYQG_crewFacialGroup",
+			"cardFoot": "nesYQG_cardFoot",
+			"propFolderTab": "nesYQG_propFolderTab",
+			"noteTime": "nesYQG_noteTime",
+			"treadmillSensor": "nesYQG_treadmillSensor",
+			"propCarafeHandle": "nesYQG_propCarafeHandle",
+			"logTo": "nesYQG_logTo",
+			"chairLumbar": "nesYQG_chairLumbar",
+			"chairLift": "nesYQG_chairLift",
+			"crewCansBand": "nesYQG_crewCansBand",
+			"floraSoil": "nesYQG_floraSoil",
+			"propDrawerHandle": "nesYQG_propDrawerHandle",
+			"treadmillStopKey": "nesYQG_treadmillStopKey",
+			"logArrow": "nesYQG_logArrow",
+			"coolerHandleWarm": "nesYQG_coolerHandleWarm",
+			"tableGrain": "nesYQG_tableGrain",
+			"airConditioner": "nesYQG_airConditioner",
+			"team-person-sit": "nesYQG_team-person-sit",
+			"propScreenGlint": "nesYQG_propScreenGlint",
+			"floraRimLip": "nesYQG_floraRimLip",
+			"crown": "nesYQG_crown",
+			"acGrille": "nesYQG_acGrille",
+			"cat": "nesYQG_cat",
+			"crewPenClip": "nesYQG_crewPenClip",
+			"papers": "nesYQG_papers",
+			"boardInk": "nesYQG_boardInk",
+			"coolerDripWell": "nesYQG_coolerDripWell",
+			"coolerDoorSeam": "nesYQG_coolerDoorSeam",
+			"plank": "nesYQG_plank",
+			"propLabelLine": "nesYQG_propLabelLine",
+			"crewNeckBand": "nesYQG_crewNeckBand",
+			"ceiling": "nesYQG_ceiling",
+			"boardGhost": "nesYQG_boardGhost",
+			"treadmill": "nesYQG_treadmill",
+			"reveal": "nesYQG_reveal",
+			"speech": "nesYQG_speech",
+			"crewNose": "nesYQG_crewNose",
+			"acLouver": "nesYQG_acLouver",
+			"sofaPillowWarm": "nesYQG_sofaPillowWarm",
+			"catEye": "nesYQG_catEye",
+			"pendantFilament": "nesYQG_pendantFilament",
+			"lampShadeTop": "nesYQG_lampShadeTop",
+			"crewShoeToe": "nesYQG_crewShoeToe",
+			"team-doze": "nesYQG_team-doze",
+			"team-glow": "nesYQG_team-glow",
+			"team-sway": "nesYQG_team-sway",
+			"crewScarfFringe": "nesYQG_crewScarfFringe",
+			"team-person-in": "nesYQG_team-person-in",
+			"floraCactusDetails": "nesYQG_floraCactusDetails",
+			"crewPackTrim": "nesYQG_crewPackTrim",
+			"crewJacket": "nesYQG_crewJacket",
+			"crewDroplet": "nesYQG_crewDroplet",
+			"crewCansCushion": "nesYQG_crewCansCushion",
+			"empty": "nesYQG_empty",
+			"calendarHead": "nesYQG_calendarHead",
+			"treadmillHoodVent": "nesYQG_treadmillHoodVent",
+			"plateMeta": "nesYQG_plateMeta",
+			"crewEyeGlintSub": "nesYQG_crewEyeGlintSub",
+			"crewArmBack": "nesYQG_crewArmBack",
+			"wallLeft": "nesYQG_wallLeft",
+			"crewTrouserCrease": "nesYQG_crewTrouserCrease",
+			"crewBib": "nesYQG_crewBib",
+			"drawerBody": "nesYQG_drawerBody",
+			"propBrew": "nesYQG_propBrew",
+			"team-halo": "nesYQG_team-halo",
+			"shell": "nesYQG_shell",
+			"boardTray": "nesYQG_boardTray",
+			"team-bob": "nesYQG_team-bob",
+			"plant": "nesYQG_plant",
+			"calendar": "nesYQG_calendar",
+			"team-type": "nesYQG_team-type",
+			"scene": "nesYQG_scene",
+			"floor": "nesYQG_floor",
+			"barTitle": "nesYQG_barTitle",
+			"team-drawer-in": "nesYQG_team-drawer-in",
+			"acEdge": "nesYQG_acEdge",
+			"tableSvg": "nesYQG_tableSvg",
+			"pendantBulb": "nesYQG_pendantBulb",
+			"lamp": "nesYQG_lamp",
+			"propSteam": "nesYQG_propSteam",
+			"team-chair-rise": "nesYQG_team-chair-rise",
+			"noteFoot": "nesYQG_noteFoot",
+			"crewBuckle": "nesYQG_crewBuckle",
+			"acBreeze": "nesYQG_acBreeze",
+			"propHandle": "nesYQG_propHandle",
+			"propLabel": "nesYQG_propLabel",
+			"team-prowl": "nesYQG_team-prowl",
+			"sofaLeg": "nesYQG_sofaLeg",
+			"propSide": "nesYQG_propSide",
+			"feed": "nesYQG_feed",
+			"crewEye": "nesYQG_crewEye",
+			"crewBadgePhoto": "nesYQG_crewBadgePhoto",
+			"chairPan": "nesYQG_chairPan",
+			"coolerBottle": "nesYQG_coolerBottle",
+			"cloud": "nesYQG_cloud",
+			"base": "nesYQG_base",
+			"paneNote": "nesYQG_paneNote",
+			"lampBase": "nesYQG_lampBase",
+			"noteAuthor": "nesYQG_noteAuthor",
+			"crewShoeSole": "nesYQG_crewShoeSole",
+			"crewBadge": "nesYQG_crewBadge",
 			"crewCans": "nesYQG_crewCans",
+			"team-say-in": "nesYQG_team-say-in",
+			"crewRow": "nesYQG_crewRow",
+			"cardTitle": "nesYQG_cardTitle",
+			"pendantRose": "nesYQG_pendantRose",
+			"propScannerHandle": "nesYQG_propScannerHandle",
+			"crewHairHighlight": "nesYQG_crewHairHighlight",
+			"crewSeam": "nesYQG_crewSeam",
+			"plate": "nesYQG_plate",
+			"barHint": "nesYQG_barHint",
+			"notes": "nesYQG_notes",
+			"chairMechanism": "nesYQG_chairMechanism",
+			"state": "nesYQG_state",
+			"team-listen": "nesYQG_team-listen",
+			"tableLeg": "nesYQG_tableLeg",
+			"flora": "nesYQG_flora",
+			"chairMeshSpine": "nesYQG_chairMeshSpine",
+			"floraBlade": "nesYQG_floraBlade",
+			"coolerDrip": "nesYQG_coolerDrip",
+			"treadmillPost": "nesYQG_treadmillPost",
+			"table": "nesYQG_table",
+			"floraVein": "nesYQG_floraVein",
+			"figure": "nesYQG_figure",
+			"team-swing": "nesYQG_team-swing",
+			"treadmillConsole": "nesYQG_treadmillConsole",
+			"mullion": "nesYQG_mullion",
+			"logText": "nesYQG_logText",
+			"crewShoeBadge": "nesYQG_crewShoeBadge",
+			"catNose": "nesYQG_catNose",
+			"crewCollar": "nesYQG_crewCollar",
+			"propPortafilter": "nesYQG_propPortafilter",
+			"deskLegs": "nesYQG_deskLegs",
+			"deskApron": "nesYQG_deskApron",
+			"floraSaucer": "nesYQG_floraSaucer",
+			"hangerPlant": "nesYQG_hangerPlant",
+			"barIcon": "nesYQG_barIcon",
+			"crewButton": "nesYQG_crewButton",
+			"treadmillBelt": "nesYQG_treadmillBelt",
+			"chairArmrest": "nesYQG_chairArmrest",
+			"note": "nesYQG_note",
+			"chair": "nesYQG_chair",
+			"team-stage-in": "nesYQG_team-stage-in",
+			"bookLeaning": "nesYQG_bookLeaning",
+			"deskTop": "nesYQG_deskTop",
+			"logRow": "nesYQG_logRow",
+			"sillTop": "nesYQG_sillTop",
+			"clockProp": "nesYQG_clockProp",
+			"utilityCoffee": "nesYQG_utilityCoffee",
+			"propGaugeNeedle": "nesYQG_propGaugeNeedle",
+			"crew": "nesYQG_crew",
+			"crewPocketStitch": "nesYQG_crewPocketStitch",
+			"pendantGlow": "nesYQG_pendantGlow",
+			"lampShadeBottom": "nesYQG_lampShadeBottom",
+			"catPupil": "nesYQG_catPupil",
+			"chairRide": "nesYQG_chairRide",
+			"lampStem": "nesYQG_lampStem",
+			"plateName": "nesYQG_plateName",
+			"propBox": "nesYQG_propBox",
+			"floraGlaze": "nesYQG_floraGlaze",
+			"tableMagazine": "nesYQG_tableMagazine",
+			"boardPens": "nesYQG_boardPens",
+			"feedTitle": "nesYQG_feedTitle",
+			"column": "nesYQG_column",
+			"columnCount": "nesYQG_columnCount",
+			"team-screen": "nesYQG_team-screen",
+			"drawerClose": "nesYQG_drawerClose",
+			"crewFlipperTrim": "nesYQG_crewFlipperTrim",
+			"crewMouth": "nesYQG_crewMouth",
+			"noteKey": "nesYQG_noteKey",
+			"tableEdge": "nesYQG_tableEdge",
+			"acBody": "nesYQG_acBody",
+			"sofaSeam": "nesYQG_sofaSeam",
+			"coolerRib": "nesYQG_coolerRib",
+			"keyboard": "nesYQG_keyboard",
+			"treadmillScreen": "nesYQG_treadmillScreen",
+			"floraBloomOuter": "nesYQG_floraBloomOuter",
 			"crewEyeGlint": "nesYQG_crewEyeGlint",
-			"columnTitle": "nesYQG_columnTitle"
+			"crewSpeckle": "nesYQG_crewSpeckle",
+			"tableSurface": "nesYQG_tableSurface",
+			"floraShade": "nesYQG_floraShade",
+			"statLive": "nesYQG_statLive",
+			"pendantShade": "nesYQG_pendantShade",
+			"propLampIdle": "nesYQG_propLampIdle",
+			"acLedPower": "nesYQG_acLedPower",
+			"sofaPillowLine": "nesYQG_sofaPillowLine",
+			"team-sail": "nesYQG_team-sail",
+			"crewBelly": "nesYQG_crewBelly",
+			"coolerLedCold": "nesYQG_coolerLedCold",
+			"coolerShine": "nesYQG_coolerShine",
+			"catBody": "nesYQG_catBody",
+			"screen": "nesYQG_screen",
+			"treadmillHood": "nesYQG_treadmillHood",
+			"logAuthor": "nesYQG_logAuthor",
+			"paneTitle": "nesYQG_paneTitle",
+			"team-steam": "nesYQG_team-steam",
+			"crewShoeBuckle": "nesYQG_crewShoeBuckle",
+			"crewCrossStrap": "nesYQG_crewCrossStrap",
+			"clockHand": "nesYQG_clockHand",
+			"card": "nesYQG_card",
+			"team-breeze": "nesYQG_team-breeze",
+			"plankTop": "nesYQG_plankTop",
+			"propSpout": "nesYQG_propSpout",
+			"calendarGrid": "nesYQG_calendarGrid",
+			"floraBloom": "nesYQG_floraBloom",
+			"listening": "nesYQG_listening",
+			"propLampWifi": "nesYQG_propLampWifi",
+			"crewState": "nesYQG_crewState",
+			"wallRight": "nesYQG_wallRight",
+			"emptyHint": "nesYQG_emptyHint",
+			"propSeam": "nesYQG_propSeam",
+			"crewCansCup": "nesYQG_crewCansCup",
+			"treadmillMetrics": "nesYQG_treadmillMetrics",
+			"propSvg": "nesYQG_propSvg",
+			"drawer": "nesYQG_drawer",
+			"sofaSeatSeam": "nesYQG_sofaSeatSeam",
+			"chairHub": "nesYQG_chairHub",
+			"chairSvg": "nesYQG_chairSvg",
+			"treadmillSvg": "nesYQG_treadmillSvg",
+			"crewBelt": "nesYQG_crewBelt",
+			"floraRim": "nesYQG_floraRim",
+			"treadmillKeyCord": "nesYQG_treadmillKeyCord",
+			"crewOpen": "nesYQG_crewOpen",
+			"logTime": "nesYQG_logTime",
+			"crewHoodSheen": "nesYQG_crewHoodSheen",
+			"crewDraw": "nesYQG_crewDraw",
+			"team-row-in": "nesYQG_team-row-in",
+			"treadmillRail": "nesYQG_treadmillRail",
+			"deskModesty": "nesYQG_deskModesty",
+			"crewRib": "nesYQG_crewRib",
+			"crewWrinkle": "nesYQG_crewWrinkle",
+			"log": "nesYQG_log",
+			"boardNote": "nesYQG_boardNote",
+			"propTextLines": "nesYQG_propTextLines",
+			"crewKnob": "nesYQG_crewKnob",
+			"tableMugHandle": "nesYQG_tableMugHandle",
+			"chairShellEdge": "nesYQG_chairShellEdge",
+			"desk": "nesYQG_desk",
+			"crewPlacket": "nesYQG_crewPlacket",
+			"treadmillHoodSheen": "nesYQG_treadmillHoodSheen",
+			"coolerPanelDepth": "nesYQG_coolerPanelDepth",
+			"catLeg": "nesYQG_catLeg",
+			"load": "nesYQG_load",
+			"neck": "nesYQG_neck",
+			"chairPanStitch": "nesYQG_chairPanStitch",
+			"dockButton": "nesYQG_dockButton",
+			"crewGlassesFrame": "nesYQG_crewGlassesFrame",
+			"beam": "nesYQG_beam",
+			"crewCrest": "nesYQG_crewCrest",
+			"shelfPlant": "nesYQG_shelfPlant",
+			"screenApp": "nesYQG_screenApp",
+			"treadmillArm": "nesYQG_treadmillArm",
+			"crewShoe": "nesYQG_crewShoe",
+			"propScreen": "nesYQG_propScreen",
+			"crewAglet": "nesYQG_crewAglet",
+			"cameoDot": "nesYQG_cameoDot",
+			"discGlyph": "nesYQG_discGlyph",
+			"cameo": "nesYQG_cameo",
+			"stage": "nesYQG_stage",
+			"sail": "nesYQG_sail",
+			"coolerWater": "nesYQG_coolerWater",
+			"coolerSvg": "nesYQG_coolerSvg",
+			"crewCord": "nesYQG_crewCord",
+			"deskPlant": "nesYQG_deskPlant",
+			"crewHoodOpening": "nesYQG_crewHoodOpening",
+			"treadmillBase": "nesYQG_treadmillBase",
+			"skirting": "nesYQG_skirting",
+			"catStripe": "nesYQG_catStripe",
+			"deskSurface": "nesYQG_deskSurface",
+			"mug": "nesYQG_mug",
+			"propPaperGauge": "nesYQG_propPaperGauge",
+			"chairMeshLine": "nesYQG_chairMeshLine",
+			"sofaSeatPiping": "nesYQG_sofaSeatPiping",
+			"crewBrow": "nesYQG_crewBrow",
+			"lampSvg": "nesYQG_lampSvg",
+			"propWarmerPlate": "nesYQG_propWarmerPlate",
+			"pane": "nesYQG_pane",
+			"floraBloomHeart": "nesYQG_floraBloomHeart",
+			"plankBracket": "nesYQG_plankBracket",
+			"sofaPillowCool": "nesYQG_sofaPillowCool",
+			"chairPanTop": "nesYQG_chairPanTop",
+			"acSvg": "nesYQG_acSvg",
+			"catEarInner": "nesYQG_catEarInner",
+			"logAvatar": "nesYQG_logAvatar",
+			"team-tick": "nesYQG_team-tick",
+			"sofa": "nesYQG_sofa",
+			"crewLimbBack": "nesYQG_crewLimbBack",
+			"cardWho": "nesYQG_cardWho",
+			"deskFlank": "nesYQG_deskFlank",
+			"crewGlassesGlass": "nesYQG_crewGlassesGlass",
+			"crewScarf": "nesYQG_crewScarf",
+			"crewBadgeLine": "nesYQG_crewBadgeLine",
+			"columnTitle": "nesYQG_columnTitle",
+			"window": "nesYQG_window",
+			"sill": "nesYQG_sill",
+			"floraPot": "nesYQG_floraPot",
+			"propGlass": "nesYQG_propGlass",
+			"coolerLedPower": "nesYQG_coolerLedPower",
+			"crewLine": "nesYQG_crewLine",
+			"crewSleeve": "nesYQG_crewSleeve",
+			"crewShoeEyelet": "nesYQG_crewShoeEyelet",
+			"sky": "nesYQG_sky",
+			"team-caret": "nesYQG_team-caret",
+			"glare": "nesYQG_glare",
+			"pendantMouth": "nesYQG_pendantMouth",
+			"tableCup": "nesYQG_tableCup",
+			"catTailTip": "nesYQG_catTailTip",
+			"catEar": "nesYQG_catEar",
+			"logKind": "nesYQG_logKind",
+			"crewHoodRidge": "nesYQG_crewHoodRidge",
+			"trophy": "nesYQG_trophy",
+			"hangerBracket": "nesYQG_hangerBracket",
+			"sofaArmTop": "nesYQG_sofaArmTop",
+			"treadmillBottle": "nesYQG_treadmillBottle",
+			"acLedCool": "nesYQG_acLedCool",
+			"boardTrayTop": "nesYQG_boardTrayTop",
+			"crewName": "nesYQG_crewName",
+			"catTail": "nesYQG_catTail",
+			"pendantSvg": "nesYQG_pendantSvg",
+			"crewStrap": "nesYQG_crewStrap",
+			"composerAway": "nesYQG_composerAway",
+			"lampShade": "nesYQG_lampShade",
+			"crewGill": "nesYQG_crewGill",
+			"deskGrain": "nesYQG_deskGrain",
+			"sofaBack": "nesYQG_sofaBack",
+			"coolerCap": "nesYQG_coolerCap",
+			"floraMoss": "nesYQG_floraMoss",
+			"coolerCapTop": "nesYQG_coolerCapTop",
+			"floraCrumb": "nesYQG_floraCrumb",
+			"crewPack": "nesYQG_crewPack",
+			"crewStitch": "nesYQG_crewStitch",
+			"pendantNeck": "nesYQG_pendantNeck",
+			"chairSpine": "nesYQG_chairSpine",
+			"crewKnobHighlight": "nesYQG_crewKnobHighlight",
+			"cardNote": "nesYQG_cardNote",
+			"dockCount": "nesYQG_dockCount",
+			"whiteboard": "nesYQG_whiteboard",
+			"propBoxHole": "nesYQG_propBoxHole",
+			"body": "nesYQG_body",
+			"propLampLive": "nesYQG_propLampLive",
+			"drawerHead": "nesYQG_drawerHead",
+			"floraBloomStamen": "nesYQG_floraBloomStamen",
+			"crewHair": "nesYQG_crewHair",
+			"crewPocket": "nesYQG_crewPocket",
+			"pendant": "nesYQG_pendant",
+			"coolerNeck": "nesYQG_coolerNeck",
+			"sofaSvg": "nesYQG_sofaSvg",
+			"floraLeaf": "nesYQG_floraLeaf",
+			"lampBeam": "nesYQG_lampBeam",
+			"monitor": "nesYQG_monitor",
+			"shelf": "nesYQG_shelf",
+			"propInset": "nesYQG_propInset",
+			"propCup": "nesYQG_propCup",
+			"crewTuskGroup": "nesYQG_crewTuskGroup",
+			"crewClip": "nesYQG_crewClip",
+			"floraPotShade": "nesYQG_floraPotShade",
+			"crewList": "nesYQG_crewList",
+			"propPaperLine": "nesYQG_propPaperLine",
+			"barStats": "nesYQG_barStats",
+			"crewShirt": "nesYQG_crewShirt",
+			"propFront": "nesYQG_propFront",
+			"notePreview": "nesYQG_notePreview",
+			"propPaper": "nesYQG_propPaper",
+			"team-blink": "nesYQG_team-blink",
+			"floraStem": "nesYQG_floraStem",
+			"floraSpine": "nesYQG_floraSpine",
+			"coolerGrille": "nesYQG_coolerGrille",
+			"tableTop": "nesYQG_tableTop",
+			"crewShoeStripe": "nesYQG_crewShoeStripe",
+			"dock": "nesYQG_dock",
+			"crewMelonHighlight": "nesYQG_crewMelonHighlight",
+			"logBody": "nesYQG_logBody",
+			"crewSaddle": "nesYQG_crewSaddle",
+			"crewKnitLine": "nesYQG_crewKnitLine",
+			"propShade": "nesYQG_propShade",
+			"crewStrapBuckle": "nesYQG_crewStrapBuckle",
+			"wall": "nesYQG_wall",
+			"crewCuff": "nesYQG_crewCuff",
+			"lounge": "nesYQG_lounge",
+			"crewBlowhole": "nesYQG_crewBlowhole",
+			"sea": "nesYQG_sea",
+			"logHead": "nesYQG_logHead",
+			"tableMagPage": "nesYQG_tableMagPage",
+			"floorPlane": "nesYQG_floorPlane",
+			"crewPackHandle": "nesYQG_crewPackHandle",
+			"coolerBubble": "nesYQG_coolerBubble",
+			"crewShoeTrim": "nesYQG_crewShoeTrim",
+			"rug": "nesYQG_rug",
+			"chairMesh": "nesYQG_chairMesh",
+			"team-drift": "nesYQG_team-drift",
+			"tableSaucer": "nesYQG_tableSaucer",
+			"crewStripes": "nesYQG_crewStripes",
+			"columns": "nesYQG_columns",
+			"crewGlasses": "nesYQG_crewGlasses",
+			"chairShell": "nesYQG_chairShell",
+			"chairCasters": "nesYQG_chairCasters",
+			"screenText": "nesYQG_screenText"
 		};
 		//#endregion
 		//#region src/client/crew.tsx
@@ -1523,165 +1697,371 @@ window.__ModuleLoader__.load({
 			const flip = side === "right";
 			const inner = flip ? 32.9 : 31.1;
 			const outer = flip ? 45.2 : 18.8;
-			const toe = flip ? 41.5 : 22.5;
+			const toe = flip ? 42 : 22;
 			const way = flip ? -1 : 1;
-			if (kind === "boot") return `M${toe} 79 H${inner} V95 Q${inner} 100 ${inner - way * 3.5} 100 H${outer + way * 1.6} Q${outer} 100 ${outer} 98.4 L${outer} 94 L${outer + way * 2} 92.6 L${toe} 91 Z`;
-			if (kind === "loafer") return `M${toe} 94 H${inner} V97 Q${inner} 100 ${inner - way * 3.5} 100 H${outer + way * 1.6} Q${outer} 100 ${outer} 98.4 Q${outer} 96.8 ${outer + way * 2} 95.9 L${toe} 94.8 Z`;
-			if (kind === "hightop") return `M${toe} 86 H${inner} V96 Q${inner} 100 ${inner - way * 3.5} 100 H${outer + way * 1.6} Q${outer} 100 ${outer} 98.2 Q${outer} 96 ${outer + way * 2} 95 L${toe} 93.6 Z`;
+			if (kind === "boot") return `M${toe} 78 H${inner} V95 Q${inner} 100 ${inner - way * 3.5} 100 H${outer + way * 1.6} Q${outer} 100 ${outer} 98.4 L${outer} 93.5 L${outer + way * 2} 92 L${toe} 90.5 Z`;
+			if (kind === "loafer") return `M${toe} 93 H${inner} V97 Q${inner} 100 ${inner - way * 3.5} 100 H${outer + way * 1.6} Q${outer} 100 ${outer} 98.4 Q${outer} 96.8 ${outer + way * 2} 95.9 L${toe} 94.8 Z`;
+			if (kind === "hightop") return `M${toe} 85 H${inner} V96 Q${inner} 100 ${inner - way * 3.5} 100 H${outer + way * 1.6} Q${outer} 100 ${outer} 98.2 Q${outer} 96 ${outer + way * 2} 94.8 L${toe} 93.2 Z`;
 			if (kind === "sandal") return `M${toe} 95.5 H${inner} V97.5 Q${inner} 100 ${inner - way * 3.5} 100 H${outer + way * 1.6} Q${outer} 100 ${outer} 98.6 Q${outer} 97.4 ${outer + way * 2} 96.8 L${toe} 96.2 Z`;
-			return `M${toe} 91 H${inner} V97 Q${inner} 100 ${inner - way * 3.5} 100 H${outer + way * 1.6} Q${outer} 100 ${outer} 98.4 Q${outer} 96.6 ${outer + way * 2} 95.6 L${toe} 94.6 Z`;
+			return `M${toe} 90 H${inner} V97 Q${inner} 100 ${inner - way * 3.5} 100 H${outer + way * 1.6} Q${outer} 100 ${outer} 98.4 Q${outer} 96.6 ${outer + way * 2} 95.4 L${toe} 94.2 Z`;
 		}
-		/** The sole edge under a shoe, and the laces or straps across it. */
+		/** The sole edge under a shoe, and the laces, buckles or straps across it. */
 		function shoeTrim(kind, side) {
-			const at = side === "right" ? 37 : 27;
-			if (kind === "sandal") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+			const flip = side === "right";
+			const at = flip ? 37 : 27;
+			const toeX = flip ? 41 : 23;
+			if (kind === "sandal") return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 				className: TeamStage_module_css_default.crewShoeTrim,
-				d: `M${at - 4} 97.5 L${at + 4} 96.5 M${at - 4} 99 L${at + 4} 98.2`
-			});
-			if (kind === "boot") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-				className: TeamStage_module_css_default.crewShoeTrim,
-				d: `M${at - 4.2} 83 H${at + 4.2} M${at - 4.2} 88 H${at + 4.2}`
-			});
-			if (kind === "hightop") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-				className: TeamStage_module_css_default.crewShoeTrim,
-				d: `M${at - 3.6} 89 H${at + 3.6} M${at - 3.6} 92.5 H${at + 3.6}`
-			});
-			if (kind === "loafer") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-				className: TeamStage_module_css_default.crewShoeTrim,
-				d: `M${at - 3.4} 96 H${at + 3.4}`
-			});
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-				className: TeamStage_module_css_default.crewShoeTrim,
-				d: `M${at - 3.6} 93.4 H${at + 3.6} M${at - 3} 95.6 H${at + 3}`
-			});
+				d: `M${at - 4.5} 97.5 L${at + 4.5} 96.5 M${at - 4.5} 99 L${at + 4.5} 98.2`
+			}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+				className: TeamStage_module_css_default.crewShoeSole,
+				d: `M${at - 5} 99.5 H${at + 5}`
+			})] });
+			if (kind === "boot") return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewShoeTrim,
+					d: `M${at - 4.2} 82.5 H${at + 4.2} M${at - 4.2} 86.5 H${at + 4.2} M${at - 4.2} 90.5 H${at + 4.2}`
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewShoeSole,
+					d: `M${at - 5.5} 99.2 H${at + 5.5}`
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					className: TeamStage_module_css_default.crewShoeEyelet,
+					cx: at - 2.5,
+					cy: 82.5,
+					r: .6
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					className: TeamStage_module_css_default.crewShoeEyelet,
+					cx: at + 2.5,
+					cy: 82.5,
+					r: .6
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					className: TeamStage_module_css_default.crewShoeEyelet,
+					cx: at - 2.5,
+					cy: 86.5,
+					r: .6
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					className: TeamStage_module_css_default.crewShoeEyelet,
+					cx: at + 2.5,
+					cy: 86.5,
+					r: .6
+				})
+			] });
+			if (kind === "hightop") return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewShoeTrim,
+					d: `M${at - 3.8} 88.5 H${at + 3.8} M${at - 3.8} 92 H${at + 3.8}`
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					className: TeamStage_module_css_default.crewShoeBadge,
+					cx: flip ? at - 2 : at + 2,
+					cy: 89,
+					r: 1.6
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewShoeToe,
+					d: `M${toeX - 2.2} 95.5 Q${toeX} 93.5 ${toeX + 2.2} 95.5`
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewShoeSole,
+					d: `M${at - 5.2} 99 H${at + 5.2}`
+				})
+			] });
+			if (kind === "loafer") return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewShoeTrim,
+					d: `M${at - 3.5} 95.5 H${at + 3.5}`
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					className: TeamStage_module_css_default.crewShoeBuckle,
+					x: at - 2,
+					y: 94.5,
+					width: 4,
+					height: 2,
+					rx: .6
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewShoeSole,
+					d: `M${at - 5} 99.2 H${at + 5}`
+				})
+			] });
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewShoeTrim,
+					d: `M${at - 3.8} 93 H${at + 3.8} M${at - 3.2} 95.2 H${at + 3.2}`
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewShoeToe,
+					d: `M${toeX - 2} 96 Q${toeX} 94.2 ${toeX + 2} 96`
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewShoeSole,
+					d: `M${at - 5.2} 99 H${at + 5.2}`
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewShoeStripe,
+					d: `M${at - 3} 94.5 Q${at} 96.5 ${at + 3} 94.5`
+				})
+			] });
 		}
-		/** The whale worn as a hood: flukes at the left, snout out to the right. */
-		const WHALE = "M10 10 C10 -6 21 -16 37 -16 C51 -16 61 -8 65 2 C66.5 5 65 9 61 9.5 C52 11 44 15 36 20 C28 25 19 26 14 24 C10.5 22 10 17 10 10 Z";
-		/** The flukes, one lobe over the back of the head and one below it. */
-		const FLUKES = "M11 3 C5 -1 1 -7 0 -14 C6 -11 10 -6 13 -1 Z M10 14 C5 17 1 22 -1 28 C5 27 10 23 13.5 18 Z";
-		/** The pale underside, from the throat to the tip of the jaw. */
-		const BELLY = "M15 21 C21 24 29 23 36 19 C43 15 52 10.5 60 9.5 C52 15 44 19 36 22.5 C28 26 19 26 15 21 Z";
-		/** The shirt: shoulders, a straight body, a hem over the hips. */
-		const SHIRT = "M32 46 C40 46 45.5 50.5 46.5 58.5 L47.5 76 C47.5 79 45.8 80.5 42.8 80.5 L21.2 80.5 C18.2 80.5 16.5 79 16.5 76 L17.5 58.5 C18.5 50.5 24 46 32 46 Z";
+		/** The whale worn as a hood: flukes at the left, snout out to the right, contoured curves. */
+		const WHALE = "M9 10 C9 -7 20 -17 37 -17 C52 -17 62 -9 66 1.5 C67.5 5 66 9.2 61.5 9.8 C52 11.5 44 15.5 36 20.5 C28 25.5 18.5 26.5 13.5 24.5 C9.8 22.5 9 17 9 10 Z";
+		/** The flukes, one upper lobe and one lower lobe with refined scalloped curve. */
+		const FLUKES = "M10 2.5 C4.5 -1.5 0.5 -7.5 -0.5 -15 C5.5 -12 10 -6.5 12.5 -1.5 Z M9 14.5 C4 17.5 0 23 -2 29.5 C4.5 28 9.5 23.5 13 18.5 Z";
+		/** The pale underside, from the throat pleats to the tip of the lower jaw. */
+		const BELLY = "M14 21.5 C20.5 24.5 28.5 23.5 35.5 19.5 C42.5 15.5 51.5 11 59.5 10 C51.5 15.5 43.5 19.5 35.5 23 C27.5 26.5 18 26.5 14 21.5 Z";
+		/** The inner face opening of the plush hood, casting an ambient shadow over the face. */
+		const HOOD_OPENING_RIM = "M18 28.5 C18 19.5 23.5 13 32 13 C40.5 13 46 19.5 46 28.5 C46 36.5 40 43 32 43 C24 43 18 36.5 18 28.5 Z";
+		/** The shirt: refined shoulder curve, straight body, tailored hem over the hips. */
+		const SHIRT = "M32 46 C40.5 46 46 50.2 47 58.5 L48 76 C48 79 46.2 80.5 43 80.5 L21 80.5 C17.8 80.5 16 79 16 76 L17 58.5 C18 50.2 23.5 46 32 46 Z";
 		/** The seam over each shoulder, where the sleeve is set into the body. */
-		const SHOULDER_SEAM = "M21.5 51.5 C23.5 55 24 60 24 64 M42.5 51.5 C40.5 55 40 60 40 64";
+		const SHOULDER_SEAM = "M21.5 51 C23.5 54.5 24 59.5 24 64 M42.5 51 C40.5 54.5 40 59.5 40 64";
 		/** The fold the hem falls into over the hips. */
-		const HEM_FOLD = "M18 77.5 C24 79.5 40 79.5 46 77.5";
+		const HEM_FOLD = "M17.5 77.5 C24 79.8 40 79.8 46.5 77.5";
 		/**
-		* The back of the head is not a bald oval: whichever way a member is turned it
-		* has hair on it, cut in one of the room's six styles. The cap is the mass
-		* that shows either way; the back view fills in everything below it.
+		* The back of the head hairstyles, richly styled with layers, highlights,
+		* textures and distinct shapes.
 		*/
 		const CAPS = {
-			fringe: "M18 30 C18 18 23 11 32 11 C41 11 46 18 46 30 C46 33 44.5 35 42.5 35 C40 35 39 32 36 32 C33 32 32 35 29 35 C26 35 25 32 23 32 C21 32 19.5 34 18 34 Z",
-			crop: "M18.5 28 C18.5 17.5 24 11 32 11 C40 11 45.5 17.5 45.5 28 C45.5 30.4 44.4 31.2 42.8 30.4 C40.6 29.3 39.4 26 32 26 C24.6 26 23.4 29.3 21.2 30.4 C19.6 31.2 18.5 30.4 18.5 28 Z",
-			buzz: "M19 27 C19 17.5 24.5 11.5 32 11.5 C39.5 11.5 45 17.5 45 27 C45 28.6 44 29 43 28.2 C40.5 26 37 24.6 32 24.6 C27 24.6 23.5 26 21 28.2 C20 29 19 28.6 19 27 Z",
-			curls: "M18 29 C18 18 23 11 32 11 C41 11 46 18 46 29 C46 32 44 33 42.6 31.6 C41.4 30.4 40.4 31.6 39 31 C37.6 30.4 37.4 28.6 35.6 28.6 C33.8 28.6 33.4 30.6 32 30.6 C30.6 30.6 30.2 28.6 28.4 28.6 C26.6 28.6 26.4 30.4 25 31 C23.6 31.6 22.6 30.4 21.4 31.6 C20 33 18 32 18 29 Z",
-			bun: "M18.5 29 C18.5 18 23.5 11 32 11 C40.5 11 45.5 18 45.5 29 C45.5 31.5 44 33 42 32 C40 31 39 27 32 27 C25 27 24 31 22 32 C20 33 18.5 31.5 18.5 29 Z",
-			ponytail: "M18.5 30 C18.5 18 23.5 11 32 11 C40.5 11 45.5 18 45.5 30 C45.5 32.5 44 33.5 42 32.5 C40 31.5 39 27.5 32 27.5 C25 27.5 24 31.5 22 32.5 C20 33.5 18.5 32.5 18.5 30 Z"
+			fringe: "M17.5 30 C17.5 17.5 23 10.5 32 10.5 C41 10.5 46.5 17.5 46.5 30 C46.5 33.5 44.8 35.5 42.5 35.5 C40 35.5 39 32 36 32 C33 32 32 35.5 29 35.5 C26 35.5 25 32 23 32 C21 32 19.2 34.5 17.5 34 Z",
+			crop: "M18 28 C18 17 23.5 10.5 32 10.5 C40.5 10.5 46 17 46 28 C46 30.8 44.6 31.8 42.8 30.8 C40.6 29.5 39.2 25.8 32 25.8 C24.8 25.8 23.4 29.5 21.2 30.8 C19.4 31.8 18 30.8 18 28 Z",
+			buzz: "M18.5 27 C18.5 17 24 11 32 11 C40 11 45.5 17 45.5 27 C45.5 28.8 44.2 29.2 43 28.4 C40.5 26.2 37 24.8 32 24.8 C27 24.8 23.5 26.2 21 28.4 C19.8 29.2 18.5 28.8 18.5 27 Z",
+			curls: "M17.5 29 C17.5 17.5 22.8 10.5 32 10.5 C41.2 10.5 46.5 17.5 46.5 29 C46.5 32.5 44.5 33.8 42.8 32 C41.5 30.6 40.5 32 39 31.2 C37.5 30.5 37.2 28.4 35.5 28.4 C33.6 28.4 33.2 30.8 32 30.8 C30.8 30.8 30.4 28.4 28.5 28.4 C26.8 28.4 26.5 30.5 25 31.2 C23.5 32 22.5 30.6 21.2 32 C19.5 33.8 17.5 32.5 17.5 29 Z",
+			bun: "M18 29 C18 17.5 23.2 10.5 32 10.5 C40.8 10.5 46 17.5 46 29 C46 31.8 44.2 33.2 42.2 32.2 C40.2 31.2 39 26.8 32 26.8 C25 26.8 23.8 31.2 21.8 32.2 C19.8 33.2 18 31.8 18 29 Z",
+			ponytail: "M18 30 C18 17.5 23.2 10.5 32 10.5 C40.8 10.5 46 17.5 46 30 C46 32.8 44.2 33.8 42.2 32.8 C40.2 31.8 39 27.2 32 27.2 C25 27.2 23.8 31.8 21.8 32.8 C19.8 33.8 18 32.8 18 30 Z"
 		};
 		/** The mass of hair that only shows when you are looking at the back of a head. */
-		const NAPE = "M19 27 C19 39.5 24 44.5 32 44.5 C40 44.5 45 39.5 45 27 Z";
-		/** A soft highlight across the crown of the hair. */
-		const HAIR_SHINE = "M24 21 C26 16 29 13.5 33 13 C30.5 16.5 28.5 20 27.5 24 Z";
-		/** A cool highlight along the whale hood's back, so it reads as a smooth hood. */
-		const HOOD_SHEEN = "M17 -3 C18 -10 23 -15 30 -16 C25 -12 21 -8 19 -2 Z";
+		const NAPE = "M18.5 27 C18.5 40 23.8 45 32 45 C40.2 45 45.5 40 45.5 27 Z";
+		/** Soft highlights across the hair strands. */
+		const HAIR_SHINE = "M23.5 21 C25.5 15.5 29 13 33.5 12.5 C30.5 16 28.5 20 27 24 Z";
+		const HAIR_SHINE_SECONDARY = "M36 14 C39 16.5 41 20 42 24.5 C40.5 21 38.5 17.5 36 14 Z";
+		/** A cool highlight along the whale hood's dorsal curve, giving it smooth 3D luster. */
+		const HOOD_SHEEN = "M16 -3.5 C17.5 -11 23 -15.5 31 -16.5 C25.5 -12.5 21 -8 18.5 -2.5 Z";
+		const HOOD_RIDGE_HIGHLIGHT = "M32 -16.5 C45 -16.5 55 -9.5 60 1.5 C55 -6 44 -14.5 32 -15 Z";
 		/** A soft shadow under the whale's jaw, where the hood meets the collar. */
-		const HOOD_SHADE = "M14 21 C20 24.5 28 24.5 35 21.5 C42 18.5 50 14 59 11 C52 15.5 45 18.5 38 21 C30 23.8 21 24.5 14 21 Z";
+		const HOOD_SHADE = "M13.5 21 C19.5 25 28 25 35 22 C42 19 50 14.5 59.5 11 C52 16 44.5 19 37.5 21.5 C29.5 24.2 20.5 24.8 13.5 21 Z";
 		/** A ribbed hem across the bottom of a sweater. */
-		const RIB_HEM = "M16.5 74 L47.5 74 L47.5 80.5 L16.5 80.5 Z";
-		/** A kangaroo pocket across the front of a hoodie. */
-		const POCKET = "M27 57 C29 53.5 35 53.5 37 57 L38 63 L26 63 Z";
-		/** The hood lying around the neck of a hoodie. */
-		const HOOD_FABRIC = "M24 44 C24 33 28 28.5 32 28.5 C36 28.5 40 33 40 44 L40 47 C36 48 28 48 24 47 Z";
+		const RIB_HEM = "M16 73.5 L48 73.5 L48 80.5 L16 80.5 Z";
+		/** A kangaroo pocket across the front of a hoodie with reinforced corner bar-tacks. */
+		const POCKET = "M26.5 56.5 C28.5 53 35.5 53 37.5 56.5 L39 63.5 L25 63.5 Z";
+		/** The hood fabric lying around the neck of a hoodie. */
+		const HOOD_FABRIC = "M23.5 43.5 C23.5 32 27.5 27.5 32 27.5 C36.5 27.5 40.5 32 40.5 43.5 L40.5 47.5 C36.5 49 27.5 49 23.5 47.5 Z";
 		/** A knitted vest, open at the neck and stopping short of the hem. */
-		const VEST = "M32 47 C38 47 42.5 50.5 43.5 57 L44.5 73 C44.5 75.5 43 76.5 40.5 76.5 L23.5 76.5 C21 76.5 19.5 75.5 19.5 73 L20.5 57 C21.5 50.5 26 47 32 47 Z M32 47 L27 56 L32 62 L37 56 Z";
-		/** The two front panels of an open jacket. */
-		const JACKET = "M23.5 47.5 C20.5 50 18.8 54.5 18.3 59 L17.4 76.5 L27 76.5 L29 52 Z M40.5 47.5 C43.5 50 45.2 54.5 45.7 59 L46.6 76.5 L37 76.5 L35 52 Z";
+		const VEST = "M32 47 C38.5 47 43 50.5 44 57 L45 73 C45 75.5 43.5 76.5 41 76.5 L23 76.5 C20.5 76.5 19 75.5 19 73 L20 57 C21 50.5 25.5 47 32 47 Z M32 47 L26.5 56.5 L32 63 L37.5 56.5 Z";
+		/** The two front panels of an open tailored jacket. */
+		const JACKET = "M23.5 47.5 C20.5 50 18.5 54.5 18 59 L17 76.5 L27.5 76.5 L29.5 52 Z M40.5 47.5 C43.5 50 45.5 54.5 46 59 L47 76.5 L36.5 76.5 L34.5 52 Z";
 		/** The bib and straps of a pair of dungarees. */
-		const BIB = "M25.5 58 H38.5 V72 H25.5 Z";
-		/** The straps over the shoulders of a pair of dungarees. */
-		const STRAPS = "M26 58 L23.5 48 M38 58 L40.5 48";
+		const BIB = "M25 57.5 H39 V72.5 H25 Z";
+		/** The straps over the shoulders of a pair of dungarees with buckles. */
+		const STRAPS = "M25.5 57.5 L23 47.5 M38.5 57.5 L41 47.5";
 		/** Stripes across the front of a jersey. */
-		const STRIPES = "M18 56 H46 M17.7 62 H46.3 M17.5 68 H46.5 M17.3 74 H46.7";
+		const STRIPES = "M17.5 54.5 H46.5 M17.2 60.5 H46.8 M17 66.5 H47 M16.8 72.5 H47.2 M16.5 78 H47.5";
+		/** Whale ventral grooves (throat pleats) on Blue Whale and Humpback. */
+		const THROAT_PLEATS = "M36 21.5 C42 18.5 50 13.5 57 11 M33 23 C39 20 46 16 53 13.5 M30 24.5 C36 21.5 42 18.5 48 16";
 		/** What one kind wears behind the whale, so its base merges into the hood. */
 		function behind(kind) {
 			switch (kind) {
-				case "orca": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+				case "orca": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 					className: TeamStage_module_css_default.crewHood,
-					d: "M26 -12 C27 -22 32 -29 40 -32 C37 -24 33 -17 32 -12 Z"
+					d: "M25 -13 C26 -24 31 -31 40 -34 C37 -25 33 -18 31.5 -13 Z"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewSaddle,
+					d: "M19 -10 C23 -14 28 -14 31 -11 C28 -8 22 -7 19 -10 Z"
+				})] });
+				case "humpback": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewHood,
+						d: "M22 -14 C25 -20 30 -22 35 -17 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewHood,
+						d: "M30 14 C36 19 40 26 43 33 C40 25 36 18 31 13 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewFlipperTrim,
+						d: "M38 24 C40 28 42 32 42.5 32"
+					})
+				] });
+				case "narwhal": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewTuskGroup,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewTusk,
+						d: "M63.5 5.5 L84 -3.5"
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewTuskSpiral,
+						d: "M66 4.5 L67.5 3.8 M71 2.5 L72.5 1.8 M76 0.5 L77.5 -0.2 M80.5 -1.5 L82 -2.2"
+					})]
 				});
-				case "humpback": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+				case "sperm": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 					className: TeamStage_module_css_default.crewHood,
-					d: "M43 16 C50 20 56 26 60 34 C58 24 52 17 45 13 Z"
-				});
-				case "narwhal": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewTusk,
-					d: "M63 6 L81 -2"
-				});
-				case "sperm": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					d: "M38 -16 L59 -16 C63.5 -16 66.5 -12.5 66.5 -8 L66.5 9.5 C57 10.5 47.5 14 38 17.5 Z"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewWrinkle,
+					d: "M24 -11 C26 -14 30 -14 32 -12 M34 -13 C36 -15 39 -15 41 -13"
+				})] });
+				case "shark": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 					className: TeamStage_module_css_default.crewHood,
-					d: "M40 -15 L58 -15 C62 -15 65 -12 65 -8 L65 9.5 C56 10.5 47 14 40 17 Z"
-				});
-				case "shark": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewHood,
-					d: "M36 -20 C38 -27 43 -32 51 -34 C48 -25 44 -18 40 -11 Z"
-				});
+					d: "M34 -21 C37 -29 42 -35 52 -36 C48.5 -27 44 -19 39 -11 Z"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewHoodSheen,
+					d: "M46 -30 C43 -24 40 -18 37 -13"
+				})] });
 				default: return null;
 			}
 		}
 		/** What one kind adds over the whale. */
 		function front(kind) {
 			switch (kind) {
-				case "orca": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+				case "orca": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
 					className: TeamStage_module_css_default.crewPatch,
 					cx: "47",
-					cy: "-4",
-					rx: "6.5",
-					ry: "3.2",
-					transform: "rotate(-16 47 -4)"
-				});
-				case "humpback": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: [
-					[45, -6],
-					[51, -2],
-					[56, 1],
-					[60, 3.5]
-				].map(([x, y]) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					cy: "-4.5",
+					rx: "7",
+					ry: "3.4",
+					transform: "rotate(-16 47 -4.5)"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					className: TeamStage_module_css_default.crewEyeGlint,
+					cx: "48",
+					cy: "-5",
+					r: "0.7"
+				})] });
+				case "humpback": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewPleat,
+					d: THROAT_PLEATS
+				}), [
+					[43, -7],
+					[49, -3],
+					[54, 0],
+					[59, 2.5],
+					[63, 4.5],
+					[47, 8],
+					[53, 6.5]
+				].map(([x, y]) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 					className: TeamStage_module_css_default.crewKnob,
 					cx: x,
 					cy: y,
-					r: "1.5"
-				}, `${x}`)) });
-				case "beluga": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					r: "1.6"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					className: TeamStage_module_css_default.crewKnobHighlight,
+					cx: (x ?? 0) - .4,
+					cy: (y ?? 0) - .4,
+					r: "0.6"
+				})] }, `${x}-${y}`))] });
+				case "beluga": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 					className: TeamStage_module_css_default.crewMelon,
-					d: "M22 -9 C28 -18 42 -18 50 -11 C40 -12.5 29 -11.5 22 -9 Z"
-				});
+					d: "M21 -9.5 C27 -19.5 43 -19.5 51 -11.5 C40.5 -13.5 28.5 -12 21 -9.5 Z"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewMelonHighlight,
+					d: "M28 -14.5 C34 -17.5 42 -17 46 -13"
+				})] });
 				case "shark": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewGill,
-						d: "M39 5 C41.5 6.5 41.5 9.5 39 11"
+						d: "M37 4.5 C39.5 6 39.5 9.5 37 11.5"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewGill,
-						d: "M43 4 C45.5 5.5 45.5 8.5 43 10"
+						d: "M41 3.5 C43.5 5 43.5 8.5 41 10.5"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewGill,
-						d: "M47 3.5 C49 5 49 7.5 47 9"
+						d: "M45 2.5 C47.5 4 47.5 7.5 45 9.5"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewGill,
+						d: "M49 2 C51 3.5 51 6.5 49 8.5"
 					})
 				] });
 				case "blue": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewSpout,
-						d: "M44 -15 C43 -21 42 -25 39 -28"
+						className: TeamStage_module_css_default.crewPleat,
+						d: THROAT_PLEATS
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewSpout,
-						d: "M44 -15 C46 -21 48 -24 52 -26"
+						d: "M43 -15 C42 -22 40 -27 36 -30"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewSpout,
-						d: "M44 -15 C41 -19 38 -21 34 -22"
+						d: "M44 -15 C47 -22 50 -26 55 -28"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewSpout,
+						d: "M43.5 -15 C41 -20 37 -23 32 -24"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewDroplet,
+						cx: "35",
+						cy: "-31.5",
+						r: "1.1"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewDroplet,
+						cx: "56.5",
+						cy: "-29",
+						r: "1.2"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewDroplet,
+						cx: "31",
+						cy: "-25",
+						r: "0.9"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewDroplet,
+						cx: "46",
+						cy: "-29",
+						r: "0.8"
+					})
+				] });
+				case "sperm": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.crewBlowhole,
+						cx: "63",
+						cy: "-12",
+						rx: "1.8",
+						ry: "1.2",
+						transform: "rotate(-15 63 -12)"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewSpout,
+						d: "M63 -13 C66 -19 71 -22 75 -24"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewDroplet,
+						cx: "76",
+						cy: "-25",
+						r: "1"
+					})
+				] });
+				case "narwhal": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewSpeckle,
+						cx: "30",
+						cy: "-6",
+						r: "0.8"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewSpeckle,
+						cx: "37",
+						cy: "-9",
+						r: "0.9"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewSpeckle,
+						cx: "44",
+						cy: "-5",
+						r: "0.7"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewSpeckle,
+						cx: "51",
+						cy: "0",
+						r: "0.8"
 					})
 				] });
 				default: return null;
@@ -1689,33 +2069,69 @@ window.__ModuleLoader__.load({
 		}
 		/** The part of a hairstyle that hangs behind the head, drawn under the face. */
 		function hairBehind(kind, back) {
-			if (kind === "ponytail") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-				className: TeamStage_module_css_default.crewHair,
-				d: back ? "M32 24 C36 24 38 28 38 34 C38 42 36.5 48 34.5 52 L29.5 52 C31.5 48 33 42 33 34 C33 28 30 26 32 24 Z" : "M44 26 C48 28 50 33 49.5 39 C49 45 46.5 49 44 51 C46 46 46.5 40 45.5 35 C44.8 31 44 28 44 26 Z"
+			if (kind === "ponytail") return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+				className: TeamStage_module_css_default.crewHairGroup,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewHair,
+					d: back ? "M32 23 C36.5 23 39 27.5 39 34 C39 42.5 37 49 35 53 L29 53 C31 49 33 42.5 33 34 C33 27.5 29.5 25.5 32 23 Z" : "M43.5 25.5 C48 27.5 50.5 32.5 50 39 C49.5 45.5 47 49.5 44 52 C46.5 46.5 47 40 46 35 C45.2 30.5 44 27.5 43.5 25.5 Z"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewHairHighlight,
+					d: back ? "M35 28 C37 34 36.5 43 34 49" : "M46.5 30 C48 35 47.5 41 45.5 46"
+				})]
 			});
-			if (kind === "curls" && back) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-				className: TeamStage_module_css_default.crewHair,
-				d: "M17 30 C13.5 32 13 38 16 41 C18 43 20 42 20.5 39 Z M47 30 C50.5 32 51 38 48 41 C46 43 44 42 43.5 39 Z"
+			if (kind === "curls" && back) return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+				className: TeamStage_module_css_default.crewHairGroup,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewHair,
+						d: "M16.5 29.5 C12.5 31.5 12 38 15.5 41.5 C17.8 43.8 20.2 42.5 21 39.5 Z M47.5 29.5 C51.5 31.5 52 38 48.5 41.5 C46.2 43.8 43.8 42.5 43 39.5 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewHair,
+						cx: "13",
+						cy: "35",
+						r: "2.5"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewHair,
+						cx: "51",
+						cy: "35",
+						r: "2.5"
+					})
+				]
 			});
 			return null;
 		}
 		/** The part of a hairstyle that sits over everything, like a bun. */
 		function hairAbove(kind) {
 			if (kind !== "bun") return null;
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-				className: TeamStage_module_css_default.crewHair,
-				cx: "32",
-				cy: "8",
-				r: "6.2"
-			}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-				className: TeamStage_module_css_default.crewHairShine,
-				d: "M28.5 5.5 C29.5 3.5 31.5 2.6 33.5 3 C31.5 3.6 30 4.6 29.4 6.4 Z"
-			})] });
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+				className: TeamStage_module_css_default.crewHairGroup,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewHair,
+						cx: "32",
+						cy: "7.5",
+						r: "6.6"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewHairShine,
+						d: "M28 4.8 C29.2 2.6 31.5 1.6 33.8 2.1 C31.6 2.8 29.8 4 29 5.8 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.crewScrunchie,
+						cx: "32",
+						cy: "13.2",
+						rx: "3.8",
+						ry: "1.4"
+					})
+				]
+			});
 		}
 		/**
-		* Gear worn UNDER the hood. Headphones go on before the whale does: the band
-		* runs over the head and the hood lies over it where they cross, so the cups
-		* hang under the jaw instead of being glued to the outside of it.
+		* Gear worn UNDER the hood. Headphones go on before the whale does: the cushioned
+		* band runs over the head, and the plush ear cups sit naturally on both ears
+		* under the jawline with metal pivots.
 		*/
 		function headGearUnder(kind, back) {
 			if (kind !== "headphones") return null;
@@ -1724,31 +2140,58 @@ window.__ModuleLoader__.load({
 				children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewCansBand,
-						d: "M16.5 31 C16.5 16 23.5 9 32 9 C40.5 9 47.5 16 47.5 31"
+						d: "M16 31 C16 15.5 23 8.5 32 8.5 C41 8.5 48 15.5 48 31"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
 						className: TeamStage_module_css_default.crewCansCup,
-						x: "12.6",
-						y: "26",
-						width: "8",
-						height: "12",
-						rx: "4"
+						x: "11.5",
+						y: "25.5",
+						width: "8.6",
+						height: "13",
+						rx: "4.3"
 					}),
-					back && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						className: TeamStage_module_css_default.crewCansCushion,
+						x: "17.5",
+						y: "27",
+						width: "2.6",
+						height: "10",
+						rx: "1.3"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewCansPivot,
+						cx: "15.8",
+						cy: "27",
+						r: "1.2"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
 						className: TeamStage_module_css_default.crewCansCup,
-						x: "43.4",
-						y: "26",
-						width: "8",
-						height: "12",
-						rx: "4"
+						x: "43.9",
+						y: "25.5",
+						width: "8.6",
+						height: "13",
+						rx: "4.3"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						className: TeamStage_module_css_default.crewCansCushion,
+						x: "43.9",
+						y: "27",
+						width: "2.6",
+						height: "10",
+						rx: "1.3"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.crewCansPivot,
+						cx: "48.2",
+						cy: "27",
+						r: "1.2"
 					})
 				]
 			});
 		}
 		/**
 		* Gear worn OVER everything: glasses sit on the face, and the hood's jaw
-		* stays clear of them, so the lenses read as lenses and not as a strip under
-		* the whale's chin.
+		* stays clear of them, so the lenses read as lenses with clear glass reflections.
 		*/
 		function headGearOver(kind, back) {
 			if (kind !== "glasses" || back) return null;
@@ -1756,60 +2199,145 @@ window.__ModuleLoader__.load({
 				className: TeamStage_module_css_default.crewGlasses,
 				children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
-						x: "21",
-						y: "26.6",
-						width: "9.4",
-						height: "7.4",
-						rx: "3.2"
+						className: TeamStage_module_css_default.crewGlassesFrame,
+						x: "20.5",
+						y: "26",
+						width: "10",
+						height: "8",
+						rx: "3.5"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
-						x: "33.6",
-						y: "26.6",
-						width: "9.4",
-						height: "7.4",
-						rx: "3.2"
+						className: TeamStage_module_css_default.crewGlassesFrame,
+						x: "33.5",
+						y: "26",
+						width: "10",
+						height: "8",
+						rx: "3.5"
 					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M30.4 29.8 H33.6 M21 29.4 L17.6 30.4 M43 29.4 L46.4 30.4" })
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewGlassesGlass,
+						d: "M22 28 L27 32 M35 28 L40 32"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewGlassesBridge,
+						d: "M30.5 29.5 H33.5 M20.5 29 L16.8 30.2 M43.5 29 L47.2 30.2"
+					})
 				]
 			});
 		}
 		/** Whatever a member wears over its clothes. */
 		function bodyGear(kind, back) {
 			switch (kind) {
-				case "scarf": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewScarf,
-					d: "M23 45 C27 50 37 50 41 45 L42.5 53 C37 56.5 27 56.5 21.5 53 Z"
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewScarf,
-					d: back ? "M29 54 L27.5 68 L33 68.5 L34.5 54 Z" : "M39 54 L41.5 69 L36 69.5 L34.5 54 Z"
-				})] });
-				case "lanyard": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewCord,
-						d: "M27 48 L31 62 M37 48 L33 62"
-					}),
-					!back && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
-						className: TeamStage_module_css_default.crewBadge,
-						x: "28.6",
-						y: "61",
-						width: "6.8",
-						height: "9",
-						rx: "1.4"
-					}),
-					!back && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewBadgeLine,
-						d: "M30 64.5 H34 M30 67 H33"
-					})
-				] });
-				case "backpack": return back ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewPack,
-					d: "M23 52 C23 48.5 26 47 32 47 C38 47 41 48.5 41 52 L41 70 C41 73 38.5 74 32 74 C25.5 74 23 73 23 70 Z"
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewPackTrim,
-					d: "M25 62 H39 M28 55 H36"
-				})] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewStrap,
-					d: "M25.5 48 C25 56 25.5 64 26.5 71 M38.5 48 C39 56 38.5 64 37.5 71"
+				case "scarf": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewScarfGroup,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewScarf,
+							d: "M22.5 44.5 C26.5 50 37.5 50 41.5 44.5 L43 53.5 C37 57 27 57 21 53.5 Z"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewScarfPattern,
+							d: "M24 47.5 L26 53 M29 48.5 L31 54.5 M34 48.5 L36 54.5 M39 47.5 L41 53"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewScarf,
+							d: back ? "M28.5 54 L27 68.5 L33 69 L34.5 54 Z" : "M39 54 L41.5 69.5 L35.5 70 L34 54 Z"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewScarfFringe,
+							d: back ? "M27 68.5 L26.5 71.5 M29 68.7 L28.8 71.8 M31 68.9 L31.2 72 M33 69 L33.5 72" : "M35.5 70 L35 73 M37.5 69.8 L37.5 73 M39.5 69.6 L40 72.8 M41.5 69.5 L42.2 72.5"
+						})
+					]
+				});
+				case "lanyard": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewLanyardGroup,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewCord,
+							d: "M26.5 47.5 L31.2 62 M37.5 47.5 L32.8 62"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewClip,
+							cx: "32",
+							cy: "62",
+							r: "1.2"
+						}),
+						!back && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+								className: TeamStage_module_css_default.crewBadge,
+								x: "28.2",
+								y: "62.8",
+								width: "7.6",
+								height: "9.8",
+								rx: "1.6"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+								className: TeamStage_module_css_default.crewBadgePhoto,
+								x: "29.4",
+								y: "64",
+								width: "2.6",
+								height: "3",
+								rx: "0.5"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+								className: TeamStage_module_css_default.crewBadgeLine,
+								d: "M32.8 64.8 H34.8 M32.8 66.2 H34.5 M29.4 68.5 H34.6"
+							})
+						] })
+					]
+				});
+				case "backpack": return back ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewBackpackGroup,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewPack,
+							d: "M22.5 51.5 C22.5 47.5 26 46 32 46 C38 46 41.5 47.5 41.5 51.5 L41.5 71 C41.5 74.5 38.5 75.5 32 75.5 C25.5 75.5 22.5 74.5 22.5 71 Z"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewPackPocket,
+							d: "M24.5 59.5 H39.5 V71 C39.5 73 37.5 74 32 74 C26.5 74 24.5 73 24.5 71 Z"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewPackTrim,
+							d: "M25 59.5 H39 M27.5 53 H36.5"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+							className: TeamStage_module_css_default.crewPackZip,
+							x: "31",
+							y: "58.5",
+							width: "2",
+							height: "2",
+							rx: "0.5"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewPackHandle,
+							d: "M29 46 C29 43.5 35 43.5 35 46"
+						})
+					]
+				}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewBackpackGroup,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewStrap,
+							d: "M25 47.5 C24.5 56 25 64.5 26 71.5 M39 47.5 C39.5 56 39 64.5 38 71.5"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+							className: TeamStage_module_css_default.crewStrapBuckle,
+							x: "24",
+							y: "60",
+							width: "2.4",
+							height: "2",
+							rx: "0.5"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+							className: TeamStage_module_css_default.crewStrapBuckle,
+							x: "37.6",
+							y: "60",
+							width: "2.4",
+							height: "2",
+							rx: "0.5"
+						})
+					]
 				});
 				default: return null;
 			}
@@ -1825,76 +2353,99 @@ window.__ModuleLoader__.load({
 				hairBehind(hair, back),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
 					className: TeamStage_module_css_default.crewEar,
-					cx: "17.5",
+					cx: "17.2",
 					cy: "32",
 					rx: "3.4",
-					ry: "3.8"
+					ry: "4"
 				}),
 				back && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
 					className: TeamStage_module_css_default.crewEar,
-					cx: "46.5",
+					cx: "46.8",
 					cy: "32",
 					rx: "3.4",
-					ry: "3.8"
+					ry: "4"
 				}),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 					className: TeamStage_module_css_default.crewFace,
-					d: "M32 12 C41.5 12 46 20 46 29 C46 38.5 40 44 32 44 C24 44 18 38.5 18 29 C18 20 22.5 12 32 12 Z"
+					d: "M32 11.5 C42 11.5 46.5 19.5 46.5 29 C46.5 39 40.5 44.5 32 44.5 C23.5 44.5 17.5 39 17.5 29 C17.5 19.5 22 11.5 32 11.5 Z"
 				}),
 				back && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 					className: TeamStage_module_css_default.crewHair,
 					d: NAPE
 				}),
-				!back && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewBrow,
-						d: "M22 25.5 Q26 23 30.2 24.6"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewBrow,
-						d: "M33.8 24.6 Q38 23 42 25.5"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewPupil,
-						cx: "27",
-						cy: "30",
-						r: "1.5"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewPupil,
-						cx: "37",
-						cy: "30",
-						r: "1.5"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewEyeGlint,
-						cx: "27.6",
-						cy: "29.4",
-						r: "0.55"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewEyeGlint,
-						cx: "37.6",
-						cy: "29.4",
-						r: "0.55"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewSmile,
-						d: "M28.5 35.5 Q32 38.5 35.5 35.5"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewBlush,
-						cx: "21.5",
-						cy: "33",
-						r: "1.9"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewBlush,
-						cx: "42.5",
-						cy: "33",
-						r: "1.9"
-					})
-				] }),
+				!back && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewFacialGroup,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewBrow,
+							d: "M21.5 25 Q25.5 22.5 29.8 24.2"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewBrow,
+							d: "M34.2 24.2 Q38.5 22.5 42.5 25"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewPupil,
+							cx: "26.8",
+							cy: "30",
+							r: "1.6"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewPupil,
+							cx: "37.2",
+							cy: "30",
+							r: "1.6"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewEyeGlint,
+							cx: "27.5",
+							cy: "29.2",
+							r: "0.65"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewEyeGlint,
+							cx: "37.9",
+							cy: "29.2",
+							r: "0.65"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewEyeGlintSub,
+							cx: "26.2",
+							cy: "30.8",
+							r: "0.35"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewEyeGlintSub,
+							cx: "36.6",
+							cy: "30.8",
+							r: "0.35"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewNose,
+							cx: "32",
+							cy: "32.8",
+							r: "0.5"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewSmile,
+							d: "M28.2 35.8 Q32 39 35.8 35.8"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+							className: TeamStage_module_css_default.crewBlush,
+							cx: "21",
+							cy: "33.2",
+							rx: "2.4",
+							ry: "1.5"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+							className: TeamStage_module_css_default.crewBlush,
+							cx: "43",
+							cy: "33.2",
+							rx: "2.4",
+							ry: "1.5"
+						})
+					]
+				}),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 					className: TeamStage_module_css_default.crewHair,
 					d: CAPS[hair]
@@ -1902,6 +2453,10 @@ window.__ModuleLoader__.load({
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 					className: TeamStage_module_css_default.crewHairShine,
 					d: HAIR_SHINE
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+					className: TeamStage_module_css_default.crewHairShine,
+					d: HAIR_SHINE_SECONDARY
 				}),
 				headGearUnder(gear, back),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
@@ -1920,10 +2475,18 @@ window.__ModuleLoader__.load({
 							className: TeamStage_module_css_default.crewBelly,
 							d: BELLY
 						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewHoodOpening,
+							d: HOOD_OPENING_RIM
+						}),
 						front(kind),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 							className: TeamStage_module_css_default.crewHoodSheen,
 							d: HOOD_SHEEN
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewHoodRidge,
+							d: HOOD_RIDGE_HIGHLIGHT
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 							className: TeamStage_module_css_default.crewHoodShade,
@@ -1933,23 +2496,29 @@ window.__ModuleLoader__.load({
 							className: TeamStage_module_css_default.crewEye,
 							cx: "53",
 							cy: "0",
-							r: "2.6"
+							r: "2.8"
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 							className: TeamStage_module_css_default.crewPupil,
-							cx: "53.7",
+							cx: "53.8",
 							cy: "0.4",
-							r: "1.2"
+							r: "1.3"
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 							className: TeamStage_module_css_default.crewEyeGlint,
-							cx: "54.2",
-							cy: "-0.1",
-							r: "0.45"
+							cx: "54.4",
+							cy: "-0.2",
+							r: "0.55"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewEyeGlintSub,
+							cx: "53.2",
+							cy: "0.8",
+							r: "0.3"
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 							className: TeamStage_module_css_default.crewMouth,
-							d: "M49 9.6 C54 7.7 59 6.1 63 5.7"
+							d: "M48.5 9.8 C53.5 7.8 58.5 6.2 62.5 5.8"
 						})
 					]
 				}),
@@ -1960,178 +2529,264 @@ window.__ModuleLoader__.load({
 		/** What one outfit adds over the plain body, seen from the front. */
 		function outfitFront(outfit) {
 			switch (outfit) {
-				case "shirt": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewCollar,
-						d: "M25.5 48.5 C28 52.5 36 52.5 38.5 48.5"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewPlacket,
-						d: "M32 50 L32 79"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewButton,
-						cx: "32",
-						cy: "55",
-						r: "0.8"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewButton,
-						cx: "32",
-						cy: "63",
-						r: "0.8"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewButton,
-						cx: "32",
-						cy: "71",
-						r: "0.8"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewStitch,
-						d: "M38 57 H44 V64 H38 Z"
-					})
-				] });
-				case "polo": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewCollar,
-						d: "M25.5 48.5 C28 52.5 36 52.5 38.5 48.5"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewPlacket,
-						d: "M32 49 L32 60"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewButton,
-						cx: "32",
-						cy: "54",
-						r: "0.8"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewButton,
-						cx: "32",
-						cy: "58.5",
-						r: "0.8"
-					})
-				] });
-				case "tee": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewNeckBand,
-					d: "M25 48 C28 51.5 36 51.5 39 48 C38 53 26 53 25 48 Z"
+				case "shirt": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewCollar,
+							d: "M25 48.5 C28 52.8 36 52.8 39 48.5"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewPlacket,
+							d: "M32 50 L32 79"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewButton,
+							cx: "32",
+							cy: "55",
+							r: "0.9"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewButton,
+							cx: "32",
+							cy: "63",
+							r: "0.9"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewButton,
+							cx: "32",
+							cy: "71",
+							r: "0.9"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewPocketStitch,
+							d: "M37.5 57 H44 V64.5 H37.5 Z"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewPenClip,
+							d: "M41 55.5 V59.5"
+						})
+					]
 				});
-				case "sweater": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewNeckBand,
-					d: "M24.5 46.5 C28 51 36 51 39.5 46.5 C38 53.5 26 53.5 24.5 46.5 Z"
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewRib,
-					d: RIB_HEM
-				})] });
-				case "hoodie": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewDraw,
-						d: "M29 47 L30.5 55"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewDraw,
-						d: "M35 47 L33.5 55"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewPocket,
-						d: POCKET
-					})
-				] });
-				case "tunic": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewStitch,
-					d: "M21 50 L21 78 M43 50 L43 78"
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewBelt,
-					d: "M18 68 Q32 72 46 68"
-				})] });
-				case "vest": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewCollar,
-						d: "M25.5 48.5 C28 52.5 36 52.5 38.5 48.5"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewVest,
-						d: VEST
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewRib,
-						d: "M19.5 73 L44.5 73 L44.5 76.5 L19.5 76.5 Z"
-					})
-				] });
-				case "jacket": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewJacket,
-						d: JACKET
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewCollar,
-						d: "M24 48 L29 52 M40 48 L35 52"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewButton,
-						cx: "28",
-						cy: "62",
-						r: "0.9"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewButton,
-						cx: "28",
-						cy: "70",
-						r: "0.9"
-					})
-				] });
-				case "stripes": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewNeckBand,
-					d: "M25 48 C28 51.5 36 51.5 39 48 C38 53 26 53 25 48 Z"
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewStripes,
-					d: STRIPES
-				})] });
-				default: return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+				case "polo": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewCollar,
+							d: "M25 48.5 C28 52.8 36 52.8 39 48.5"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewPlacket,
+							d: "M32 49 L32 60.5"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewButton,
+							cx: "32",
+							cy: "53.5",
+							r: "0.85"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewButton,
+							cx: "32",
+							cy: "58",
+							r: "0.85"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewCrest,
+							cx: "39",
+							cy: "56",
+							r: "1.4"
+						})
+					]
+				});
+				case "tee": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewNeckBand,
-						d: "M25 48 C28 51.5 36 51.5 39 48 C38 53 26 53 25 48 Z"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewBib,
-						d: BIB
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-						className: TeamStage_module_css_default.crewDraw,
-						d: STRAPS
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewButton,
-						cx: "26.6",
-						cy: "58.6",
-						r: "0.9"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.crewButton,
-						cx: "37.4",
-						cy: "58.6",
-						r: "0.9"
-					})
-				] });
+						d: "M24.5 48 C27.5 51.8 36.5 51.8 39.5 48 C38.5 53.5 25.5 53.5 24.5 48 Z"
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewStitch,
+						d: "M17.5 67 H23.5 M40.5 67 H46.5"
+					})]
+				});
+				case "sweater": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewNeckBand,
+							d: "M24 46.5 C27.5 51.5 36.5 51.5 40 46.5 C38.5 54 25.5 54 24 46.5 Z"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewRib,
+							d: RIB_HEM
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewKnitLine,
+							d: "M28 54 V73.5 M32 54 V73.5 M36 54 V73.5"
+						})
+					]
+				});
+				case "hoodie": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewDraw,
+							d: "M28.5 47 L30 56"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewDraw,
+							d: "M35.5 47 L34 56"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewAglet,
+							cx: "30",
+							cy: "56",
+							r: "0.6"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewAglet,
+							cx: "34",
+							cy: "56",
+							r: "0.6"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewPocket,
+							d: POCKET
+						})
+					]
+				});
+				case "tunic": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewStitch,
+							d: "M20.5 50 L20.5 78 M43.5 50 L43.5 78"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewBelt,
+							d: "M17.5 68 Q32 72.5 46.5 68"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+							className: TeamStage_module_css_default.crewBuckle,
+							x: "30.2",
+							y: "68.2",
+							width: "3.6",
+							height: "3",
+							rx: "0.6"
+						})
+					]
+				});
+				case "vest": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewCollar,
+							d: "M25 48.5 C28 52.8 36 52.8 39 48.5"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewVest,
+							d: VEST
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewRib,
+							d: "M19 73 L45 73 L45 76.5 L19 76.5 Z"
+						})
+					]
+				});
+				case "jacket": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewJacket,
+							d: JACKET
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewCollar,
+							d: "M23.5 48 L29 52.5 M40.5 48 L35 52.5"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewButton,
+							cx: "27.5",
+							cy: "62",
+							r: "1"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewButton,
+							cx: "27.5",
+							cy: "70",
+							r: "1"
+						})
+					]
+				});
+				case "stripes": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewNeckBand,
+						d: "M24.5 48 C27.5 51.8 36.5 51.8 39.5 48 C38.5 53.5 25.5 53.5 24.5 48 Z"
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewStripes,
+						d: STRIPES
+					})]
+				});
+				default: return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewNeckBand,
+							d: "M24.5 48 C27.5 51.8 36.5 51.8 39.5 48 C38.5 53.5 25.5 53.5 24.5 48 Z"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewBib,
+							d: BIB
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewDraw,
+							d: STRAPS
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewButton,
+							cx: "26.2",
+							cy: "58.2",
+							r: "1"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+							className: TeamStage_module_css_default.crewButton,
+							cx: "37.8",
+							cy: "58.2",
+							r: "1"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.crewStitch,
+							d: "M28 62 H36 V68 H28 Z"
+						})
+					]
+				});
 			}
 		}
 		/** What one outfit adds over the plain body, seen from behind. */
 		function outfitBack(outfit) {
 			switch (outfit) {
 				case "shirt":
-				case "polo": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewCollar,
-					d: "M25 49 L39 49"
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewStitch,
-					d: "M26 57 C29 60 35 60 38 57"
-				})] });
+				case "polo": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewCollar,
+						d: "M24.5 49 L39.5 49"
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewStitch,
+						d: "M25.5 57 C29 60.5 35 60.5 38.5 57"
+					})]
+				});
 				case "sweater":
-				case "vest": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewRib,
-					d: RIB_HEM
+				case "vest": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewRib,
+						d: RIB_HEM
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewKnitLine,
+						d: "M28 54 V73.5 M32 54 V73.5 M36 54 V73.5"
+					})]
 				});
 				case "jacket": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 					className: TeamStage_module_css_default.crewStitch,
@@ -2141,9 +2796,15 @@ window.__ModuleLoader__.load({
 					className: TeamStage_module_css_default.crewStripes,
 					d: STRIPES
 				});
-				case "dungarees": return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-					className: TeamStage_module_css_default.crewDraw,
-					d: "M26 76 L23.5 48 M38 76 L40.5 48"
+				case "dungarees": return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+					className: TeamStage_module_css_default.crewOutfitDetails,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewDraw,
+						d: "M25.5 76 L23 47.5 M38.5 76 L41 47.5"
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.crewCrossStrap,
+						d: "M23 58 L41 68 M41 58 L23 68"
+					})]
 				});
 				default: return null;
 			}
@@ -2158,7 +2819,7 @@ window.__ModuleLoader__.load({
 			const { kind, className, back = false, portrait = false, outfit = "shirt", shoes = "sneaker", hair = "crop", gear = "none", tone = 0, skin = 0 } = props;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
 				className: `${TeamStage_module_css_default.crew} ${className ?? ""}`,
-				viewBox: portrait ? "-1 -20 70 70" : "-6 -26 80 134",
+				viewBox: portrait ? "-1 -22 70 72" : "-6 -28 80 138",
 				"data-kind": kind,
 				"data-back": back ? "true" : void 0,
 				"data-outfit": outfit,
@@ -2175,11 +2836,15 @@ window.__ModuleLoader__.load({
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
 								className: TeamStage_module_css_default.crewTrouser,
-								x: "22.5",
+								x: "22",
 								y: "70",
-								width: "8.6",
+								width: "9.2",
 								height: "27",
-								rx: "3.8"
+								rx: "4"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+								className: TeamStage_module_css_default.crewTrouserCrease,
+								d: "M26.6 74 V95"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 								className: TeamStage_module_css_default.crewShoe,
@@ -2193,11 +2858,15 @@ window.__ModuleLoader__.load({
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
 								className: TeamStage_module_css_default.crewTrouser,
-								x: "32.9",
+								x: "32.8",
 								y: "70",
-								width: "8.6",
+								width: "9.2",
 								height: "27",
-								rx: "3.8"
+								rx: "4"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+								className: TeamStage_module_css_default.crewTrouserCrease,
+								d: "M37.4 74 V95"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 								className: TeamStage_module_css_default.crewShoe,
@@ -2211,21 +2880,21 @@ window.__ModuleLoader__.load({
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
 								className: TeamStage_module_css_default.crewSleeve,
-								x: "12",
-								y: "53",
-								width: "7.8",
-								height: "22",
-								rx: "3.9"
+								x: "11.5",
+								y: "52.5",
+								width: "8.4",
+								height: "22.5",
+								rx: "4.2"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 								className: TeamStage_module_css_default.crewCuff,
-								d: "M12 71.5 H19.8"
+								d: "M11.5 71.5 H19.9"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 								className: TeamStage_module_css_default.crewHand,
-								cx: "15.9",
-								cy: "76.5",
-								r: "3.8"
+								cx: "15.7",
+								cy: "77",
+								r: "4"
 							})
 						]
 					}),
@@ -2234,31 +2903,31 @@ window.__ModuleLoader__.load({
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
 								className: TeamStage_module_css_default.crewSleeve,
-								x: "44.2",
-								y: "53",
-								width: "7.8",
-								height: "22",
-								rx: "3.9"
+								x: "44.1",
+								y: "52.5",
+								width: "8.4",
+								height: "22.5",
+								rx: "4.2"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 								className: TeamStage_module_css_default.crewCuff,
-								d: "M44.2 71.5 H52"
+								d: "M44.1 71.5 H52.5"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 								className: TeamStage_module_css_default.crewHand,
-								cx: "48.1",
-								cy: "76.5",
-								r: "3.8"
+								cx: "48.3",
+								cy: "77",
+								r: "4"
 							})
 						]
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
 						className: TeamStage_module_css_default.crewNeck,
-						x: "28.2",
+						x: "28",
 						y: "40",
-						width: "7.6",
-						height: "11",
-						rx: "3.2"
+						width: "8",
+						height: "11.5",
+						rx: "3.5"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewShirt,
@@ -2301,228 +2970,253 @@ window.__ModuleLoader__.load({
 		function plantOf(index) {
 			return PLANTS[(index % PLANTS.length + PLANTS.length) % PLANTS.length] ?? "monstera";
 		}
-		/** A split leaf: two notches cut into each side of a broad heart. */
-		const MONSTERA = "M0 -2 C-4 -10 -12 -13 -17 -17 L-9 -19 C-13 -23 -19 -25 -22 -30 L-11.5 -30.5 C-16 -36 -14 -42 0 -46 C14 -42 16 -36 11.5 -30.5 L22 -30 C19 -25 13 -23 9 -19 L17 -17 C12 -13 4 -10 0 -2 Z";
-		/** The midrib of a split leaf, with a pair of ribs running into each lobe. */
-		const MONSTERA_VEIN = "M0 -3 L0 -42 M0 -14 L-14 -18 M0 -14 L14 -18 M0 -24 L-17 -29 M0 -24 L17 -29 M0 -33 L-11 -38 M0 -33 L11 -38";
-		/** An upright sword, thickest at the middle and drawn to a point. */
-		const SWORD = "M0 0 C-5 -7 -7.5 -22 -6.5 -36 C-5.5 -48 -3 -56 0 -60 C3 -56 5.5 -48 6.5 -36 C7.5 -22 5 -7 0 0 Z";
-		/** The pale stripe up the edge of a snake plant's blade. */
-		const SWORD_EDGE = "M4.6 -12 C6 -24 6.4 -40 3.4 -52 C5.4 -42 5 -26 3 -12 Z";
-		/** A heart, hanging point-down the way a trailing leaf does. */
-		const HEART = "M0 0 C-8 -4 -13 -10 -13 -16.5 C-13 -22 -8.5 -25 -4.5 -23 C-2 -21.6 -0.6 -19.4 0 -17.4 C0.6 -19.4 2 -21.6 4.5 -23 C8.5 -25 13 -22 13 -16.5 C13 -10 8 -4 0 0 Z";
-		/** The midrib of a hanging heart. */
-		const HEART_VEIN = "M0 -2 L0 -18 M0 -8 L-7 -14 M0 -8 L7 -14";
-		/** A plain oval leaf, for a plant whose interest is in how many it has. */
-		const OVAL = "M0 0 C-6 -5 -9 -11 -9 -17 C-9 -23 -5 -27 0 -28 C5 -27 9 -23 9 -17 C9 -11 6 -5 0 0 Z";
-		/** A long frond, tapering to a point. */
-		const FROND = "M0 0 C-3.5 -14 -6 -28 -4 -42 L0 -50 L4 -42 C6 -28 3.5 -14 0 0 Z";
+		/** A split leaf: organic notches cut into each side of a broad monstera heart. */
+		const MONSTERA = "M0 -2 C-4 -10 -12 -13 -17 -17 L-8.5 -19 C-13 -23 -19 -25 -22 -30 L-11.5 -30.5 C-16 -36 -14 -42 0 -46 C14 -42 16 -36 11.5 -30.5 L22 -30 C19 -25 13 -23 8.5 -19 L17 -17 C12 -13 4 -10 0 -2 Z";
+		/** Monstera leaf fenestration (inner perforations) and veins. */
+		const MONSTERA_VEIN = "M0 -3 L0 -43 M0 -14 L-14 -18 M0 -14 L14 -18 M0 -24 L-17 -29 M0 -24 L17 -29 M0 -33 L-11 -38 M0 -33 L11 -38 M-6 -22 C-7 -25 -7 -27 -5 -28 C-4 -27 -4 -24 -5 -22 Z M6 -22 C7 -25 7 -27 5 -28 C4 -27 4 -24 5 -22 Z";
+		/** An upright sword, thickest at the middle with elegant wavy edges and drawn to a sharp tip. */
+		const SWORD = "M0 0 C-5.5 -7 -8 -22 -7 -36 C-6 -48 -3.5 -57 0 -62 C3.5 -57 6 -48 7 -36 C8 -22 5.5 -7 0 0 Z";
+		/** The golden variegated margin along the edges of a snake plant's blade. */
+		const SWORD_EDGE = "M-6.2 -22 C-7.2 -32 -6 -44 -2.8 -54 C-1.8 -46 -4.8 -32 -4.8 -20 Z M6.2 -22 C7.2 -32 6 -44 2.8 -54 C1.8 -46 4.8 -32 4.8 -20 Z";
+		/** Transverse zebra banding on the snake plant blade. */
+		const SWORD_BANDING = "M-4 -16 Q0 -14 4 -16 M-5 -26 Q0 -24 5 -26 M-5.5 -36 Q0 -34 5.5 -36 M-4 -46 Q0 -44 4 -46";
+		/** A lush heart, hanging point-down the way a trailing pothos leaf does. */
+		const HEART = "M0 0 C-8.5 -4 -13.5 -10 -13.5 -17 C-13.5 -22.5 -9 -25.5 -4.5 -23.5 C-2 -22 -0.6 -19.6 0 -17.5 C0.6 -19.6 2 -22 4.5 -23.5 C9 -25.5 13.5 -22.5 13.5 -17 C13.5 -10 8.5 -4 0 0 Z";
+		/** The midrib and branching lateral veins of a hanging heart. */
+		const HEART_VEIN = "M0 -2 L0 -19 M0 -7 L-7.5 -13.5 M0 -7 L7.5 -13.5 M0 -13 L-6 -17.5 M0 -13 L6 -17.5";
+		/** Variegated marble splashes on pothos leaves. */
+		const HEART_SPLASH = "M-3 -10 C-5 -12 -3 -15 -1 -13 C-2 -11 -3 -10 -3 -10 Z M4 -8 C6 -10 5 -13 2 -11 C4 -9 4 -8 4 -8 Z";
+		/** A broad oval fiddle leaf with glossy curvature. */
+		const OVAL = "M0 0 C-7 -5 -10 -11.5 -10 -18 C-10 -24.5 -5.5 -28.5 0 -29.5 C5.5 -28.5 10 -24.5 10 -18 C10 -11.5 7 -5 0 0 Z";
+		const OVAL_VEIN = "M0 -2 L0 -27 M0 -9 L-7 -14 M0 -9 L7 -14 M0 -17 L-7.5 -21 M0 -17 L7.5 -21";
+		/** A long graceful palm frond. */
+		const FROND = "M0 0 C-3.8 -14 -6.5 -28 -4.2 -43 L0 -52 L4.2 -43 C6.5 -28 3.8 -14 0 0 Z";
 		/** The leaflets combed off both sides of a frond. */
-		const FROND_VEIN = "M0 -2 L0 -47 M0 -10 L-5.5 -16 M0 -10 L5.5 -16 M0 -19 L-6 -25 M0 -19 L6 -25 M0 -28 L-5.5 -34 M0 -28 L5.5 -34 M0 -36 L-4 -41 M0 -36 L4 -41";
-		/** A ribbed column, for the one plant in the room nobody has to water. */
-		const COLUMN = "M0 0 C-9.5 0 -12.5 -5 -12.5 -15 L-12.5 -34 C-12.5 -45 -8 -50 0 -50 C8 -50 12.5 -45 12.5 -34 L12.5 -15 C12.5 -5 9.5 0 0 0 Z";
+		const FROND_VEIN = "M0 -2 L0 -49 M0 -10 L-6 -16.5 M0 -10 L6 -16.5 M0 -19 L-6.8 -25.5 M0 -19 L6.8 -25.5 M0 -28 L-6.2 -34.5 M0 -28 L6.2 -34.5 M0 -36 L-4.5 -42 M0 -36 L4.5 -42";
+		/** A ribbed 3D column, for a saguaro / barrel cactus. */
+		const COLUMN = "M0 0 C-10 0 -13 -5 -13 -15.5 L-13 -35 C-13 -46.5 -8.5 -52 0 -52 C8.5 -52 13 -46.5 13 -35 L13 -15.5 C13 -5 10 0 0 0 Z";
 		/** A shorter column, for an arm off the side of one. */
-		const LIMB = "M0 0 C-6.5 0 -8.5 -3.5 -8.5 -10 L-8.5 -22 C-8.5 -30 -5.5 -33.5 0 -33.5 C5.5 -33.5 8.5 -30 8.5 -22 L8.5 -10 C8.5 -3.5 6.5 0 0 0 Z";
-		/** The ribs down a cactus, and the ones down its arms. */
-		const RIBS = "M-6 -6 C-7.5 -18 -7.5 -32 -6 -43 M0 -4 L0 -47 M6 -6 C7.5 -18 7.5 -32 6 -43";
-		/** The blades of one kind, back layer first. */
-		function bladesOf(kind) {
-			switch (kind) {
-				case "monstera": return [
-					{
-						d: MONSTERA,
-						at: "translate(50 82) rotate(-38) scale(0.86)",
-						vein: MONSTERA_VEIN
-					},
-					{
-						d: MONSTERA,
-						at: "translate(50 82) rotate(36) scale(0.9)",
-						vein: MONSTERA_VEIN
-					},
-					{
-						d: MONSTERA,
-						at: "translate(50 80) rotate(-14) scale(1.02)",
-						lit: true,
-						vein: MONSTERA_VEIN
-					},
-					{
-						d: MONSTERA,
-						at: "translate(50 80) rotate(16) scale(0.94)",
-						lit: true,
-						vein: MONSTERA_VEIN
-					},
-					{
-						d: MONSTERA,
-						at: "translate(50 78) rotate(2) scale(0.74)",
-						lit: true,
-						vein: MONSTERA_VEIN
-					}
-				];
-				case "sansevieria": return [
-					{
-						d: SWORD,
-						at: "translate(50 84) rotate(-22) scale(0.82)"
-					},
-					{
-						d: SWORD,
-						at: "translate(50 84) rotate(20) scale(0.88)"
-					},
-					{
-						d: SWORD,
-						at: "translate(50 84) rotate(-8) scale(1)",
-						lit: true,
-						vein: SWORD_EDGE
-					},
-					{
-						d: SWORD,
-						at: "translate(50 84) rotate(7) scale(0.94)",
-						lit: true,
-						vein: SWORD_EDGE
-					},
-					{
-						d: SWORD,
-						at: "translate(50 84) rotate(-15) scale(0.66)",
-						lit: true,
-						vein: SWORD_EDGE
-					}
-				];
-				case "pothos": return [
-					{
-						d: SWORD,
-						at: "translate(50 82) rotate(-10) scale(0.5)"
-					},
-					{
-						d: SWORD,
-						at: "translate(50 82) rotate(12) scale(0.44)",
-						lit: true
-					},
-					{
-						d: HEART,
-						at: "translate(28 84) rotate(196) scale(0.78)",
-						hang: true,
-						vein: HEART_VEIN
-					},
-					{
-						d: HEART,
-						at: "translate(22 96) rotate(184) scale(0.7)",
-						hang: true,
-						lit: true,
-						vein: HEART_VEIN
-					},
-					{
-						d: HEART,
-						at: "translate(74 86) rotate(166) scale(0.76)",
-						hang: true,
-						vein: HEART_VEIN
-					},
-					{
-						d: HEART,
-						at: "translate(80 99) rotate(176) scale(0.66)",
-						hang: true,
-						lit: true,
-						vein: HEART_VEIN
-					},
-					{
-						d: HEART,
-						at: "translate(50 70) rotate(180) scale(0.6)",
-						hang: true,
-						lit: true,
-						vein: HEART_VEIN
-					}
-				];
-				case "cactus": return [
-					{
-						d: LIMB,
-						at: "translate(30 62) rotate(-24)",
-						vein: RIBS
-					},
-					{
-						d: LIMB,
-						at: "translate(70 58) rotate(22) scale(0.9)",
-						vein: RIBS
-					},
-					{
-						d: COLUMN,
-						at: "translate(50 82)",
-						lit: true,
-						vein: RIBS
-					}
-				];
-				case "ficus": return [
-					{
-						d: OVAL,
-						at: "translate(36 56) rotate(-40)"
-					},
-					{
-						d: OVAL,
-						at: "translate(64 54) rotate(42)"
-					},
-					{
-						d: OVAL,
-						at: "translate(32 70) rotate(-62) scale(0.86)"
-					},
-					{
-						d: OVAL,
-						at: "translate(68 68) rotate(64) scale(0.86)"
-					},
-					{
-						d: OVAL,
-						at: "translate(44 42) rotate(-16)",
-						lit: true
-					},
-					{
-						d: OVAL,
-						at: "translate(58 40) rotate(18)",
-						lit: true
-					},
-					{
-						d: OVAL,
-						at: "translate(50 32) rotate(0) scale(0.9)",
-						lit: true
-					}
-				];
-				default: return [
-					{
-						d: FROND,
-						at: "translate(50 82) rotate(-52) scale(0.92)",
-						vein: FROND_VEIN
-					},
-					{
-						d: FROND,
-						at: "translate(50 82) rotate(50) scale(0.96)",
-						vein: FROND_VEIN
-					},
-					{
-						d: FROND,
-						at: "translate(50 80) rotate(-26)",
-						lit: true,
-						vein: FROND_VEIN
-					},
-					{
-						d: FROND,
-						at: "translate(50 80) rotate(24) scale(0.96)",
-						lit: true,
-						vein: FROND_VEIN
-					},
-					{
-						d: FROND,
-						at: "translate(50 78) rotate(-2) scale(0.88)",
-						lit: true,
-						vein: FROND_VEIN
-					}
-				];
-			}
-		}
+		const LIMB = "M0 0 C-7 0 -9 -3.5 -9 -10.5 L-9 -23 C-9 -31.5 -6 -35 0 -35 C6 -35 9 -31.5 9 -23 L9 -10.5 C9 -3.5 7 0 0 0 Z";
+		/** The vertical contour ribs down a cactus. */
+		const RIBS = "M-6.5 -6 C-8 -18 -8 -33 -6.5 -44 M0 -4 L0 -49 M6.5 -6 C8 -18 8 -33 6.5 -44";
+		/**
+		* The blades of one kind, back layer first. Built once at module load — the
+		* stage re-renders its greenery on every snapshot, and rebuilding these
+		* little arrays each time is the one allocation it can do without.
+		*/
+		const BLADES = {
+			monstera: [
+				{
+					d: MONSTERA,
+					at: "translate(50 82) rotate(-38) scale(0.88)",
+					vein: MONSTERA_VEIN
+				},
+				{
+					d: MONSTERA,
+					at: "translate(50 82) rotate(36) scale(0.92)",
+					vein: MONSTERA_VEIN
+				},
+				{
+					d: MONSTERA,
+					at: "translate(50 80) rotate(-14) scale(1.04)",
+					lit: true,
+					vein: MONSTERA_VEIN
+				},
+				{
+					d: MONSTERA,
+					at: "translate(50 80) rotate(16) scale(0.96)",
+					lit: true,
+					vein: MONSTERA_VEIN
+				},
+				{
+					d: MONSTERA,
+					at: "translate(50 78) rotate(2) scale(0.76)",
+					lit: true,
+					vein: MONSTERA_VEIN
+				}
+			],
+			sansevieria: [
+				{
+					d: SWORD,
+					at: "translate(50 84) rotate(-22) scale(0.84)",
+					vein: SWORD_BANDING,
+					detail: SWORD_EDGE
+				},
+				{
+					d: SWORD,
+					at: "translate(50 84) rotate(20) scale(0.9)",
+					vein: SWORD_BANDING,
+					detail: SWORD_EDGE
+				},
+				{
+					d: SWORD,
+					at: "translate(50 84) rotate(-8) scale(1.02)",
+					lit: true,
+					vein: SWORD_BANDING,
+					detail: SWORD_EDGE
+				},
+				{
+					d: SWORD,
+					at: "translate(50 84) rotate(7) scale(0.96)",
+					lit: true,
+					vein: SWORD_BANDING,
+					detail: SWORD_EDGE
+				},
+				{
+					d: SWORD,
+					at: "translate(50 84) rotate(-15) scale(0.68)",
+					lit: true,
+					vein: SWORD_BANDING,
+					detail: SWORD_EDGE
+				}
+			],
+			pothos: [
+				{
+					d: SWORD,
+					at: "translate(50 82) rotate(-10) scale(0.52)"
+				},
+				{
+					d: SWORD,
+					at: "translate(50 82) rotate(12) scale(0.46)",
+					lit: true
+				},
+				{
+					d: HEART,
+					at: "translate(28 84) rotate(196) scale(0.8)",
+					hang: true,
+					vein: HEART_VEIN,
+					detail: HEART_SPLASH
+				},
+				{
+					d: HEART,
+					at: "translate(22 96) rotate(184) scale(0.72)",
+					hang: true,
+					lit: true,
+					vein: HEART_VEIN,
+					detail: HEART_SPLASH
+				},
+				{
+					d: HEART,
+					at: "translate(74 86) rotate(166) scale(0.78)",
+					hang: true,
+					vein: HEART_VEIN,
+					detail: HEART_SPLASH
+				},
+				{
+					d: HEART,
+					at: "translate(80 99) rotate(176) scale(0.68)",
+					hang: true,
+					lit: true,
+					vein: HEART_VEIN,
+					detail: HEART_SPLASH
+				},
+				{
+					d: HEART,
+					at: "translate(50 70) rotate(180) scale(0.62)",
+					hang: true,
+					lit: true,
+					vein: HEART_VEIN,
+					detail: HEART_SPLASH
+				}
+			],
+			cactus: [
+				{
+					d: LIMB,
+					at: "translate(29 62) rotate(-24)",
+					vein: RIBS
+				},
+				{
+					d: LIMB,
+					at: "translate(71 58) rotate(22) scale(0.92)",
+					vein: RIBS
+				},
+				{
+					d: COLUMN,
+					at: "translate(50 82)",
+					lit: true,
+					vein: RIBS
+				}
+			],
+			ficus: [
+				{
+					d: OVAL,
+					at: "translate(35 55) rotate(-42)",
+					vein: OVAL_VEIN
+				},
+				{
+					d: OVAL,
+					at: "translate(65 53) rotate(44)",
+					vein: OVAL_VEIN
+				},
+				{
+					d: OVAL,
+					at: "translate(31 70) rotate(-64) scale(0.88)",
+					vein: OVAL_VEIN
+				},
+				{
+					d: OVAL,
+					at: "translate(69 68) rotate(66) scale(0.88)",
+					vein: OVAL_VEIN
+				},
+				{
+					d: OVAL,
+					at: "translate(43 41) rotate(-18)",
+					lit: true,
+					vein: OVAL_VEIN
+				},
+				{
+					d: OVAL,
+					at: "translate(59 39) rotate(20)",
+					lit: true,
+					vein: OVAL_VEIN
+				},
+				{
+					d: OVAL,
+					at: "translate(50 31) rotate(0) scale(0.92)",
+					lit: true,
+					vein: OVAL_VEIN
+				}
+			],
+			palm: [
+				{
+					d: FROND,
+					at: "translate(50 82) rotate(-54) scale(0.94)",
+					vein: FROND_VEIN
+				},
+				{
+					d: FROND,
+					at: "translate(50 82) rotate(52) scale(0.98)",
+					vein: FROND_VEIN
+				},
+				{
+					d: FROND,
+					at: "translate(50 80) rotate(-26)",
+					lit: true,
+					vein: FROND_VEIN
+				},
+				{
+					d: FROND,
+					at: "translate(50 80) rotate(24) scale(0.98)",
+					lit: true,
+					vein: FROND_VEIN
+				},
+				{
+					d: FROND,
+					at: "translate(50 78) rotate(-2) scale(0.9)",
+					lit: true,
+					vein: FROND_VEIN
+				}
+			]
+		};
 		/** The woody stems a kind shows between the soil and its foliage. */
-		function stemsOf(kind) {
-			switch (kind) {
-				case "monstera": return "M50 84 C46 72 40 66 34 62 M50 84 C54 72 60 68 65 64 M50 84 L50 66";
-				case "ficus": return "M50 84 L50 40 M50 68 C46 62 42 58 37 55 M50 66 C54 60 59 56 63 53 M50 56 C47 50 45 46 43 43 M50 54 C53 48 55 45 57 42";
-				case "pothos": return "M48 82 C40 80 32 82 28 86 M52 82 C60 80 68 82 74 88 M28 86 C24 90 22 94 22 97 M74 88 C78 92 80 96 80 100";
-				case "palm": return "M50 84 C48 78 44 72 38 66 M50 84 C52 78 56 72 62 66";
-				default: return;
-			}
-		}
+		const STEMS = {
+			monstera: "M50 84 C46 72 40 66 34 62 M50 84 C54 72 60 68 65 64 M50 84 L50 66",
+			ficus: "M50 84 L50 40 M50 68 C46 62 42 58 37 55 M50 66 C54 60 59 56 63 53 M50 56 C47 50 45 46 43 43 M50 54 C53 48 55 45 57 42",
+			pothos: "M48 82 C40 80 32 82 28 86 M52 82 C60 80 68 82 74 88 M28 86 C24 90 22 94 22 97 M74 88 C78 92 80 96 80 100",
+			palm: "M50 84 C48 78 44 72 38 66 M50 84 C52 78 56 72 62 66",
+			sansevieria: void 0,
+			cactus: void 0
+		};
 		/**
 		* One plant, pot and all.
 		* @param props - which kind it is, and the class the room sizes it with.
@@ -2530,8 +3224,8 @@ window.__ModuleLoader__.load({
 		*/
 		function Plant(props) {
 			const { kind, className } = props;
-			const blades = bladesOf(kind);
-			const stems = stemsOf(kind);
+			const blades = BLADES[kind];
+			const stems = STEMS[kind];
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
 				className: `${TeamStage_module_css_default.flora} ${className ?? ""}`,
 				viewBox: "0 0 100 128",
@@ -2542,13 +3236,17 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
 						className: TeamStage_module_css_default.floraShade,
 						cx: "50",
-						cy: "121",
-						rx: "27",
-						ry: "5"
+						cy: "122",
+						rx: "28",
+						ry: "5.5"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.floraSaucer,
-						d: "M29 116 H71 Q75 116 75 119.5 Q75 123 71 123 H29 Q25 123 25 119.5 Q25 116 29 116 Z"
+						d: "M28 116 H72 Q76 116 76 119.5 Q76 123.5 72 123.5 H28 Q24 123.5 24 119.5 Q24 116 28 116 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.floraSaucerLip,
+						d: "M26 117.5 H74"
 					}),
 					stems !== void 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.floraStem,
@@ -2560,33 +3258,61 @@ window.__ModuleLoader__.load({
 							className: TeamStage_module_css_default.floraLeaf,
 							"data-hang": blade.hang === true ? "true" : void 0,
 							style: { "--team-leaf-delay": `${-(index * .83 % 4).toFixed(2)}s` },
-							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-								className: blade.lit === true ? TeamStage_module_css_default.floraBladeLit : TeamStage_module_css_default.floraBlade,
-								d: blade.d
-							}), blade.vein !== void 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-								className: TeamStage_module_css_default.floraVein,
-								d: blade.vein
-							})]
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+									className: blade.lit === true ? TeamStage_module_css_default.floraBladeLit : TeamStage_module_css_default.floraBlade,
+									d: blade.d
+								}),
+								blade.detail !== void 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+									className: TeamStage_module_css_default.floraBladeDetail,
+									d: blade.detail
+								}),
+								blade.vein !== void 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+									className: TeamStage_module_css_default.floraVein,
+									d: blade.vein
+								})
+							]
 						})
 					}, `${blade.at}-${index}`)),
-					kind === "cactus" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
-							className: TeamStage_module_css_default.floraSpine,
-							d: "M42 44 L38 41 M42 54 L38 51 M42 64 L38 61 M58 42 L62 39 M58 52 L62 49 M58 62 L62 59"
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-							className: TeamStage_module_css_default.floraBloom,
-							cx: "50",
-							cy: "31",
-							r: "3.6"
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-							className: TeamStage_module_css_default.floraBloomHeart,
-							cx: "50",
-							cy: "31",
-							r: "1.5"
-						})
-					] }),
+					kind === "cactus" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
+						className: TeamStage_module_css_default.floraCactusDetails,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+								className: TeamStage_module_css_default.floraSpine,
+								d: "M42 44 L38 41 M42 44 L37 44 M42 44 L38 47 M42 54 L38 51 M42 54 L37 54 M42 54 L38 57 M42 64 L38 61 M42 64 L37 64 M58 42 L62 39 M58 42 L63 42 M58 42 L62 45 M58 52 L62 49 M58 52 L63 52 M58 62 L62 59 M58 62 L63 62"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+								className: TeamStage_module_css_default.floraBloomOuter,
+								cx: "50",
+								cy: "30",
+								r: "5"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+								className: TeamStage_module_css_default.floraBloom,
+								cx: "50",
+								cy: "30",
+								r: "3.8"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+								className: TeamStage_module_css_default.floraBloomHeart,
+								cx: "50",
+								cy: "30",
+								r: "1.6"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+								className: TeamStage_module_css_default.floraBloomStamen,
+								cx: "49.3",
+								cy: "29.3",
+								r: "0.6"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+								className: TeamStage_module_css_default.floraBloomStamen,
+								cx: "50.7",
+								cy: "30.5",
+								r: "0.6"
+							})
+						]
+					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.floraPot,
 						d: "M28 87 H72 L67.5 117 Q67 120 63 120 H37 Q33 120 32.5 117 Z"
@@ -2597,40 +3323,52 @@ window.__ModuleLoader__.load({
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.floraGlaze,
-						d: "M36 92 C33.5 101 34 110 36.5 117 L40 117 C37.5 109 37 101 39 92 Z"
+						d: "M35 91 C32.5 101 33 110 35.5 117 L39.5 117 C37 109 36.5 101 38.5 91 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.floraRim,
-						d: "M25 79 H75 Q78 79 78 82 V86 Q78 89 75 89 H25 Q22 89 22 86 V82 Q22 79 25 79 Z"
+						d: "M25 78.5 H75 Q78.5 78.5 78.5 82 V86.5 Q78.5 89.5 75 89.5 H25 Q21.5 89.5 21.5 86.5 V82 Q21.5 78.5 25 78.5 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.floraRimLip,
-						d: "M24 80.5 H76"
+						d: "M23.5 80.5 H76.5"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
 						className: TeamStage_module_css_default.floraSoil,
 						cx: "50",
 						cy: "81.5",
 						rx: "24",
-						ry: "4"
+						ry: "4.2"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 						className: TeamStage_module_css_default.floraCrumb,
-						cx: "40",
+						cx: "38",
 						cy: "81",
+						r: "1.5"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.floraCrumb,
+						cx: "60",
+						cy: "82.5",
+						r: "1.2"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.floraCrumb,
+						cx: "51",
+						cy: "79.5",
+						r: "1"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.floraMoss,
+						cx: "44",
+						cy: "82.8",
 						r: "1.4"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.floraCrumb,
-						cx: "59",
-						cy: "82.5",
-						r: "1.1"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.floraCrumb,
-						cx: "52",
-						cy: "79.6",
-						r: "0.9"
+						className: TeamStage_module_css_default.floraMoss,
+						cx: "56",
+						cy: "80.8",
+						r: "1.2"
 					})
 				]
 			});
@@ -2655,16 +3393,16 @@ window.__ModuleLoader__.load({
 			return raw.replaceAll(":", "");
 		}
 		/**
-		* The water cooler: a bottled jug on a cabinet with a real lid and flank, its
-		* own water line, two taps and a drip tray that reads as a tray because it is
-		* drawn as an ellipse seen from above rather than as a bar.
+		* The water cooler: a large 5-gallon bottled jug on a modern cabinet with
+		* real lid, flank, water level, hot/cold taps, drip tray grille, LED lights,
+		* and rising bubbles.
 		* @returns the cooler.
 		*/
 		function CoolerFigure() {
 			const uid = safeId((0, react.useId)());
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
 				className: TeamStage_module_css_default.coolerSvg,
-				viewBox: "0 0 72 100",
+				viewBox: "0 0 80 115",
 				"aria-hidden": true,
 				focusable: "false",
 				children: [
@@ -2702,11 +3440,11 @@ window.__ModuleLoader__.load({
 									style: { stopColor: "var(--team-cooler-bottle-dark)" }
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
-									offset: "0.3",
+									offset: "0.25",
 									style: { stopColor: "var(--team-cooler-bottle)" }
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
-									offset: "0.66",
+									offset: "0.65",
 									style: { stopColor: "var(--team-cooler-bottle-lit)" }
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
@@ -2732,119 +3470,698 @@ window.__ModuleLoader__.load({
 					] }),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
 						className: TeamStage_module_css_default.propShade,
-						cx: "34",
-						cy: "92",
-						rx: "26",
-						ry: "6"
+						cx: "38",
+						cy: "106",
+						rx: "34",
+						ry: "8"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propSide,
-						d: "M52 48 L62 41 L62 84 Q62 88 58 90 L52 90 Z"
+						d: "M58 54 L70 45 L70 98 Q70 102 65 105 L58 105 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.coolerCabinet,
-						d: "M12 48 H52 V85 Q52 90 47 90 H17 Q12 90 12 85 Z",
+						d: "M12 54 H58 V99 Q58 105 52 105 H18 Q12 105 12 99 Z",
 						fill: `url(#${uid}-cabinet)`
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propTop,
-						d: "M12 48 L22 41 H62 L52 48 Z"
+						d: "M12 54 L24 45 H70 L58 54 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.coolerCabinetEdge,
-						d: "M12 48 H52 V85 Q52 90 47 90 H17 Q12 90 12 85 Z"
+						d: "M12 54 H58 V99 Q58 105 52 105 H18 Q12 105 12 99 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.coolerPanel,
-						d: "M17 58 H47 V80 H17 Z"
+						d: "M18 64 H52 V94 H18 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.coolerPanelDepth,
+						d: "M18 64 L21 61 H49 L52 64"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.coolerDoorSeam,
-						d: "M32 58 V80"
+						d: "M18 97 H52"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.coolerTap,
-						d: "M22 62 H30 M34 62 H42"
+						d: "M24 72 H32 M38 72 H46"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.coolerFaucet,
+						d: "M28 72 V76 M42 72 V76"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 						className: TeamStage_module_css_default.coolerHandleWarm,
-						cx: "26",
-						cy: "59",
-						r: "2"
+						cx: "28",
+						cy: "68",
+						r: "2.6"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 						className: TeamStage_module_css_default.coolerHandleCool,
-						cx: "38",
-						cy: "59",
-						r: "2"
+						cx: "42",
+						cy: "68",
+						r: "2.6"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
 						className: TeamStage_module_css_default.coolerDrip,
-						cx: "32",
-						cy: "84",
-						rx: "15",
-						ry: "3.4"
+						cx: "35",
+						cy: "95",
+						rx: "17",
+						ry: "4.2"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
 						className: TeamStage_module_css_default.coolerDripWell,
-						cx: "32",
-						cy: "83.6",
-						rx: "12",
-						ry: "2.2"
+						cx: "35",
+						cy: "94.5",
+						rx: "14",
+						ry: "2.8"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.coolerGrille,
+						d: "M26 94.5 H44 M28 95.5 H42 M30 93.5 H40"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.coolerLedPower,
+						cx: "16",
+						cy: "59",
+						r: "1.1"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.coolerLedCold,
+						cx: "20",
+						cy: "59",
+						r: "1.1"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.coolerBottle,
-						d: "M19 48 C19 33 22.5 21 28 14 L40 14 C45.5 21 49 33 49 48 Z",
+						d: "M20 54 C20 36 24 22 31 15 L47 15 C54 22 58 36 58 54 Z",
 						fill: `url(#${uid}-bottle)`
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.coolerWater,
-						d: "M21 48 C21 35.5 23.8 24 28.3 18.5 L39.7 18.5 C44.2 24 47 35.5 47 48 Z",
+						d: "M22 54 C22 39 25.5 26 31.5 20 L46.5 20 C52.5 26 56 39 56 54 Z",
 						fill: `url(#${uid}-water)`
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.coolerRib,
+						d: "M21.5 42 Q39 45 56.5 42 M23.5 30 Q39 33 54.5 30"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.coolerNeck,
-						d: "M28 14 L28 6 C28 4.5 29 3.5 30.5 3.5 L37.5 3.5 C39 3.5 40 4.5 40 6 L40 14 Z",
+						d: "M31 15 L31 6 C31 4 32.5 3 34.5 3 L43.5 3 C45.5 3 47 4 47 6 L47 15 Z",
 						fill: `url(#${uid}-bottle)`
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
 						className: TeamStage_module_css_default.coolerCap,
-						cx: "34",
+						cx: "39",
 						cy: "3",
-						rx: "8",
-						ry: "2.6"
+						rx: "9",
+						ry: "3"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.coolerCapTop,
+						cx: "39",
+						cy: "2",
+						rx: "6",
+						ry: "2"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.coolerShine,
-						d: "M22.5 46 C22.5 34.5 25.3 23.5 30 17 C27.2 23 24.5 32.5 24.5 46 Z"
+						d: "M24 51 C24 38 27.5 25 33 18 C30 25 26.5 36 26.5 51 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.coolerShineRim,
+						d: "M52 51 C54.5 39 55 28 53 21"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 						className: TeamStage_module_css_default.coolerBubble,
-						cx: "28",
-						cy: "34",
-						r: "1",
+						cx: "31",
+						cy: "38",
+						r: "1.3",
 						style: { animationDelay: "0s" }
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 						className: TeamStage_module_css_default.coolerBubble,
-						cx: "39",
-						cy: "39",
-						r: "1.3",
+						cx: "45",
+						cy: "44",
+						r: "1.6",
 						style: { animationDelay: "-1.7s" }
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 						className: TeamStage_module_css_default.coolerBubble,
-						cx: "33",
-						cy: "29",
-						r: "0.8",
+						cx: "37",
+						cy: "32",
+						r: "1.1",
 						style: { animationDelay: "-3.1s" }
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 						className: TeamStage_module_css_default.coolerBubble,
-						cx: "43",
-						cy: "30",
-						r: "0.9",
+						cx: "49",
+						cy: "33",
+						r: "1.2",
 						style: { animationDelay: "-4.4s" }
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.coolerBubble,
+						cx: "29",
+						cy: "47",
+						r: "0.9",
+						style: { animationDelay: "-5.2s" }
+					})
+				]
+			});
+		}
+		/**
+		* Modern Nordic 3-seater Sofa with deep tufted cushions, throw pillows,
+		* rounded armrests, natural wood tapered legs, and contact shadows.
+		* @returns the sofa figure.
+		*/
+		function SofaFigure() {
+			const uid = safeId((0, react.useId)());
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				className: TeamStage_module_css_default.sofaSvg,
+				viewBox: "0 0 140 85",
+				"aria-hidden": true,
+				focusable: "false",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("defs", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("linearGradient", {
+						id: `${uid}-sofa-back`,
+						x1: "0",
+						y1: "0",
+						x2: "0",
+						y2: "1",
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "0",
+								style: { stopColor: "var(--team-fabric-lit)" }
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "0.6",
+								style: { stopColor: "var(--team-fabric)" }
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "1",
+								style: { stopColor: "var(--team-fabric-dark)" }
+							})
+						]
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("linearGradient", {
+						id: `${uid}-sofa-seat`,
+						x1: "0",
+						y1: "0",
+						x2: "0",
+						y2: "1",
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "0",
+								style: { stopColor: "color-mix(in srgb, var(--dsw-static-neutral-00) 24%, var(--team-fabric-lit))" }
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "0.3",
+								style: { stopColor: "var(--team-fabric-lit)" }
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "0.75",
+								style: { stopColor: "var(--team-fabric)" }
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "1",
+								style: { stopColor: "var(--team-fabric-dark)" }
+							})
+						]
+					})] }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.propShade,
+						cx: "70",
+						cy: "79",
+						rx: "64",
+						ry: "6"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaLeg,
+						d: "M18 68 L14 80 L18 80 L21 68 Z M122 68 L126 80 L122 80 L119 68 Z M36 68 L34 78 L37 78 L39 68 Z M104 68 L106 78 L103 78 L101 68 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaBack,
+						d: "M12 14 C12 6 22 2 70 2 C118 2 128 6 128 14 L128 48 C128 54 118 56 70 56 C22 56 12 54 12 48 Z",
+						fill: `url(#${uid}-sofa-back)`
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaBackTop,
+						d: "M14 12 C24 5 116 5 126 12"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaSeam,
+						d: "M50 6 V46 M90 6 V46"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.sofaButton,
+						cx: "31",
+						cy: "24",
+						r: "1.8"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.sofaButton,
+						cx: "70",
+						cy: "24",
+						r: "1.8"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.sofaButton,
+						cx: "109",
+						cy: "24",
+						r: "1.8"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						className: TeamStage_module_css_default.sofaSeat,
+						x: "10",
+						y: "38",
+						width: "120",
+						height: "26",
+						rx: "6",
+						fill: `url(#${uid}-sofa-seat)`
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaSeatSeam,
+						d: "M50 38 V64 M90 38 V64"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaSeatPiping,
+						d: "M12 42 H128"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaArm,
+						d: "M6 24 C6 18 10 16 16 16 C20 16 22 20 22 28 L22 56 C22 62 18 64 12 64 C8 64 6 60 6 56 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaArmTop,
+						d: "M8 20 C10 18 16 18 18 20"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaArm,
+						d: "M134 24 C134 18 130 16 124 16 C120 16 118 20 118 28 L118 56 C118 62 122 64 128 64 C132 64 134 60 134 56 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaArmTop,
+						d: "M126 20 C128 18 134 18 132 20"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						className: TeamStage_module_css_default.sofaPillowWarm,
+						x: "20",
+						y: "26",
+						width: "18",
+						height: "18",
+						rx: "4",
+						transform: "rotate(-12 29 35)"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaPillowLine,
+						d: "M22 35 L36 35",
+						transform: "rotate(-12 29 35)"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						className: TeamStage_module_css_default.sofaPillowCool,
+						x: "102",
+						y: "26",
+						width: "18",
+						height: "18",
+						rx: "4",
+						transform: "rotate(10 111 35)"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.sofaPillowLine,
+						d: "M104 35 L118 35",
+						transform: "rotate(10 111 35)"
+					})
+				]
+			});
+		}
+		/**
+		* Natural Oak Coffee Table with chamfered edge, splayed wooden legs,
+		* glossy design magazine and steaming coffee cup.
+		* @returns the table figure.
+		*/
+		function TableFigure() {
+			const uid = safeId((0, react.useId)());
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				className: TeamStage_module_css_default.tableSvg,
+				viewBox: "0 0 100 55",
+				"aria-hidden": true,
+				focusable: "false",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("defs", { children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("linearGradient", {
+						id: `${uid}-tabletop`,
+						x1: "0",
+						y1: "0",
+						x2: "0",
+						y2: "1",
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "0",
+								style: { stopColor: "color-mix(in srgb, var(--team-warm) 45%, var(--dsw-static-neutral-00))" }
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "0.5",
+								style: { stopColor: "color-mix(in srgb, var(--team-warm) 50%, var(--dsw-static-neutral-00))" }
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "1",
+								style: { stopColor: "color-mix(in srgb, var(--team-warm) 60%, var(--dsw-static-neutral-600))" }
+							})
+						]
+					}) }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.propShade,
+						cx: "50",
+						cy: "50",
+						rx: "44",
+						ry: "5"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.tableLeg,
+						d: "M16 28 L10 49 L14 49 L20 28 Z M84 28 L90 49 L86 49 L80 28 Z M28 28 L25 46 L28 46 L31 28 Z M72 28 L75 46 L72 46 L69 28 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.tableTop,
+						d: "M6 18 C6 12 16 8 50 8 C84 8 94 12 94 18 L94 25 C94 31 84 35 50 35 C16 35 6 31 6 25 Z",
+						fill: `url(#${uid}-tabletop)`
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.tableSurface,
+						cx: "50",
+						cy: "18",
+						rx: "42",
+						ry: "9"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.tableEdge,
+						d: "M8 18 C8 27 92 27 92 18 L92 25 C92 34 8 34 8 25 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.tableGrain,
+						d: "M22 17 C34 14 66 14 78 17 M28 20 C40 18 60 18 72 20"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.tableMagazine,
+						d: "M22 16 L36 12 L44 15 L30 19 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.tableMagPage,
+						d: "M24 16 L34 13 M38 13 L42 15"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.tableSaucer,
+						cx: "68",
+						cy: "18",
+						rx: "8",
+						ry: "3.5"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.tableCup,
+						d: "M63 12 H73 L71.5 18 C71 20 65 20 64.5 18 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.tableMugHandle,
+						d: "M72 13 C75 13 75 16 71.5 17"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propSteam,
+						d: "M66 10 Q68 7 66 5 M70 10 Q72 7 70 5"
+					})
+				]
+			});
+		}
+		/**
+		* Mid-century Arched Floor Lamp with brass stem, marble base,
+		* warm glowing linen drum shade, and floor illumination.
+		* @returns the floor lamp figure.
+		*/
+		function LampFigure() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				className: TeamStage_module_css_default.lampSvg,
+				viewBox: "0 0 50 120",
+				"aria-hidden": true,
+				focusable: "false",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.lampBeam,
+						d: "M25 38 L48 116 H2 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.propShade,
+						cx: "25",
+						cy: "116",
+						rx: "18",
+						ry: "4"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.lampBase,
+						cx: "25",
+						cy: "114",
+						rx: "12",
+						ry: "3.2"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.lampStem,
+						d: "M25 114 V55 C25 24 25 18 25 12"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.lampFinial,
+						cx: "25",
+						cy: "10",
+						r: "2"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.lampShade,
+						d: "M12 16 H38 L42 38 H8 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.lampShadeTop,
+						cx: "25",
+						cy: "16",
+						rx: "13",
+						ry: "3.2"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.lampShadeBottom,
+						cx: "25",
+						cy: "38",
+						rx: "17",
+						ry: "4.2"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.lampBulb,
+						cx: "25",
+						cy: "37",
+						r: "4"
+					})
+				]
+			});
+		}
+		/**
+		* Wall-mounted Split Air Conditioner with sleek louvers, digital 24°C LED display,
+		* and refreshing cool breeze airflow.
+		* @returns the air conditioner figure.
+		*/
+		function AirConditionerFigure() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				className: TeamStage_module_css_default.acSvg,
+				viewBox: "0 0 90 45",
+				"aria-hidden": true,
+				focusable: "false",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						className: TeamStage_module_css_default.propShade,
+						x: "4",
+						y: "6",
+						width: "82",
+						height: "24",
+						rx: "4"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propSide,
+						d: "M80 8 L86 4 L86 24 L80 28 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.acBody,
+						d: "M4 8 H80 V28 Q80 30 76 30 H8 Q4 30 4 28 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propTop,
+						d: "M4 8 L10 4 H86 L80 8 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.acEdge,
+						d: "M4 8 H80 V28 Q80 30 76 30 H8 Q4 30 4 28 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.acGrille,
+						d: "M12 6 H78 M14 7.5 H76"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.acSeam,
+						d: "M6 22 H78"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.acLouver,
+						d: "M8 24 H76 V27 H8 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("text", {
+						className: TeamStage_module_css_default.acTemp,
+						x: "64",
+						y: "18",
+						children: "24°"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.acLedPower,
+						cx: "74",
+						cy: "14.5",
+						r: "1"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.acLedCool,
+						cx: "74",
+						cy: "18.5",
+						r: "1"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.acBreeze,
+						d: "M14 31 Q20 38 16 44 M30 31 Q38 38 34 44 M46 31 Q54 38 50 44 M62 31 Q70 38 66 44"
+					})
+				]
+			});
+		}
+		/**
+		* A 2.5D fitness treadmill for the wellness corner: a low deck whose belt
+		* disappears under a rounded motor hood, console uprights flanking the hood
+		* (the near one clear of it, the far one rising behind it), handrails that
+		* sweep back along the deck's sides with pulse grips on the run, and a touch
+		* console with the safety key still in it and a bottle in the holder.
+		* @returns the treadmill figure.
+		*/
+		function TreadmillFigure() {
+			const uid = safeId((0, react.useId)());
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				className: TeamStage_module_css_default.treadmillSvg,
+				viewBox: "0 0 100 100",
+				"aria-hidden": true,
+				focusable: "false",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("defs", { children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("linearGradient", {
+						id: `${uid}-belt`,
+						x1: "0",
+						y1: "0",
+						x2: "0.3",
+						y2: "1",
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "0",
+								style: { stopColor: "var(--dsw-static-neutral-800)" }
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "0.5",
+								style: { stopColor: "var(--dsw-static-neutral-900)" }
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "1",
+								style: { stopColor: "var(--dsw-static-neutral-1000)" }
+							})
+						]
+					}) }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.propShade,
+						cx: "47",
+						cy: "93",
+						rx: "42",
+						ry: "6.5"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propSide,
+						d: "M80 56 L90 50 L90 84 L80 90 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillBase,
+						d: "M12 62 L80 56 L80 90 L12 96 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propTop,
+						d: "M12 62 L22 56 L90 50 L80 56 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillBelt,
+						d: "M16 63 L66 60 L66 87 L16 90 Z",
+						fill: `url(#${uid}-belt)`
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillTread,
+						d: "M20 66 L62 63.5 M20 71 L62 68.5 M20 76 L62 73.5 M20 81 L62 78.5 M20 86 L62 83.5"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillRail,
+						d: "M13 62.4 L16 62.1 L16 89.6 L13 89.9 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillPost,
+						d: "M85 52 L85 13"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillHood,
+						d: "M66 59 C66 48.5 70.5 42.5 77.5 42 L82 41.6 C87.5 41.4 90 44.5 90 49 L90 64.5 C90 69.5 86.8 72.5 81.8 72.5 L72 73 C67.5 73.2 66 69 66 64.5 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillHoodSheen,
+						d: "M69 47.5 C71.5 43.8 76 42 81 41.8 C85.5 41.7 88 43.5 88.8 46.8"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillHoodVent,
+						d: "M70 55 L87 53.2 M70 59 L87 57.2 M70 63 L87 61.2"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillPost,
+						d: "M63 61 L63 17"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillArm,
+						d: "M63 28 L21 33.5 L21 37 L63 31.5 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillArm,
+						d: "M85 23 L35 32.5 L35 36 L85 26.5 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillSensor,
+						d: "M28 33.6 H34 M42 32.2 H48"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillConsole,
+						d: "M56 18 L88 13 L84.5 3.5 L53 8.5 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillScreen,
+						d: "M59.5 14.8 L84.5 10.9 L82 6.4 L57 10.3 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillMetrics,
+						d: "M62 13 L80 10.2 M62 10.6 L75 8.5"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.treadmillStopKey,
+						cx: "79",
+						cy: "12.8",
+						r: "1.4"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.treadmillKeyCord,
+						d: "M79 12.8 C76 16.5 73 20.5 70.5 24.5"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						className: TeamStage_module_css_default.treadmillBottle,
+						x: "54.5",
+						y: "14",
+						width: "3.2",
+						height: "6.5",
+						rx: "1.2"
 					})
 				]
 			});
@@ -2930,6 +4247,14 @@ window.__ModuleLoader__.load({
 						className: TeamStage_module_css_default.chairRide,
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+								className: TeamStage_module_css_default.chairArmrest,
+								d: "M8 32 C8 26 12 24 14 26 L14 44 C12 46 8 42 8 36 Z"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+								className: TeamStage_module_css_default.chairArmrest,
+								d: "M56 32 C56 26 52 24 50 26 L50 44 C52 46 56 42 56 36 Z"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 								className: TeamStage_module_css_default.chairShell,
 								d: "M12 12 C12 4 20 1.5 32 1.5 C44 1.5 52 4 52 12 L52 44 C52 51 45 53.5 32 53.5 C19 53.5 12 51 12 44 Z",
 								fill: `url(#${uid}-shell)`
@@ -2948,9 +4273,19 @@ window.__ModuleLoader__.load({
 								d: "M19 17 L45 17 M19 22 L45 22 M19 27 L45 27 M19 32 L45 32 M19 37 L45 37 M19 42 L45 42"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+								className: TeamStage_module_css_default.chairMeshSpine,
+								d: "M32 10 V46"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 								className: TeamStage_module_css_default.chairLumbar,
 								d: "M20 30 C24 27.5 40 27.5 44 30 L44 37 C40 40 24 40 20 37 Z",
 								fill: `url(#${uid}-shell)`
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+								className: TeamStage_module_css_default.chairLumbarKnob,
+								cx: "32",
+								cy: "33.5",
+								r: "1.5"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 								className: TeamStage_module_css_default.chairPan,
@@ -2959,6 +4294,10 @@ window.__ModuleLoader__.load({
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 								className: TeamStage_module_css_default.chairPanTop,
 								d: "M15 52 H49 Q52 52 52 54.5 H12 Q12 52 15 52 Z"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+								className: TeamStage_module_css_default.chairPanStitch,
+								d: "M20 54 H44"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
 								className: TeamStage_module_css_default.chairMechanism,
@@ -3074,8 +4413,24 @@ window.__ModuleLoader__.load({
 						d: "M15 22.5 L24.5 18 H68 L58.5 22.5 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propScannerHandle,
+						d: "M34 22 H48"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propScreen,
+						d: "M14 26 H30 V34 H14 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propScreenGlint,
+						d: "M16 28 L24 28 M16 31 L21 31"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propPaper,
 						d: "M32 16 L41 10.5 H60 L51 16 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propPaperLine,
+						d: "M38 14.5 L46 14.5"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propTray,
@@ -3086,6 +4441,10 @@ window.__ModuleLoader__.load({
 						d: "M16 38 H50 L47 43.5 H16 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propTextLines,
+						d: "M20 40.5 H38 M20 42 H32"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propInset,
 						d: "M12 52 H58 V64 H12 Z"
 					}),
@@ -3093,24 +4452,46 @@ window.__ModuleLoader__.load({
 						className: TeamStage_module_css_default.propSeam,
 						d: "M12 58 H58"
 					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						className: TeamStage_module_css_default.propDrawerHandle,
+						x: "30",
+						y: "54",
+						width: "10",
+						height: "2",
+						rx: "1"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						className: TeamStage_module_css_default.propPaperGauge,
+						x: "16",
+						y: "54",
+						width: "3",
+						height: "6",
+						rx: "0.5"
+					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 						className: TeamStage_module_css_default.propLampLive,
 						cx: "52",
 						cy: "30",
-						r: "2"
+						r: "2.2"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.propLampWifi,
+						cx: "45",
+						cy: "30",
+						r: "1.8"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 						className: TeamStage_module_css_default.propLampIdle,
-						cx: "45",
+						cx: "38",
 						cy: "30",
-						r: "2"
+						r: "1.8"
 					})
 				]
 			});
 		}
 		/**
-		* The coffee machine: a hopper, a group head with a cup under it, and a jug on
-		* a warmer plate. Somebody's mug is on top, because somebody's mug always is.
+		* The coffee machine: an Italian espresso & drip station with hopper, group head,
+		* steaming cup, glass carafe on warmer plate, and barista details.
 		* @returns the coffee machine.
 		*/
 		function CoffeeFigure() {
@@ -3151,9 +4532,33 @@ window.__ModuleLoader__.load({
 						className: TeamStage_module_css_default.propGlass,
 						d: "M25 20 L29.5 14 H42.5 L47 20 Z"
 					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.propBean,
+						cx: "33",
+						cy: "17",
+						rx: "1.5",
+						ry: "1"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.propBean,
+						cx: "38",
+						cy: "18",
+						rx: "1.4",
+						ry: "1"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.propGauge,
+						cx: "18",
+						cy: "36",
+						r: "3.2"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propGaugeNeedle,
+						d: "M18 36 L19.5 34.5"
+					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propSeam,
-						d: "M20 42 H40"
+						d: "M20 42 H42"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
 						className: TeamStage_module_css_default.propInset,
@@ -3168,12 +4573,24 @@ window.__ModuleLoader__.load({
 						d: "M26 46 V52 M34 46 V52"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propPortafilter,
+						d: "M17 48 H25 M35 48 H43"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propCup,
 						d: "M25 55 H35 L33.5 62 Q33 63.5 30 63.5 Q27 63.5 26.5 62 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propSteam,
+						d: "M28 53 Q30 50 28 48 M32 53 Q34 50 32 48"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propTray,
 						d: "M14 78 H46 V81 H14 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propWarmerPlate,
+						d: "M16 78 H44"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propGlass,
@@ -3182,6 +4599,10 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propBrew,
 						d: "M21.4 71 H38.6 L38 77 H22 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propCarafeHandle,
+						d: "M40 68 C43 68 43 75 39 76"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 						className: TeamStage_module_css_default.propLampLive,
@@ -3192,6 +4613,10 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propCup,
 						d: "M52 18 H61 L59.8 24 Q59.4 25.4 56.5 25.4 Q53.6 25.4 53.2 24 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propMugHandle,
+						d: "M60.5 19.5 C63 20 63 23 59.5 23.5"
 					})
 				]
 			});
@@ -3255,6 +4680,10 @@ window.__ModuleLoader__.load({
 							width: "7",
 							height: "5",
 							rx: "1"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							className: TeamStage_module_css_default.propLabelLine,
+							d: `M18.5 ${top + 6.5} H22.5`
 						})
 					] }, top)),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
@@ -3264,6 +4693,10 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propPaper,
 						d: "M25 34 L30 27 H40 L35 34 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.propFolderTab,
+						d: "M30 26 H36 V24 H30 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propSide,
@@ -3280,6 +4713,13 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.propSeam,
 						d: "M28 21 H40"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+						className: TeamStage_module_css_default.propBoxHole,
+						cx: "34",
+						cy: "22",
+						rx: "2",
+						ry: "1.2"
 					})
 				]
 			});
@@ -3291,19 +4731,58 @@ window.__ModuleLoader__.load({
 		* @returns the pendant.
 		*/
 		function PendantFigure() {
+			const uid = safeId((0, react.useId)());
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
 				className: TeamStage_module_css_default.pendantSvg,
 				viewBox: "0 0 60 100",
 				"aria-hidden": true,
 				focusable: "false",
 				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("defs", { children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("linearGradient", {
+						id: `${uid}-beam`,
+						x1: "0.5",
+						y1: "0",
+						x2: "0.5",
+						y2: "1",
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "0",
+								style: { stopColor: "color-mix(in srgb, var(--team-warm) 36%, transparent)" }
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "0.6",
+								style: { stopColor: "color-mix(in srgb, var(--team-warm) 18%, transparent)" }
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("stop", {
+								offset: "1",
+								style: { stopColor: "transparent" }
+							})
+						]
+					}) }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						className: TeamStage_module_css_default.pendantRose,
+						x: "27",
+						y: "0",
+						width: "6",
+						height: "3.5",
+						rx: "1.5"
+					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.pendantFlex,
-						d: "M30 0 V74"
+						d: "M30 0 V72"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						className: TeamStage_module_css_default.pendantNeck,
+						x: "27",
+						y: "70",
+						width: "6",
+						height: "4",
+						rx: "1.5"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.pendantGlow,
-						d: "M30 88 L58 100 H2 Z"
+						d: "M30 88 L58 100 H2 Z",
+						fill: `url(#${uid}-beam)`
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.pendantShade,
@@ -3322,6 +4801,12 @@ window.__ModuleLoader__.load({
 						cy: "90",
 						rx: "6",
 						ry: "3"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.pendantFilament,
+						cx: "30",
+						cy: "89.5",
+						r: "1.5"
 					})
 				]
 			});
@@ -3347,7 +4832,11 @@ window.__ModuleLoader__.load({
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.catTail,
-						d: "M12 24 C4 22 2 14 7 9 C5 15 8 20 13 20 Z"
+						d: "M12 24 C4 22 2 13 7 8 C5 14 8 19 13 19.5 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.catTailTip,
+						d: "M7 8 C8 10 7 12 5 14 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.catBody,
@@ -3355,7 +4844,7 @@ window.__ModuleLoader__.load({
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.catLeg,
-						d: "M20 32 H24 V37 H20 Z M28 32 H32 V37 H28 Z M36 32 H40 V37 H36 Z"
+						d: "M19 32 H23 V37.5 H19 Z M27 32 H31 V37.5 H27 Z M35 32 H39 V37.5 H35 Z M42 32 H46 V37.5 H42 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.catBody,
@@ -3363,27 +4852,61 @@ window.__ModuleLoader__.load({
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.catEar,
-						d: "M42 17 L41 9 L48 14 Z M52 14 L57 9 L57 17 Z"
+						d: "M42 17 L41 8.5 L48 14 Z M52 14 L57 8.5 L57 17 Z"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+						className: TeamStage_module_css_default.catEarInner,
+						d: "M42.5 15.5 L42 10.5 L46.5 14 Z M53 14 L56 10.5 L56 15.5 Z"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 						className: TeamStage_module_css_default.catEye,
+						cx: "47.5",
+						cy: "23.5",
+						r: "1.6"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.catEye,
+						cx: "53.5",
+						cy: "23.5",
+						r: "1.6"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.catPupil,
+						cx: "47.5",
+						cy: "23.5",
+						r: "0.9"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.catPupil,
+						cx: "53.5",
+						cy: "23.5",
+						r: "0.9"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.catGlint,
 						cx: "48",
-						cy: "24",
-						r: "1.5"
+						cy: "23",
+						r: "0.5"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						className: TeamStage_module_css_default.catEye,
+						className: TeamStage_module_css_default.catGlint,
 						cx: "54",
-						cy: "24",
-						r: "1.5"
+						cy: "23",
+						r: "0.5"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						className: TeamStage_module_css_default.catNose,
+						cx: "50.5",
+						cy: "26",
+						r: "0.7"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.catWhisker,
-						d: "M52 28 L60 26 M52 29 L60 30"
+						d: "M51 28 L59 26 M51 29 L59 29.5 M51 30 L58 32 M41 27 L33 26 M41 29 L33 29 M41 30 L34 32"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.catStripe,
-						d: "M22 14 L24 20 M29 13 L31 19 M36 14 L38 20"
+						d: "M22 14 L24 20 M29 13 L31 19 M36 14 L38 20 M46 14 L47 17"
 					})
 				]
 			});
@@ -3621,9 +5144,8 @@ window.__ModuleLoader__.load({
 				return {
 					left: `${screen.left}%`,
 					top: `${screen.top}%`,
-					width: `${Math.round(rect.w * screen.scale * 100) / 100}%`,
-					height: `${Math.round(rect.h * screen.scale * 100) / 100}%`,
-					"--team-depth": Math.round(rect.y + rect.h / 2)
+					"--team-depth": Math.round(rect.y + rect.h / 2),
+					"--team-scale": Math.round(screen.scale * 1e3) / 1e3
 				};
 			};
 			/** The rug and the floor lamp are furniture too, so they get plan rects. */
@@ -3760,8 +5282,8 @@ window.__ModuleLoader__.load({
 									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 										className: TeamStage_module_css_default.utility,
 										style: at({
-											x: 3.5,
-											y: 31
+											x: 4.5,
+											y: 64
 										}, 1),
 										"aria-hidden": true,
 										children: [
@@ -3788,6 +5310,16 @@ window.__ModuleLoader__.load({
 										"aria-hidden": true,
 										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CatFigure, {})
 									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										className: TeamStage_module_css_default.treadmill,
+										"data-prop": "treadmill",
+										style: at({
+											x: 93,
+											y: 87
+										}, 1),
+										"aria-hidden": true,
+										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TreadmillFigure, {})
+									}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 										className: TeamStage_module_css_default.lounge,
 										"aria-hidden": true,
@@ -3800,17 +5332,20 @@ window.__ModuleLoader__.load({
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 												className: TeamStage_module_css_default.sofa,
 												"data-prop": "sofa",
-												style: loungePiece(sofaBlock)
+												style: loungePiece(sofaBlock),
+												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(SofaFigure, {})
 											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 												className: TeamStage_module_css_default.table,
 												"data-prop": "table",
-												style: loungePiece(tableBlock)
+												style: loungePiece(tableBlock),
+												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TableFigure, {})
 											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 												className: TeamStage_module_css_default.lamp,
 												"data-prop": "lamp",
-												style: loungePiece(lampRect)
+												style: loungePiece(lampRect),
+												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(LampFigure, {})
 											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 												className: TeamStage_module_css_default.plant,
@@ -4010,8 +5545,10 @@ window.__ModuleLoader__.load({
 		function screenLineOf(memberId, tasks, messages) {
 			const active = tasks.find((task) => task.assigneeId === memberId && task.status === "active") ?? tasks.find((task) => task.assigneeId === memberId && task.status !== "done");
 			if (active !== void 0) return short(active.title, 34);
-			const inbound = [...messages].reverse().find((message) => message.to === memberId);
-			return inbound === void 0 ? void 0 : short(inbound.text, 34);
+			for (let index = messages.length - 1; index >= 0; index -= 1) {
+				const message = messages[index];
+				if (message?.to === memberId) return short(message.text, 34);
+			}
 		}
 		/**
 		* The back wall of the room, and everything hung on it.
@@ -4027,9 +5564,15 @@ window.__ModuleLoader__.load({
 				"aria-hidden": true,
 				children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+						className: TeamStage_module_css_default.calendar,
+						"data-prop": "calendar",
+						style: { left: `${onWall(4)}%` },
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.calendarHead }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.calendarGrid })]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 						className: TeamStage_module_css_default.whiteboard,
 						"data-prop": "whiteboard",
-						style: { left: `${onWall(16)}%` },
+						style: { left: `${onWall(15.5)}%` },
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.boardGhost }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.boardInk }),
@@ -4049,13 +5592,13 @@ window.__ModuleLoader__.load({
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 						className: TeamStage_module_css_default.hanger,
-						style: { left: `${onWall(25)}%` },
+						style: { left: `${onWall(26)}%` },
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.hangerBracket }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Plant, {
 							kind: "pothos",
 							className: TeamStage_module_css_default.hangerPlant
 						})]
 					}),
-					[30, 62].map((where) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+					[36.5, 65].map((where) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 						className: TeamStage_module_css_default.window,
 						"data-prop": "window",
 						style: { left: `${onWall(where)}%` },
@@ -4086,7 +5629,7 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 						className: TeamStage_module_css_default.shelf,
 						"data-prop": "shelf",
-						style: { left: `${onWall(46)}%` },
+						style: { left: `${onWall(50)}%` },
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.books }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.bookLeaning }),
@@ -4103,7 +5646,7 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 						className: TeamStage_module_css_default.clockProp,
 						"data-prop": "clock",
-						style: { left: `${onWall(74)}%` },
+						style: { left: `${onWall(79)}%` },
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.clockTicks }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
@@ -4122,16 +5665,10 @@ window.__ModuleLoader__.load({
 						]
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-						className: TeamStage_module_css_default.poster,
-						"data-prop": "poster",
-						style: { left: `${onWall(86)}%` },
-						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.posterArt })
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-						className: TeamStage_module_css_default.calendar,
-						"data-prop": "calendar",
-						style: { left: `${onWall(8)}%` },
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.calendarHead }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.calendarGrid })]
+						className: TeamStage_module_css_default.airConditioner,
+						"data-prop": "ac",
+						style: { left: `${onWall(89.5)}%` },
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(AirConditionerFigure, {})
 					})
 				]
 			});

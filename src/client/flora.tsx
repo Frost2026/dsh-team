@@ -44,128 +44,127 @@ interface Blade {
   readonly vein?: string
   /** Foliage that hangs rather than stands: it swings from its top edge. */
   readonly hang?: boolean
+  /** Secondary detail or variegation on the blade. */
+  readonly detail?: string
 }
 
-/** A split leaf: two notches cut into each side of a broad heart. */
-const MONSTERA = 'M0 -2 C-4 -10 -12 -13 -17 -17 L-9 -19 C-13 -23 -19 -25 -22 -30 '
+/** A split leaf: organic notches cut into each side of a broad monstera heart. */
+const MONSTERA = 'M0 -2 C-4 -10 -12 -13 -17 -17 L-8.5 -19 C-13 -23 -19 -25 -22 -30 '
   + 'L-11.5 -30.5 C-16 -36 -14 -42 0 -46 C14 -42 16 -36 11.5 -30.5 '
-  + 'L22 -30 C19 -25 13 -23 9 -19 L17 -17 C12 -13 4 -10 0 -2 Z'
+  + 'L22 -30 C19 -25 13 -23 8.5 -19 L17 -17 C12 -13 4 -10 0 -2 Z'
 
-/** The midrib of a split leaf, with a pair of ribs running into each lobe. */
-const MONSTERA_VEIN = 'M0 -3 L0 -42 M0 -14 L-14 -18 M0 -14 L14 -18 '
-  + 'M0 -24 L-17 -29 M0 -24 L17 -29 M0 -33 L-11 -38 M0 -33 L11 -38'
+/** Monstera leaf fenestration (inner perforations) and veins. */
+const MONSTERA_VEIN = 'M0 -3 L0 -43 M0 -14 L-14 -18 M0 -14 L14 -18 '
+  + 'M0 -24 L-17 -29 M0 -24 L17 -29 M0 -33 L-11 -38 M0 -33 L11 -38 '
+  + 'M-6 -22 C-7 -25 -7 -27 -5 -28 C-4 -27 -4 -24 -5 -22 Z '
+  + 'M6 -22 C7 -25 7 -27 5 -28 C4 -27 4 -24 5 -22 Z'
 
-/** An upright sword, thickest at the middle and drawn to a point. */
-const SWORD = 'M0 0 C-5 -7 -7.5 -22 -6.5 -36 C-5.5 -48 -3 -56 0 -60 '
-  + 'C3 -56 5.5 -48 6.5 -36 C7.5 -22 5 -7 0 0 Z'
+/** An upright sword, thickest at the middle with elegant wavy edges and drawn to a sharp tip. */
+const SWORD = 'M0 0 C-5.5 -7 -8 -22 -7 -36 C-6 -48 -3.5 -57 0 -62 '
+  + 'C3.5 -57 6 -48 7 -36 C8 -22 5.5 -7 0 0 Z'
 
-/** The pale stripe up the edge of a snake plant's blade. */
-const SWORD_EDGE = 'M4.6 -12 C6 -24 6.4 -40 3.4 -52 C5.4 -42 5 -26 3 -12 Z'
+/** The golden variegated margin along the edges of a snake plant's blade. */
+const SWORD_EDGE = 'M-6.2 -22 C-7.2 -32 -6 -44 -2.8 -54 C-1.8 -46 -4.8 -32 -4.8 -20 Z '
+  + 'M6.2 -22 C7.2 -32 6 -44 2.8 -54 C1.8 -46 4.8 -32 4.8 -20 Z'
 
-/** A heart, hanging point-down the way a trailing leaf does. */
-const HEART = 'M0 0 C-8 -4 -13 -10 -13 -16.5 C-13 -22 -8.5 -25 -4.5 -23 '
-  + 'C-2 -21.6 -0.6 -19.4 0 -17.4 C0.6 -19.4 2 -21.6 4.5 -23 '
-  + 'C8.5 -25 13 -22 13 -16.5 C13 -10 8 -4 0 0 Z'
+/** Transverse zebra banding on the snake plant blade. */
+const SWORD_BANDING = 'M-4 -16 Q0 -14 4 -16 M-5 -26 Q0 -24 5 -26 M-5.5 -36 Q0 -34 5.5 -36 M-4 -46 Q0 -44 4 -46'
 
-/** The midrib of a hanging heart. */
-const HEART_VEIN = 'M0 -2 L0 -18 M0 -8 L-7 -14 M0 -8 L7 -14'
+/** A lush heart, hanging point-down the way a trailing pothos leaf does. */
+const HEART = 'M0 0 C-8.5 -4 -13.5 -10 -13.5 -17 C-13.5 -22.5 -9 -25.5 -4.5 -23.5 '
+  + 'C-2 -22 -0.6 -19.6 0 -17.5 C0.6 -19.6 2 -22 4.5 -23.5 '
+  + 'C9 -25.5 13.5 -22.5 13.5 -17 C13.5 -10 8.5 -4 0 0 Z'
 
-/** A plain oval leaf, for a plant whose interest is in how many it has. */
-const OVAL = 'M0 0 C-6 -5 -9 -11 -9 -17 C-9 -23 -5 -27 0 -28 C5 -27 9 -23 9 -17 C9 -11 6 -5 0 0 Z'
+/** The midrib and branching lateral veins of a hanging heart. */
+const HEART_VEIN = 'M0 -2 L0 -19 M0 -7 L-7.5 -13.5 M0 -7 L7.5 -13.5 M0 -13 L-6 -17.5 M0 -13 L6 -17.5'
 
-/** A long frond, tapering to a point. */
-const FROND = 'M0 0 C-3.5 -14 -6 -28 -4 -42 L0 -50 L4 -42 C6 -28 3.5 -14 0 0 Z'
+/** Variegated marble splashes on pothos leaves. */
+const HEART_SPLASH = 'M-3 -10 C-5 -12 -3 -15 -1 -13 C-2 -11 -3 -10 -3 -10 Z M4 -8 C6 -10 5 -13 2 -11 C4 -9 4 -8 4 -8 Z'
+
+/** A broad oval fiddle leaf with glossy curvature. */
+const OVAL = 'M0 0 C-7 -5 -10 -11.5 -10 -18 C-10 -24.5 -5.5 -28.5 0 -29.5 C5.5 -28.5 10 -24.5 10 -18 C10 -11.5 7 -5 0 0 Z'
+const OVAL_VEIN = 'M0 -2 L0 -27 M0 -9 L-7 -14 M0 -9 L7 -14 M0 -17 L-7.5 -21 M0 -17 L7.5 -21'
+
+/** A long graceful palm frond. */
+const FROND = 'M0 0 C-3.8 -14 -6.5 -28 -4.2 -43 L0 -52 L4.2 -43 C6.5 -28 3.8 -14 0 0 Z'
 
 /** The leaflets combed off both sides of a frond. */
-const FROND_VEIN = 'M0 -2 L0 -47 M0 -10 L-5.5 -16 M0 -10 L5.5 -16 M0 -19 L-6 -25 '
-  + 'M0 -19 L6 -25 M0 -28 L-5.5 -34 M0 -28 L5.5 -34 M0 -36 L-4 -41 M0 -36 L4 -41'
+const FROND_VEIN = 'M0 -2 L0 -49 M0 -10 L-6 -16.5 M0 -10 L6 -16.5 M0 -19 L-6.8 -25.5 '
+  + 'M0 -19 L6.8 -25.5 M0 -28 L-6.2 -34.5 M0 -28 L6.2 -34.5 M0 -36 L-4.5 -42 M0 -36 L4.5 -42'
 
-/** A ribbed column, for the one plant in the room nobody has to water. */
-const COLUMN = 'M0 0 C-9.5 0 -12.5 -5 -12.5 -15 L-12.5 -34 C-12.5 -45 -8 -50 0 -50 '
-  + 'C8 -50 12.5 -45 12.5 -34 L12.5 -15 C12.5 -5 9.5 0 0 0 Z'
+/** A ribbed 3D column, for a saguaro / barrel cactus. */
+const COLUMN = 'M0 0 C-10 0 -13 -5 -13 -15.5 L-13 -35 C-13 -46.5 -8.5 -52 0 -52 '
+  + 'C8.5 -52 13 -46.5 13 -35 L13 -15.5 C13 -5 10 0 0 0 Z'
 
 /** A shorter column, for an arm off the side of one. */
-const LIMB = 'M0 0 C-6.5 0 -8.5 -3.5 -8.5 -10 L-8.5 -22 C-8.5 -30 -5.5 -33.5 0 -33.5 '
-  + 'C5.5 -33.5 8.5 -30 8.5 -22 L8.5 -10 C8.5 -3.5 6.5 0 0 0 Z'
+const LIMB = 'M0 0 C-7 0 -9 -3.5 -9 -10.5 L-9 -23 C-9 -31.5 -6 -35 0 -35 '
+  + 'C6 -35 9 -31.5 9 -23 L9 -10.5 C9 -3.5 7 0 0 0 Z'
 
-/** The ribs down a cactus, and the ones down its arms. */
-const RIBS = 'M-6 -6 C-7.5 -18 -7.5 -32 -6 -43 M0 -4 L0 -47 M6 -6 C7.5 -18 7.5 -32 6 -43'
+/** The vertical contour ribs down a cactus. */
+const RIBS = 'M-6.5 -6 C-8 -18 -8 -33 -6.5 -44 M0 -4 L0 -49 M6.5 -6 C8 -18 8 -33 6.5 -44'
 
-/** The blades of one kind, back layer first. */
-function bladesOf(kind: PlantKind): readonly Blade[] {
-  switch (kind) {
-    case 'monstera':
-      return [
-        { d: MONSTERA, at: 'translate(50 82) rotate(-38) scale(0.86)', vein: MONSTERA_VEIN },
-        { d: MONSTERA, at: 'translate(50 82) rotate(36) scale(0.9)', vein: MONSTERA_VEIN },
-        { d: MONSTERA, at: 'translate(50 80) rotate(-14) scale(1.02)', lit: true, vein: MONSTERA_VEIN },
-        { d: MONSTERA, at: 'translate(50 80) rotate(16) scale(0.94)', lit: true, vein: MONSTERA_VEIN },
-        { d: MONSTERA, at: 'translate(50 78) rotate(2) scale(0.74)', lit: true, vein: MONSTERA_VEIN },
-      ]
-    case 'sansevieria':
-      return [
-        { d: SWORD, at: 'translate(50 84) rotate(-22) scale(0.82)' },
-        { d: SWORD, at: 'translate(50 84) rotate(20) scale(0.88)' },
-        { d: SWORD, at: 'translate(50 84) rotate(-8) scale(1)', lit: true, vein: SWORD_EDGE },
-        { d: SWORD, at: 'translate(50 84) rotate(7) scale(0.94)', lit: true, vein: SWORD_EDGE },
-        { d: SWORD, at: 'translate(50 84) rotate(-15) scale(0.66)', lit: true, vein: SWORD_EDGE },
-      ]
-    case 'pothos':
-      return [
-        { d: SWORD, at: 'translate(50 82) rotate(-10) scale(0.5)' },
-        { d: SWORD, at: 'translate(50 82) rotate(12) scale(0.44)', lit: true },
-        { d: HEART, at: 'translate(28 84) rotate(196) scale(0.78)', hang: true, vein: HEART_VEIN },
-        { d: HEART, at: 'translate(22 96) rotate(184) scale(0.7)', hang: true, lit: true, vein: HEART_VEIN },
-        { d: HEART, at: 'translate(74 86) rotate(166) scale(0.76)', hang: true, vein: HEART_VEIN },
-        { d: HEART, at: 'translate(80 99) rotate(176) scale(0.66)', hang: true, lit: true, vein: HEART_VEIN },
-        { d: HEART, at: 'translate(50 70) rotate(180) scale(0.6)', hang: true, lit: true, vein: HEART_VEIN },
-      ]
-    case 'cactus':
-      return [
-        { d: LIMB, at: 'translate(30 62) rotate(-24)', vein: RIBS },
-        { d: LIMB, at: 'translate(70 58) rotate(22) scale(0.9)', vein: RIBS },
-        { d: COLUMN, at: 'translate(50 82)', lit: true, vein: RIBS },
-      ]
-    case 'ficus':
-      return [
-        { d: OVAL, at: 'translate(36 56) rotate(-40)' },
-        { d: OVAL, at: 'translate(64 54) rotate(42)' },
-        { d: OVAL, at: 'translate(32 70) rotate(-62) scale(0.86)' },
-        { d: OVAL, at: 'translate(68 68) rotate(64) scale(0.86)' },
-        { d: OVAL, at: 'translate(44 42) rotate(-16)', lit: true },
-        { d: OVAL, at: 'translate(58 40) rotate(18)', lit: true },
-        { d: OVAL, at: 'translate(50 32) rotate(0) scale(0.9)', lit: true },
-      ]
-    case 'palm':
-    default:
-      return [
-        { d: FROND, at: 'translate(50 82) rotate(-52) scale(0.92)', vein: FROND_VEIN },
-        { d: FROND, at: 'translate(50 82) rotate(50) scale(0.96)', vein: FROND_VEIN },
-        { d: FROND, at: 'translate(50 80) rotate(-26)', lit: true, vein: FROND_VEIN },
-        { d: FROND, at: 'translate(50 80) rotate(24) scale(0.96)', lit: true, vein: FROND_VEIN },
-        { d: FROND, at: 'translate(50 78) rotate(-2) scale(0.88)', lit: true, vein: FROND_VEIN },
-      ]
-  }
+/**
+ * The blades of one kind, back layer first. Built once at module load — the
+ * stage re-renders its greenery on every snapshot, and rebuilding these
+ * little arrays each time is the one allocation it can do without.
+ */
+const BLADES: Record<PlantKind, readonly Blade[]> = {
+  monstera: [
+    { d: MONSTERA, at: 'translate(50 82) rotate(-38) scale(0.88)', vein: MONSTERA_VEIN },
+    { d: MONSTERA, at: 'translate(50 82) rotate(36) scale(0.92)', vein: MONSTERA_VEIN },
+    { d: MONSTERA, at: 'translate(50 80) rotate(-14) scale(1.04)', lit: true, vein: MONSTERA_VEIN },
+    { d: MONSTERA, at: 'translate(50 80) rotate(16) scale(0.96)', lit: true, vein: MONSTERA_VEIN },
+    { d: MONSTERA, at: 'translate(50 78) rotate(2) scale(0.76)', lit: true, vein: MONSTERA_VEIN },
+  ],
+  sansevieria: [
+    { d: SWORD, at: 'translate(50 84) rotate(-22) scale(0.84)', vein: SWORD_BANDING, detail: SWORD_EDGE },
+    { d: SWORD, at: 'translate(50 84) rotate(20) scale(0.9)', vein: SWORD_BANDING, detail: SWORD_EDGE },
+    { d: SWORD, at: 'translate(50 84) rotate(-8) scale(1.02)', lit: true, vein: SWORD_BANDING, detail: SWORD_EDGE },
+    { d: SWORD, at: 'translate(50 84) rotate(7) scale(0.96)', lit: true, vein: SWORD_BANDING, detail: SWORD_EDGE },
+    { d: SWORD, at: 'translate(50 84) rotate(-15) scale(0.68)', lit: true, vein: SWORD_BANDING, detail: SWORD_EDGE },
+  ],
+  pothos: [
+    { d: SWORD, at: 'translate(50 82) rotate(-10) scale(0.52)' },
+    { d: SWORD, at: 'translate(50 82) rotate(12) scale(0.46)', lit: true },
+    { d: HEART, at: 'translate(28 84) rotate(196) scale(0.8)', hang: true, vein: HEART_VEIN, detail: HEART_SPLASH },
+    { d: HEART, at: 'translate(22 96) rotate(184) scale(0.72)', hang: true, lit: true, vein: HEART_VEIN, detail: HEART_SPLASH },
+    { d: HEART, at: 'translate(74 86) rotate(166) scale(0.78)', hang: true, vein: HEART_VEIN, detail: HEART_SPLASH },
+    { d: HEART, at: 'translate(80 99) rotate(176) scale(0.68)', hang: true, lit: true, vein: HEART_VEIN, detail: HEART_SPLASH },
+    { d: HEART, at: 'translate(50 70) rotate(180) scale(0.62)', hang: true, lit: true, vein: HEART_VEIN, detail: HEART_SPLASH },
+  ],
+  cactus: [
+    { d: LIMB, at: 'translate(29 62) rotate(-24)', vein: RIBS },
+    { d: LIMB, at: 'translate(71 58) rotate(22) scale(0.92)', vein: RIBS },
+    { d: COLUMN, at: 'translate(50 82)', lit: true, vein: RIBS },
+  ],
+  ficus: [
+    { d: OVAL, at: 'translate(35 55) rotate(-42)', vein: OVAL_VEIN },
+    { d: OVAL, at: 'translate(65 53) rotate(44)', vein: OVAL_VEIN },
+    { d: OVAL, at: 'translate(31 70) rotate(-64) scale(0.88)', vein: OVAL_VEIN },
+    { d: OVAL, at: 'translate(69 68) rotate(66) scale(0.88)', vein: OVAL_VEIN },
+    { d: OVAL, at: 'translate(43 41) rotate(-18)', lit: true, vein: OVAL_VEIN },
+    { d: OVAL, at: 'translate(59 39) rotate(20)', lit: true, vein: OVAL_VEIN },
+    { d: OVAL, at: 'translate(50 31) rotate(0) scale(0.92)', lit: true, vein: OVAL_VEIN },
+  ],
+  palm: [
+    { d: FROND, at: 'translate(50 82) rotate(-54) scale(0.94)', vein: FROND_VEIN },
+    { d: FROND, at: 'translate(50 82) rotate(52) scale(0.98)', vein: FROND_VEIN },
+    { d: FROND, at: 'translate(50 80) rotate(-26)', lit: true, vein: FROND_VEIN },
+    { d: FROND, at: 'translate(50 80) rotate(24) scale(0.98)', lit: true, vein: FROND_VEIN },
+    { d: FROND, at: 'translate(50 78) rotate(-2) scale(0.9)', lit: true, vein: FROND_VEIN },
+  ],
 }
 
 /** The woody stems a kind shows between the soil and its foliage. */
-function stemsOf(kind: PlantKind): string | undefined {
-  switch (kind) {
-    case 'monstera':
-      return 'M50 84 C46 72 40 66 34 62 M50 84 C54 72 60 68 65 64 M50 84 L50 66'
-    case 'ficus':
-      return 'M50 84 L50 40 M50 68 C46 62 42 58 37 55 M50 66 C54 60 59 56 63 53 '
-        + 'M50 56 C47 50 45 46 43 43 M50 54 C53 48 55 45 57 42'
-    case 'pothos':
-      return 'M48 82 C40 80 32 82 28 86 M52 82 C60 80 68 82 74 88 M28 86 C24 90 22 94 22 97 '
-        + 'M74 88 C78 92 80 96 80 100'
-    case 'palm':
-      return 'M50 84 C48 78 44 72 38 66 M50 84 C52 78 56 72 62 66'
-    case 'sansevieria':
-    case 'cactus':
-    default:
-      return undefined
-  }
+const STEMS: Record<PlantKind, string | undefined> = {
+  monstera: 'M50 84 C46 72 40 66 34 62 M50 84 C54 72 60 68 65 64 M50 84 L50 66',
+  ficus: 'M50 84 L50 40 M50 68 C46 62 42 58 37 55 M50 66 C54 60 59 56 63 53 '
+    + 'M50 56 C47 50 45 46 43 43 M50 54 C53 48 55 45 57 42',
+  pothos: 'M48 82 C40 80 32 82 28 86 M52 82 C60 80 68 82 74 88 M28 86 C24 90 22 94 22 97 '
+    + 'M74 88 C78 92 80 96 80 100',
+  palm: 'M50 84 C48 78 44 72 38 66 M50 84 C52 78 56 72 62 66',
+  sansevieria: undefined,
+  cactus: undefined,
 }
 
 /**
@@ -175,8 +174,8 @@ function stemsOf(kind: PlantKind): string | undefined {
  */
 export function Plant(props: { readonly kind: PlantKind, readonly className?: string }) {
   const { kind, className } = props
-  const blades = bladesOf(kind)
-  const stems = stemsOf(kind)
+  const blades = BLADES[kind]
+  const stems = STEMS[kind]
   return (
     <svg
       className={`${css.flora} ${className ?? ''}`}
@@ -185,10 +184,10 @@ export function Plant(props: { readonly kind: PlantKind, readonly className?: st
       aria-hidden
       focusable="false"
     >
-      {/* The saucer and the shadow it casts go down first: everything else in
-          the pot stands on them. */}
-      <ellipse className={css.floraShade} cx="50" cy="121" rx="27" ry="5" />
-      <path className={css.floraSaucer} d="M29 116 H71 Q75 116 75 119.5 Q75 123 71 123 H29 Q25 123 25 119.5 Q25 116 29 116 Z" />
+      {/* The saucer and the soft shadow it casts */}
+      <ellipse className={css.floraShade} cx="50" cy="122" rx="28" ry="5.5" />
+      <path className={css.floraSaucer} d="M28 116 H72 Q76 116 76 119.5 Q76 123.5 72 123.5 H28 Q24 123.5 24 119.5 Q24 116 28 116 Z" />
+      <path className={css.floraSaucerLip} d="M26 117.5 H74" />
 
       {stems !== undefined && <path className={css.floraStem} d={stems} />}
 
@@ -200,29 +199,38 @@ export function Plant(props: { readonly kind: PlantKind, readonly className?: st
             style={{ '--team-leaf-delay': `${-((index * 0.83) % 4).toFixed(2)}s` } as CSSProperties}
           >
             <path className={blade.lit === true ? css.floraBladeLit : css.floraBlade} d={blade.d} />
+            {blade.detail !== undefined && <path className={css.floraBladeDetail} d={blade.detail} />}
             {blade.vein !== undefined && <path className={css.floraVein} d={blade.vein} />}
           </g>
         </g>
       ))}
 
       {kind === 'cactus' && (
-        <>
-          <path className={css.floraSpine} d="M42 44 L38 41 M42 54 L38 51 M42 64 L38 61 M58 42 L62 39 M58 52 L62 49 M58 62 L62 59" />
-          <circle className={css.floraBloom} cx="50" cy="31" r="3.6" />
-          <circle className={css.floraBloomHeart} cx="50" cy="31" r="1.5" />
-        </>
+        <g className={css.floraCactusDetails}>
+          {/* Spine clusters with radial needle rays */}
+          <path className={css.floraSpine} d="M42 44 L38 41 M42 44 L37 44 M42 44 L38 47 M42 54 L38 51 M42 54 L37 54 M42 54 L38 57 M42 64 L38 61 M42 64 L37 64 M58 42 L62 39 M58 42 L63 42 M58 42 L62 45 M58 52 L62 49 M58 52 L63 52 M58 62 L62 59 M58 62 L63 62" />
+          {/* Beautiful desert cactus flower bloom */}
+          <circle className={css.floraBloomOuter} cx="50" cy="30" r="5" />
+          <circle className={css.floraBloom} cx="50" cy="30" r="3.8" />
+          <circle className={css.floraBloomHeart} cx="50" cy="30" r="1.6" />
+          <circle className={css.floraBloomStamen} cx="49.3" cy="29.3" r="0.6" />
+          <circle className={css.floraBloomStamen} cx="50.7" cy="30.5" r="0.6" />
+        </g>
       )}
 
-      {/* The pot last, so a leaf that leans over the rim is tucked behind it. */}
+      {/* The planter pot: thrown terracotta with rolled rim, rim lip, glaze specular shine, soil and pebbles */}
       <path className={css.floraPot} d="M28 87 H72 L67.5 117 Q67 120 63 120 H37 Q33 120 32.5 117 Z" />
       <path className={css.floraPotShade} d="M60 87 L72 87 L67.5 117 Q67 120 63 120 H57 Q61 106 60 87 Z" />
-      <path className={css.floraGlaze} d="M36 92 C33.5 101 34 110 36.5 117 L40 117 C37.5 109 37 101 39 92 Z" />
-      <path className={css.floraRim} d="M25 79 H75 Q78 79 78 82 V86 Q78 89 75 89 H25 Q22 89 22 86 V82 Q22 79 25 79 Z" />
-      <path className={css.floraRimLip} d="M24 80.5 H76" />
-      <ellipse className={css.floraSoil} cx="50" cy="81.5" rx="24" ry="4" />
-      <circle className={css.floraCrumb} cx="40" cy="81" r="1.4" />
-      <circle className={css.floraCrumb} cx="59" cy="82.5" r="1.1" />
-      <circle className={css.floraCrumb} cx="52" cy="79.6" r="0.9" />
+      <path className={css.floraGlaze} d="M35 91 C32.5 101 33 110 35.5 117 L39.5 117 C37 109 36.5 101 38.5 91 Z" />
+      <path className={css.floraRim} d="M25 78.5 H75 Q78.5 78.5 78.5 82 V86.5 Q78.5 89.5 75 89.5 H25 Q21.5 89.5 21.5 86.5 V82 Q21.5 78.5 25 78.5 Z" />
+      <path className={css.floraRimLip} d="M23.5 80.5 H76.5" />
+      <ellipse className={css.floraSoil} cx="50" cy="81.5" rx="24" ry="4.2" />
+      {/* Rich potting soil texture crumbs and small moss pebbles */}
+      <circle className={css.floraCrumb} cx="38" cy="81" r="1.5" />
+      <circle className={css.floraCrumb} cx="60" cy="82.5" r="1.2" />
+      <circle className={css.floraCrumb} cx="51" cy="79.5" r="1" />
+      <circle className={css.floraMoss} cx="44" cy="82.8" r="1.4" />
+      <circle className={css.floraMoss} cx="56" cy="80.8" r="1.2" />
     </svg>
   )
 }
