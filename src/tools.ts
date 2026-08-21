@@ -95,7 +95,9 @@ export function spawnTool(ctx: Context): ToolDefinition {
       + 'until you dismiss it. Give it a name you will address it by and a first task. relation "managed" '
       + 'means it may only message you; "peer" means it may also message the other teammates directly and '
       + 'coordinate with them without going through you. Prefer a teammate over a one-shot subagent when the '
-      + 'work needs several rounds, a durable owner, or someone the rest of the team can talk to.',
+      + 'work needs several rounds, a durable owner, or someone the rest of the team can talk to. This is where '
+      + 'a team begins: until one team_spawn has succeeded there is no team, no roster and no task list, and '
+      + 'every other team_* tool has nothing to act on — call this one first.',
     parameters: {
       name: { type: 'string', required: true, description: 'Short display name you and the team will address it by, e.g. Alice.' },
       task: { type: 'string', required: true, description: 'The first task, self-contained: the teammate does not see your conversation.' },
@@ -153,7 +155,8 @@ export function spawnTool(ctx: Context): ToolDefinition {
  */
 export function sendTool(ctx: Context, audience: 'leader' | 'member'): ToolDefinition {
   const description = audience === 'leader'
-    ? 'Send a message to one teammate. It becomes that teammate\'s next turn: if it is busy, the message '
+    ? 'Send a message to one teammate you have already spawned — with no team yet there is nobody to write '
+      + 'to, so team_spawn comes first. It becomes that teammate\'s next turn: if it is busy, the message '
       + 'waits until the current turn ends, so it cannot redirect work already underway. Delivery is '
       + 'asynchronous — this returns once the message is accepted, never the teammate\'s answer; the reply '
       + 'arrives later as its own message to you.'
@@ -219,7 +222,9 @@ export function taskTool(ctx: Context): ToolDefinition {
     name: 'team_task',
     description:
       'Create or update one row of the shared team task list — the list every teammate can read, so it is '
-      + 'where multi-teammate work is coordinated without routing every detail through messages. Omit task_id '
+      + 'where multi-teammate work is coordinated without routing every detail through messages. The list '
+      + 'belongs to a live team, so spawn the teammates first: a row nobody is on the roster to read changes '
+      + 'nothing, and assigning one to a name that is not on the roster is refused. Omit task_id '
       + 'to create a row (title required); pass task_id to update one. Assign with a teammate name or member '
       + 'id. A teammate closes its own row through its report, so you rarely set status yourself.',
     parameters: {
@@ -274,7 +279,8 @@ export function relationTool(ctx: Context): ToolDefinition {
   return defineTool({
     name: 'team_relation',
     description:
-      'Change how much one teammate may talk to the rest of the team. "peer" lets it message other teammates '
+      'Change how much one teammate may talk to the rest of the team; the teammate must already be on the '
+      + 'roster, so this never applies before you have spawned one. "peer" lets it message other teammates '
       + 'directly and self-coordinate; "managed" routes all of its traffic back through you. Widen when a '
       + 'teammate needs to work with another one; tighten when you want every hand-off to pass your desk.',
     parameters: {
@@ -306,7 +312,8 @@ export function dismissTool(ctx: Context): ToolDefinition {
   return defineTool({
     name: 'team_dismiss',
     description:
-      'Dismiss one teammate, or the whole team when you name nobody. A dismissed teammate stops what it is '
+      'Dismiss one teammate, or the whole team when you name nobody — there is nothing to dismiss until you '
+      + 'have spawned someone. A dismissed teammate stops what it is '
       + 'doing and receives no further messages; its transcript stays readable. Dismiss teammates whose work '
       + 'is finished — an idle teammate costs nothing to keep, but a stale one invites you to message it again.',
     parameters: {
@@ -344,12 +351,17 @@ export function dismissTool(ctx: Context): ToolDefinition {
  * @returns the tool definition.
  */
 export function listTool(ctx: Context, audience: 'leader' | 'member' = 'leader'): ToolDefinition {
+  const description = audience === 'leader'
+    ? 'Read your team: every member with its role, relation and live state (running, idle, or ready to wake), '
+      + 'the shared task list, and the recent mailbox traffic. Use it before messaging or assigning work, and '
+      + 'to check whether a teammate is still busy. It reads a team you built yourself — before your first '
+      + 'team_spawn it reports an empty team, so do not call it to find out whether you have one.'
+    : 'Read the team: every member with its role, relation and live state (running, idle, or ready to wake), '
+      + 'the shared task list, and the recent mailbox traffic the leader can see. Use it before messaging or '
+      + 'assigning work, and to check whether a teammate is still busy.'
   return defineTool({
     name: 'team_list',
-    description:
-      'Read the team: every member with its role, relation and live state (running, idle, or ready to wake), '
-      + 'the shared task list, and the recent mailbox traffic the leader can see. Use it before messaging or '
-      + 'assigning work, and to check whether a teammate is still busy.',
+    description,
     parameters: {},
     output: {
       schema: {
@@ -475,7 +487,8 @@ export function noteTool(
 ): ToolDefinition {
   const shared = audience === 'leader'
     ? 'Every teammate reads and writes the shared board, so it is where a decision belongs once you have made '
-      + 'it — leaving a note costs no turn, while messaging someone costs one of theirs.'
+      + 'it — leaving a note costs no turn, while messaging someone costs one of theirs. It is worth writing '
+      + 'to once you have teammates: before your first team_spawn nobody is there to read it.'
     : 'Every member reads and writes the shared board. Put a conclusion there instead of messaging it around: '
       + 'a note costs nobody a turn, and it is still there after you have finished and gone idle.'
   return defineTool({
@@ -559,7 +572,8 @@ export function boardTool(
       + 'you get the index — every note with who wrote it and when — and with a key you get that note in full. '
       + (audience === 'leader'
         ? 'Read the board before assigning work: a teammate that has already recorded its conclusion there '
-          + 'does not need to be asked for it again.'
+          + 'does not need to be asked for it again. The board belongs to the team, so before your first '
+          + 'team_spawn it is empty and reading it tells you nothing.'
         : 'Read the board before messaging anyone: what you were about to ask for may already be written down, '
           + 'and a note costs nobody a turn.'),
     parameters: {
