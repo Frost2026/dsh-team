@@ -155,7 +155,7 @@ pnpm run check       # 三件一起
 
 构建产物（`dist/`）与 `dsh-manifest.json` 是提交进仓库的：仓库本身即插件规范要求的「元数据声明 + 预构建产物」形态，改完源码记得把新的 `dist/` 一起提交。
 
-构建与类型针对 npm 上的 `@deepseek-ai/dsh@0.1.0-rc.6`。遵循 harness 的插件纪律：注册即 effect、能力缝三角色、事件全 JSON 整值、模型可见即落日志、配置无硬编码。
+构建与类型针对 npm 上的 `@deepseek-ai/dsh@0.1.1-rc.2`。遵循 harness 的插件纪律：注册即 effect、能力缝三角色、事件全 JSON 整值、模型可见即落日志、配置无硬编码。
 
 ## License
 

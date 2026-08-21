@@ -24,7 +24,7 @@ describe('teamProjection', () => {
       team: 'member-added',
       member: { memberId: 'child-1', name: 'Alice', relation: 'peer' },
     }))
-    expect(unit.view(state)).toBe(state)
+    expect(unit.wire.view(state)).toBe(state)
   })
 
   it('returns the same state for an event it does not own', () => {
@@ -61,11 +61,11 @@ describe('teamProjection', () => {
     ))
 
     expect(state.messages.map(message => message.kind)).toEqual(['message', 'report', 'settled'])
-    expect(unit.schema.parse(state)).toEqual(state)
+    expect(unit.stateSchema.parse(state)).toEqual(state)
   })
 
   it('refuses a cached state that no longer matches the served shape', () => {
     const broken = { ...EMPTY_TEAM_VIEW, members: [{ memberId: 'child-1', name: 'Alice' }] } as unknown as TeamView
-    expect(() => unit.schema.parse(broken)).toThrow()
+    expect(() => unit.stateSchema.parse(broken)).toThrow()
   })
 })

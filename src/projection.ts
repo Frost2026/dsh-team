@@ -14,7 +14,8 @@ import { applyTeamEvent } from './fold.ts'
 
 /**
  * Wire validation for the served value. The unit's state IS the value, so one
- * schema covers the read side and the persisted-cache round trip.
+ * schema covers the fold state, the read side, and the persisted-cache round
+ * trip.
  */
 const teamViewSchema = z.object({
   active: z.boolean(),
@@ -54,17 +55,28 @@ const teamViewSchema = z.object({
 }) as unknown as z.ZodType<TeamView>
 
 /**
+ * The `team` unit as the registry's client-visible overload takes it: the fold
+ * state is also the served value, so `wire` is present rather than optional and
+ * its `view` is the identity.
+ */
+export type TeamProjectionUnit =
+  Omit<ProjectionDefinition<'team', TeamView>, 'wire'>
+  & { readonly wire: NonNullable<ProjectionDefinition<'team', TeamView>['wire']> }
+
+/**
  * Build the projection unit for one deployment's mailbox bound.
  * @param maxRecentMessages - feed ceiling from the row config.
  * @returns the registrable unit.
  */
-export function teamProjection(maxRecentMessages: number): ProjectionDefinition<'team', TeamView> {
+export function teamProjection(maxRecentMessages: number): TeamProjectionUnit {
   return {
     key: 'team',
-    schema: teamViewSchema,
+    stateSchema: teamViewSchema,
     init: () => EMPTY_TEAM_VIEW,
     apply: (state, event) => applyTeamEvent(state, event, maxRecentMessages),
-    view: state => state,
+    // The state is already the shape the room renders, so nothing is recomputed
+    // on the read side and there is no second shape to keep in step.
+    wire: { viewSchema: teamViewSchema, view: state => state },
     // 1: initial shape (members/tasks/messages folded from tool result meta).
     // 2: mailbox rows carry the conversation-chain depth they were delivered at.
     // 3: the shared-workspace index the leader last saw rides the value.

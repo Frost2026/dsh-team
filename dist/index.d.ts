@@ -470,11 +470,19 @@ declare class TeamError extends Error {
 //#endregion
 //#region src/projection.d.ts
 /**
+ * The `team` unit as the registry's client-visible overload takes it: the fold
+ * state is also the served value, so `wire` is present rather than optional and
+ * its `view` is the identity.
+ */
+type TeamProjectionUnit = Omit<ProjectionDefinition<'team', TeamView>, 'wire'> & {
+  readonly wire: NonNullable<ProjectionDefinition<'team', TeamView>['wire']>;
+};
+/**
  * Build the projection unit for one deployment's mailbox bound.
  * @param maxRecentMessages - feed ceiling from the row config.
  * @returns the registrable unit.
  */
-declare function teamProjection(maxRecentMessages: number): ProjectionDefinition<'team', TeamView>;
+declare function teamProjection(maxRecentMessages: number): TeamProjectionUnit;
 //#endregion
 //#region src/workspace.d.ts
 /** The shared area's stable id; every other area id is a member's session id. */

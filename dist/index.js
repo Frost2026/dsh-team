@@ -345,7 +345,8 @@ function foldTeam(events, bound) {
 */
 /**
 * Wire validation for the served value. The unit's state IS the value, so one
-* schema covers the read side and the persisted-cache round trip.
+* schema covers the fold state, the read side, and the persisted-cache round
+* trip.
 */
 const teamViewSchema = z$1.object({
 	active: z$1.boolean(),
@@ -399,10 +400,13 @@ const teamViewSchema = z$1.object({
 function teamProjection(maxRecentMessages) {
 	return {
 		key: "team",
-		schema: teamViewSchema,
+		stateSchema: teamViewSchema,
 		init: () => EMPTY_TEAM_VIEW,
 		apply: (state, event) => applyTeamEvent(state, event, maxRecentMessages),
-		view: (state) => state,
+		wire: {
+			viewSchema: teamViewSchema,
+			view: (state) => state
+		},
 		stateVersion: 3
 	};
 }
