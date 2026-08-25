@@ -1,7 +1,7 @@
 import z from "@deepseek-ai/schemastery";
+import { ReasoningEffortId, createUserMessage } from "@deepseek-ai/dsh-llm";
 import { z as z$1 } from "zod";
 import { Service } from "@deepseek-ai/cordis";
-import { ReasoningEffortId, createUserMessage } from "@deepseek-ai/dsh-llm";
 import { SessionId } from "@deepseek-ai/dsh-session";
 import { defineTool } from "@deepseek-ai/dsh-tools";
 import { defineDomain, domainTable } from "@deepseek-ai/dsh-storage-domain";
@@ -26,6 +26,60 @@ const Config = z.object({
 	maxWorkspaceEntries: z.number().step(1).min(1).max(500).default(32),
 	maxNoteChars: z.number().step(1).min(200).max(2e5).default(4e3)
 });
+//#endregion
+//#region src/command.ts
+/**
+* The standing instruction that makes `/team <goal>` mean "use the team":
+* without it the leader would often just do the work solo, which is exactly
+* what the user typed the command to avoid having to argue against.
+*/
+const BRIEF = "Pursue this request through your agent team rather than alone: decide what teammates the work needs, spawn them with team_spawn (each with a self-contained first task), coordinate them over team_send and the shared task list, and keep this session posted as results land.";
+/** What the composer shows when the steering was accepted. */
+const ACK = "The leader takes it from here: it will assemble and drive the team for this.";
+/**
+* The `/agent-teams` definition: one command, whole-goal input, image-capable.
+* @returns the command definition for the registry.
+*/
+function teamCommand() {
+	return {
+		name: "agent-teams",
+		description: "Hand a goal to an agent team: the main session spawns named teammates and coordinates them. Everything after the command becomes the team's brief.",
+		input: {
+			hint: "<what the team should do>",
+			images: true
+		},
+		handler({ agent, rawInput, attachments }) {
+			if (agent.session.header.origin === "subagent") return {
+				kind: "error",
+				text: "/agent-teams works in your main session — a teammate cannot lead a team."
+			};
+			const goal = rawInput.trim();
+			if (goal.length === 0 && attachments.length === 0) return {
+				kind: "error",
+				text: "Tell /agent-teams what the team should do, e.g. \"/agent-teams migrate auth to the new SDK\"."
+			};
+			agent.steer(createUserMessage({
+				content: [...attachments, {
+					type: "text",
+					text: goal.length === 0 ? BRIEF : `${BRIEF}\n\nRequest:\n${goal}`
+				}],
+				source: { kind: "user" }
+			}));
+			return {
+				kind: "success",
+				text: ACK
+			};
+		}
+	};
+}
+/**
+* Register {@link teamCommand} into the row's context.
+* @param ctx - the row context; must carry `ctx.commands`.
+* @returns the exact disposer unregistering the command.
+*/
+function installCommand(ctx) {
+	return ctx.commands.register(teamCommand());
+}
 //#endregion
 //#region src/contract.ts
 /** The empty value every session without a team folds to. */
@@ -2128,12 +2182,21 @@ function installWorkspaces(ctx, config) {
 }
 /**
 * Compose the team capability: the service, the durable projection unit, the
-* teammate world, the per-session leader tools, and the virtual workspaces.
+* teammate world, the per-session leader tools, the virtual workspaces, and
+* the human `/agent-teams` command.
+*
+* `commands` is injected softly rather than declared on the row, like
+* `storageDomain`: UI-less compositions ship no command adapter, and the row
+* must load there with every other capability intact.
+*
 * @param ctx - the row's context.
 * @param config - the validated row configuration.
 */
 function apply(ctx, config) {
 	ctx.plugin(TeamService, config);
+	ctx.inject(["commands"], (commandCtx) => {
+		commandCtx.effect(() => installCommand(commandCtx), "team: /agent-teams command");
+	});
 	ctx.inject(["team"], (teamCtx) => {
 		teamCtx.effect(() => teamCtx.sessionProjections.register(teamProjection(config.maxRecentMessages)), "team: durable projection unit");
 		teamCtx.effect(() => installTeammateWorld(teamCtx), "team: teammate world");

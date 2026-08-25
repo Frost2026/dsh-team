@@ -590,7 +590,13 @@ declare const name = "team";
 declare const inject: string[];
 /**
  * Compose the team capability: the service, the durable projection unit, the
- * teammate world, the per-session leader tools, and the virtual workspaces.
+ * teammate world, the per-session leader tools, the virtual workspaces, and
+ * the human `/agent-teams` command.
+ *
+ * `commands` is injected softly rather than declared on the row, like
+ * `storageDomain`: UI-less compositions ship no command adapter, and the row
+ * must load there with every other capability intact.
+ *
  * @param ctx - the row's context.
  * @param config - the validated row configuration.
  */

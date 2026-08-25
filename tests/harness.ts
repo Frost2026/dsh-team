@@ -8,6 +8,7 @@
 
 import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
+import type { CommandDefinition } from '@deepseek-ai/dsh-commands'
 import type { ContentBlock, MessageSource, UserMessage } from '@deepseek-ai/dsh-llm'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { SessionId } from '@deepseek-ai/dsh-session'
@@ -28,7 +29,10 @@ export interface FakeAgent {
   readonly options: { provider?: string; model?: string }
   readonly ctx: Context
   readonly received: AcceptedMessage[]
+  /** Messages accepted through `steer` (the command plane's submission path). */
+  readonly steered: UserMessage[]
   send(message: UserMessage, target: string, wakeup: boolean): void
+  steer(message: UserMessage): void
   /** The same double under the seam's own type, for service and tool calls. */
   readonly agent: Agent
 }
@@ -61,8 +65,12 @@ export function fakeAgent(id: string, options: {
     },
     ctx: new Context(),
     received: [],
+    steered: [],
     send(message, target, wakeup) {
       this.received.push({ message, target, wakeup })
+    },
+    steer(message) {
+      this.steered.push(message)
     },
     get agent(): Agent {
       return self as unknown as Agent
@@ -256,6 +264,19 @@ export function userMessageEvent(source: MessageSource, text: string, time?: num
     time: time ?? 1_700_000_000_000 + seq,
     data: message,
   } as unknown as SessionEvent
+}
+
+/** The `ctx.commands` double: keeps every registered definition, exact disposers. */
+export class FakeCommands {
+  readonly registered: CommandDefinition[] = []
+
+  register(definition: CommandDefinition): () => void {
+    this.registered.push(definition)
+    return () => {
+      const index = this.registered.indexOf(definition)
+      if (index >= 0) this.registered.splice(index, 1)
+    }
+  }
 }
 
 /** A tool execution context double: the acting agent plus a live signal. */

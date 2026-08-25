@@ -1,12 +1,12 @@
 /**
  * dsh-team: agent teams for DeepSeek Harness.
  *
- * One plugin row, three registrations: the `ctx.team` service, the leader tool
- * set on every ordinary session, and the teammate world on every continuable
- * child that belongs to a team. Teammates themselves are `ctx.subagents`
- * continuable children — the harness owns their sessions, residency, cold
- * resume, and the `origin: 'subagent'` classification that keeps them out of
- * the session tree.
+ * One plugin row, four registrations: the `ctx.team` service, the leader tool
+ * set on every ordinary session, the teammate world on every continuable child
+ * that belongs to a team, and the human `/agent-teams` slash command.
+ * Teammates themselves are `ctx.subagents` continuable children — the harness
+ * owns their sessions, residency, cold resume, and the `origin: 'subagent'`
+ * classification that keeps them out of the session tree.
  *
  * @module dsh-team
  */
@@ -18,6 +18,7 @@ import type {} from '@deepseek-ai/dsh-tools'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 import type {} from './types.ts'
 import { Config, type TeamConfig } from './config.ts'
+import { installCommand } from './command.ts'
 import { teamProjection } from './projection.ts'
 import { TeamService } from './service.ts'
 import { installTeammateWorkspace, installTeammateWorld } from './teammate.ts'
@@ -138,12 +139,21 @@ function installWorkspaces(ctx: Context, config: TeamConfig): void {
 
 /**
  * Compose the team capability: the service, the durable projection unit, the
- * teammate world, the per-session leader tools, and the virtual workspaces.
+ * teammate world, the per-session leader tools, the virtual workspaces, and
+ * the human `/agent-teams` command.
+ *
+ * `commands` is injected softly rather than declared on the row, like
+ * `storageDomain`: UI-less compositions ship no command adapter, and the row
+ * must load there with every other capability intact.
+ *
  * @param ctx - the row's context.
  * @param config - the validated row configuration.
  */
 export function apply(ctx: Context, config: TeamConfig): void {
   ctx.plugin(TeamService, config)
+  ctx.inject(['commands'], (commandCtx: Context) => {
+    commandCtx.effect(() => installCommand(commandCtx), 'team: /agent-teams command')
+  })
   ctx.inject(['team'], (teamCtx: Context) => {
     teamCtx.effect(
       () => teamCtx.sessionProjections.register(teamProjection(config.maxRecentMessages)),
