@@ -23,6 +23,7 @@
  * still read in profile while the human face, which nobody needs while somebody
  * is typing, is simply not there to draw.
  */
+import { memo } from 'react'
 import type { CSSProperties } from 'react'
 import css from './TeamStage.module.css'
 
@@ -309,6 +310,12 @@ const HOOD_SHADE = 'M13.5 21 C19.5 25 28 25 35 22 C42 19 50 14.5 59.5 11 '
 /** A ribbed hem across the bottom of a sweater. */
 const RIB_HEM = 'M16 73.5 L48 73.5 L48 80.5 L16 80.5 Z'
 
+/** The collar of a buttoned shirt: one soft curve under the hood's chin. */
+const COLLAR = 'M25 48.5 C28 52.8 36 52.8 39 48.5'
+
+/** The self-edge neckband of a jersey, folded back on itself. */
+const NECK_BAND = 'M24.5 48 C27.5 51.8 36.5 51.8 39.5 48 C38.5 53.5 25.5 53.5 24.5 48 Z'
+
 /** A kangaroo pocket across the front of a hoodie with reinforced corner bar-tacks. */
 const POCKET = 'M26.5 56.5 C28.5 53 35.5 53 37.5 56.5 L39 63.5 L25 63.5 Z'
 
@@ -516,7 +523,7 @@ function hairAbove(kind: HairKind) {
  * band runs over the head, and the plush ear cups sit naturally on both ears
  * under the jawline with metal pivots.
  */
-function headGearUnder(kind: GearKind, back: boolean) {
+function headGearUnder(kind: GearKind) {
   if (kind !== 'headphones') return null
   return (
     <g className={css.crewCans}>
@@ -640,7 +647,7 @@ function head(kind: MaskKind, hair: HairKind, gear: GearKind, back: boolean) {
       <path className={css.crewHair} d={CAPS[hair]} />
       <path className={css.crewHairShine} d={HAIR_SHINE} />
       <path className={css.crewHairShine} d={HAIR_SHINE_SECONDARY} />
-      {headGearUnder(gear, back)}
+      {headGearUnder(gear)}
 
       {/* The whale hood in profile, pulled down warmly over the head */}
       <g transform={back ? 'translate(64 3) scale(-1 1)' : 'translate(0 3)'}>
@@ -672,7 +679,7 @@ function outfitFront(outfit: OutfitKind) {
     case 'shirt':
       return (
         <g className={css.crewOutfitDetails}>
-          <path className={css.crewCollar} d="M25 48.5 C28 52.8 36 52.8 39 48.5" />
+          <path className={css.crewCollar} d={COLLAR} />
           <path className={css.crewPlacket} d="M32 50 L32 79" />
           <circle className={css.crewButton} cx="32" cy="55" r="0.9" />
           <circle className={css.crewButton} cx="32" cy="63" r="0.9" />
@@ -684,7 +691,7 @@ function outfitFront(outfit: OutfitKind) {
     case 'polo':
       return (
         <g className={css.crewOutfitDetails}>
-          <path className={css.crewCollar} d="M25 48.5 C28 52.8 36 52.8 39 48.5" />
+          <path className={css.crewCollar} d={COLLAR} />
           <path className={css.crewPlacket} d="M32 49 L32 60.5" />
           <circle className={css.crewButton} cx="32" cy="53.5" r="0.85" />
           <circle className={css.crewButton} cx="32" cy="58" r="0.85" />
@@ -694,7 +701,7 @@ function outfitFront(outfit: OutfitKind) {
     case 'tee':
       return (
         <g className={css.crewOutfitDetails}>
-          <path className={css.crewNeckBand} d="M24.5 48 C27.5 51.8 36.5 51.8 39.5 48 C38.5 53.5 25.5 53.5 24.5 48 Z" />
+          <path className={css.crewNeckBand} d={NECK_BAND} />
           <path className={css.crewStitch} d="M17.5 67 H23.5 M40.5 67 H46.5" />
         </g>
       )
@@ -727,7 +734,7 @@ function outfitFront(outfit: OutfitKind) {
     case 'vest':
       return (
         <g className={css.crewOutfitDetails}>
-          <path className={css.crewCollar} d="M25 48.5 C28 52.8 36 52.8 39 48.5" />
+          <path className={css.crewCollar} d={COLLAR} />
           <path className={css.crewVest} d={VEST} />
           <path className={css.crewRib} d="M19 73 L45 73 L45 76.5 L19 76.5 Z" />
         </g>
@@ -744,7 +751,7 @@ function outfitFront(outfit: OutfitKind) {
     case 'stripes':
       return (
         <g className={css.crewOutfitDetails}>
-          <path className={css.crewNeckBand} d="M24.5 48 C27.5 51.8 36.5 51.8 39.5 48 C38.5 53.5 25.5 53.5 24.5 48 Z" />
+          <path className={css.crewNeckBand} d={NECK_BAND} />
           <path className={css.crewStripes} d={STRIPES} />
         </g>
       )
@@ -752,7 +759,7 @@ function outfitFront(outfit: OutfitKind) {
     default:
       return (
         <g className={css.crewOutfitDetails}>
-          <path className={css.crewNeckBand} d="M24.5 48 C27.5 51.8 36.5 51.8 39.5 48 C38.5 53.5 25.5 53.5 24.5 48 Z" />
+          <path className={css.crewNeckBand} d={NECK_BAND} />
           <path className={css.crewBib} d={BIB} />
           <path className={css.crewDraw} d={STRAPS} />
           <circle className={css.crewButton} cx="26.2" cy="58.2" r="1" />
@@ -799,12 +806,13 @@ function outfitBack(outfit: OutfitKind) {
 }
 
 /**
- * One member of the crew.
+ * One member of the crew. Memoized: every prop is a primitive, and one stage
+ * renders this figure per seat, per log row, per note and per task card.
  * @param props - the whale it wears, whether you are behind it, whether only
  * the head is wanted (a portrait), and everything it is dressed in.
  * @returns the character.
  */
-export function Crew(props: {
+export const Crew = memo(function Crew(props: {
   readonly kind: MaskKind
   readonly className?: string
   /** Seen from behind: the pose of somebody facing their own computer. */
@@ -879,4 +887,4 @@ export function Crew(props: {
       {head(kind, hair, gear, back)}
     </svg>
   )
-}
+})

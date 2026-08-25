@@ -144,6 +144,34 @@ describe('walking the floor', () => {
     }
   })
 
+  it('keeps a step of clear floor while it passes a piece of furniture', () => {
+    // The straight line clears the furniture itself but shaves the buffer a
+    // walker keeps around it: the route has to swing wide, not thread the
+    // gap between the buffer and the furniture it belongs to.
+    const crates = [
+      { x: 30, y: 30, w: 10, h: 10 },
+      { x: 50, y: 30, w: 10, h: 10 },
+    ]
+    const route = routeBetween({ x: 20, y: 28.5 }, { x: 70, y: 28.5 }, crates)
+    expect(route.length).toBeGreaterThan(2)
+    // 2.35 rather than the full 2.4: a corner sits exactly on the buffer's
+    // edge, and grazing an edge is walking, not trespassing.
+    const kept = 2.35
+    for (let index = 1; index < route.length; index += 1) {
+      const a = route[index - 1]!
+      const b = route[index]!
+      for (let step = 0; step <= 40; step += 1) {
+        const x = a.x + ((b.x - a.x) * step) / 40
+        const y = a.y + ((b.y - a.y) * step) / 40
+        for (const crate of crates) {
+          const inside = x > crate.x - kept && x < crate.x + crate.w + kept
+            && y > crate.y - kept && y < crate.y + crate.h + kept
+          expect(inside, `leg ${index} step ${step}`).toBe(false)
+        }
+      }
+    }
+  })
+
   it('finds its way across the whole room, front row to back row', () => {
     const floor = desks(9)
     const obstacles = obstaclesOf(floor)

@@ -12,7 +12,7 @@
  * the roster alone (no DOM measurement), so the picture is a function of the
  * durable state and nothing else.
  */
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { StateDot } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale, PropsRuntime, SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
@@ -87,6 +87,15 @@ const SPEECH_CHARS = 44
 /** How much of a message one log row carries. */
 const LOG_CHARS = 110
 
+/** How much of a message one crew line in the feed carries. */
+const CREW_CHARS = 40
+
+/** How much text one workstation screen carries. */
+const SCREEN_CHARS = 34
+
+/** How much of an unknown session id a ledger shows. */
+const SHORT_ID = 6
+
 /** How long one delivery keeps its carrier away from its own desk. */
 const ERRAND_MS = 9_000
 
@@ -151,8 +160,9 @@ function ScreenApp(props: { readonly app: AppKind }) {
   )
 }
 
-/** A member as a tiny portrait: its own mask in its own accent. */
-function Cameo(props: { readonly seat: number | undefined, readonly name: string }) {
+/** A member as a tiny portrait: its own mask in its own accent. Memoized: one
+ *  feed renders dozens of these, and every prop is a primitive. */
+const Cameo = memo(function Cameo(props: { readonly seat: number | undefined, readonly name: string }) {
   const { seat, name } = props
   if (seat === undefined) return <span className={css.discGlyph}>{initial(name)}</span>
   return (
@@ -168,7 +178,7 @@ function Cameo(props: { readonly seat: number | undefined, readonly name: string
       />
     </span>
   )
-}
+})
 
 /** Where one thing stands on the floor, and how big it draws there. */
 function at(post: Post | Point, scale: number): CSSProperties {
@@ -190,6 +200,83 @@ function at(post: Post | Point, scale: number): CSSProperties {
 function chairDelay(seat: number): CSSProperties {
   return { '--team-chair-delay': `${-((seat + 1) % 5) * 1.35}s` } as CSSProperties
 }
+
+/**
+ * Where one piece of the break corner stands, and how large it draws there.
+ * A piece is placed by its OWN plan rectangle — the same rectangle a walk
+ * goes around — so the furniture it is drawn as and the furniture it is
+ * walked around as are the same furniture, and it can never creep off the
+ * floor and up a wall.
+ */
+function loungePiece(rect: Rect): CSSProperties {
+  const screen = project({ x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 })
+  return {
+    left: `${screen.left}%`,
+    top: `${screen.top}%`,
+    '--team-depth': Math.round(rect.y + rect.h / 2),
+    '--team-scale': Math.round(screen.scale * 1000) / 1000,
+  } as CSSProperties
+}
+
+/** The rug and the floor lamp are furniture too, so they get plan rects. */
+const RUG_RECT: Rect = { x: 70.5, y: 53.5, w: 21, h: 7.5 }
+const LAMP_RECT: Rect = { x: 70, y: 47.5, w: 3, h: 7 }
+const [SOFA_BLOCK, TABLE_BLOCK, PLANT_BLOCK, COOLER_BLOCK] = ROOM_BLOCKS
+
+/**
+ * The room's fixed furniture, hoisted to module level: none of it reads the
+ * roster or the ledgers, and a shared element reference is the one signal
+ * React never re-renders — however often the stage re-renders around it, the
+ * wall, the lounge and the props are drawn exactly once.
+ */
+const WALL = <RoomWall />
+
+const PENDANT = (
+  <span className={css.pendant} style={{ left: `${onWall(50)}%` }} aria-hidden>
+    <PendantFigure />
+  </span>
+)
+
+const UTILITY = (
+  <span className={css.utility} style={at({ x: 4.5, y: 64 }, 1)} aria-hidden>
+    <span className={css.utilityCabinet} data-prop="cabinet"><CabinetFigure /></span>
+    <span className={css.utilityPrinter} data-prop="printer"><PrinterFigure /></span>
+    <span className={css.utilityCoffee} data-prop="coffee"><CoffeeFigure /></span>
+  </span>
+)
+
+const CAT = (
+  <span className={css.cat} data-prop="cat" aria-hidden>
+    <CatFigure />
+  </span>
+)
+
+const TREADMILL = (
+  <span className={css.treadmill} data-prop="treadmill" style={at({ x: 93, y: 87 }, 1)} aria-hidden>
+    <TreadmillFigure />
+  </span>
+)
+
+const LOUNGE = (
+  <div className={css.lounge} aria-hidden>
+    <span className={css.rug} data-prop="rug" style={loungePiece(RUG_RECT)} />
+    <span className={css.sofa} data-prop="sofa" style={loungePiece(SOFA_BLOCK!)}>
+      <SofaFigure />
+    </span>
+    <span className={css.table} data-prop="table" style={loungePiece(TABLE_BLOCK!)}>
+      <TableFigure />
+    </span>
+    <span className={css.lamp} data-prop="lamp" style={loungePiece(LAMP_RECT)}>
+      <LampFigure />
+    </span>
+    <span className={css.plant} data-prop="plant" style={loungePiece(PLANT_BLOCK!)}>
+      <Plant kind={plantOf(0)} />
+    </span>
+    <span className={css.cooler} data-prop="cooler" style={loungePiece(COOLER_BLOCK!)}>
+      <CoolerFigure />
+    </span>
+  </div>
+)
 
 /**
  * The delivery currently being carried across the room. One message keeps its
@@ -220,7 +307,9 @@ function useVisit(latest: TeamMessageView | undefined): TeamMessageView | undefi
 export function TeamStage(props: TeamStageProps) {
   const { useTeam, useSessions, openMember, openLeader, holdComposer, t } = props
   const state = useTeam(snapshot => snapshot)
-  const sessions: SessionListState = useSessions(snapshot => snapshot)
+  // Only the per-session running bits are read, so only they are subscribed
+  // to: a current-session switch elsewhere in the list re-renders nobody here.
+  const sessionsById = useSessions((snapshot: SessionListState) => snapshot.byId)
   /** The member the pointer is over, anywhere on the stage. */
   const [focus, setFocus] = useState<string | undefined>(undefined)
   /** Which ledger the drawer is showing; the room stands alone by default. */
@@ -228,6 +317,7 @@ export function TeamStage(props: TeamStageProps) {
 
   const { leaderId, currentId, members, tasks, messages, board, boardAt } = state
   const visit = useVisit(messages[messages.length - 1])
+  const lastId = messages.length > 0 ? messages[messages.length - 1]!.messageId : undefined
 
   // The room is the whole tab: the composer seat stays ours until the reader
   // leaves this view, and the plugin body gives it straight back.
@@ -235,9 +325,9 @@ export function TeamStage(props: TeamStageProps) {
 
   const running = useMemo(
     () => new Set(members
-      .filter(member => sessions.byId[member.memberId as SessionId]?.running === true)
+      .filter(member => sessionsById[member.memberId as SessionId]?.running === true)
       .map(member => member.memberId)),
-    [members, sessions.byId],
+    [members, sessionsById],
   )
 
   /** The last thing the visible mailbox tail says about each member. */
@@ -250,12 +340,24 @@ export function TeamStage(props: TeamStageProps) {
     return out
   }, [messages])
 
-  /** Mail counted as read: everything that had arrived when the feed was last open. */
-  const seenMessages = useRef(messages.length)
+  /**
+   * Mail counted as read: the newest delivery that had arrived when the feed
+   * was last open — its identity, not the count, because a bounded feed stops
+   * growing exactly when the mail keeps coming, and so does a team switch,
+   * which starts the next team from a clean slate.
+   */
+  const seen = useRef<{ readonly leader: string | undefined; readonly id: string | undefined }>(
+    { leader: undefined, id: undefined },
+  )
   useEffect(() => {
-    if (panel === 'feed') seenMessages.current = messages.length
-  }, [panel, messages.length])
-  const freshMail = panel !== 'feed' && messages.length > seenMessages.current
+    if (seen.current.leader !== leaderId || panel === 'feed') {
+      seen.current = { leader: leaderId, id: lastId }
+    }
+  }, [panel, leaderId, lastId])
+  const freshMail = panel !== 'feed'
+    && seen.current.leader === leaderId
+    && lastId !== undefined
+    && lastId !== seen.current.id
 
   if (leaderId === undefined || members.length === 0) {
     return (
@@ -266,68 +368,85 @@ export function TeamStage(props: TeamStageProps) {
     )
   }
 
-  const names = new Map<string, string>([[leaderId, t('member.leader')]])
-  for (const member of members) names.set(member.memberId, member.name)
-  /** Roster seat per member id, so the ledgers can draw the same cast. */
-  const seats = new Map<string, number>([[leaderId, -1]])
-  members.forEach((member, index) => seats.set(member.memberId, index))
-  const openOf = (memberId: string): number =>
-    tasks.filter(task => task.assigneeId === memberId && task.status !== 'done').length
-
-  // The leader takes the first desk and every teammate the next, in roster
-  // order — a member keeps the same desk for as long as it is on the team.
-  const roster = [leaderId, ...members.map(member => member.memberId)]
-  const desks = new Map<string, Desk>(roster.map((id, index) => [id, deskOf(index, roster.length)]))
-
-  /** Where each member is standing right now: its own desk, or the break corner. */
-  const homes = new Map<string, Post>()
-  /** Who is away from its own desk, so the desk can be drawn empty. */
-  const away = new Set<string>()
-  const stations: Post[] = []
-  let breaks = 0
-  for (const id of roster) {
-    const desk = desks.get(id) ?? deskOf(0, roster.length)
-    const station = id === leaderId
-      ? 'desk'
-      : stationFor(running.has(id), touched.get(id), openOf(id))
-    if (station === 'break') away.add(id)
-    stations.push(station === 'break' ? breakAt(breaks++) : desk)
-  }
-  // Four members on a break share three places to stand around the sofa; one
-  // pass of separation keeps the fourth beside the first rather than inside it.
-  const parted = spread(stations)
-  roster.forEach((id, index) => {
-    const post = stations[index]!
-    homes.set(id, { ...post, ...parted[index]! })
-  })
-
   /**
-   * Where one piece of the break corner stands, and how large it draws there.
-   * A piece is placed by its OWN plan rectangle — the same rectangle a walk
-   * goes around — so the furniture it is drawn as and the furniture it is
-   * walked around as are the same furniture, and it can never creep off the
-   * floor and up a wall.
+   * The room's whole plan — cast, seating, standing places, and the per-member
+   * reads the ledgers share — derived once per change of the facts it reads
+   * instead of once per render: the stage re-renders on every hover, and every
+   * consumer below holds one of these maps rather than recomputing them.
    */
-  const loungePiece = (rect: Rect): CSSProperties => {
-    const screen = project({ x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 })
-    return {
-      left: `${screen.left}%`,
-      top: `${screen.top}%`,
-      '--team-depth': Math.round(rect.y + rect.h / 2),
-      '--team-scale': Math.round(screen.scale * 1000) / 1000,
-    } as CSSProperties
-  }
-  /** The rug and the floor lamp are furniture too, so they get plan rects. */
-  const rugRect: Rect = { x: 70.5, y: 53.5, w: 21, h: 7.5 }
-  const lampRect: Rect = { x: 70, y: 47.5, w: 3, h: 7 }
-  const [sofaBlock, tableBlock, plantBlock, coolerBlock] = ROOM_BLOCKS
+  const plan = useMemo(() => {
+    const names = new Map<string, string>([[leaderId, t('member.leader')]])
+    for (const member of members) names.set(member.memberId, member.name)
+    /** Roster seat per member id, so the ledgers can draw the same cast. */
+    const seats = new Map<string, number>([[leaderId, -1]])
+    members.forEach((member, index) => seats.set(member.memberId, index))
+
+    // Open work per member, counted once: every tile, screen and crew line
+    // reads this, and it used to be a full task scan per read.
+    const openCounts = new Map<string, number>()
+    for (const task of tasks) {
+      if (task.status === 'done' || task.assigneeId === undefined) continue
+      openCounts.set(task.assigneeId, (openCounts.get(task.assigneeId) ?? 0) + 1)
+    }
+    const openOf = (memberId: string): number => openCounts.get(memberId) ?? 0
+
+    // The leader takes the first desk and every teammate the next, in roster
+    // order — a member keeps the same desk for as long as it is on the team.
+    const roster = [leaderId, ...members.map(member => member.memberId)]
+    const desks = new Map<string, Desk>(roster.map((id, index) => [id, deskOf(index, roster.length)]))
+
+    /** Where each member is standing right now: its own desk, or the break corner. */
+    const homes = new Map<string, Post>()
+    /** Who is away from its own desk, so the desk can be drawn empty. */
+    const away = new Set<string>()
+    const stations: Post[] = []
+    let breaks = 0
+    for (const id of roster) {
+      const desk = desks.get(id) ?? deskOf(0, roster.length)
+      const station = id === leaderId
+        ? 'desk'
+        : stationFor(running.has(id), touched.get(id), openOf(id))
+      if (station === 'break') away.add(id)
+      stations.push(station === 'break' ? breakAt(breaks++) : desk)
+    }
+    // Four members on a break share three places to stand around the sofa; one
+    // pass of separation keeps the fourth beside the first rather than inside it.
+    const parted = spread(stations)
+    roster.forEach((id, index) => {
+      const post = stations[index]!
+      homes.set(id, { ...post, ...parted[index]! })
+    })
+
+    /** What one member's monitor shows: its active task, or the last thing said to it. */
+    const lines = new Map<string, string>()
+    for (const id of roster) {
+      const active = tasks.find(task => task.assigneeId === id && task.status === 'active')
+        ?? tasks.find(task => task.assigneeId === id && task.status !== 'done')
+      if (active !== undefined) {
+        lines.set(id, short(active.title, SCREEN_CHARS))
+        continue
+      }
+      // Scanned backwards in place: a copy-and-reverse per member is the one
+      // cost this stage does not need to pay on every snapshot.
+      for (let index = messages.length - 1; index >= 0; index -= 1) {
+        const message = messages[index]
+        if (message?.to === id) {
+          lines.set(id, short(message.text, SCREEN_CHARS))
+          break
+        }
+      }
+    }
+    return { names, seats, openOf, roster, desks, homes, away, lines }
+  }, [leaderId, members, tasks, messages, running, touched, t])
+
+  const { names, seats, openOf, roster, desks, homes, away, lines } = plan
 
   const peers = members.filter(member => member.relation === 'peer')
   const openTasks = tasks.filter(task => task.status !== 'done').length
-  const leaderRunning = sessions.byId[leaderId as SessionId]?.running === true
+  const leaderRunning = sessionsById[leaderId as SessionId]?.running === true
 
   /** The delivery on its feet: who carries it, to whom, and where they meet. */
-  const errand = errandOf(visit, leaderId, homes)
+  const errand = useMemo(() => errandOf(visit, leaderId, homes), [visit, leaderId, homes])
   const visitOf = (id: string): Point | undefined =>
     errand !== undefined && errand.fromId === id ? errand.meet : undefined
   /** Which way the two ends of a delivery turn while they talk. */
@@ -341,6 +460,12 @@ export function TeamStage(props: TeamStageProps) {
   const toggle = (id: PanelId): void => { setPanel(current => current === id ? undefined : id) }
   const titleOf = (id: PanelId): string =>
     id === 'feed' ? t('stage.feed') : id === 'workspace' ? t('stage.workspace') : t('stage.board')
+
+  /** One stable opener for every tile: the tiles are memoized on their props. */
+  const open = useCallback((id: string): void => {
+    if (id === leaderId) openLeader(leaderId)
+    else openMember(leaderId, id)
+  }, [leaderId, openLeader, openMember])
 
   const tileOf = (id: string, seat: number, member?: TeamMemberView) => {
     const desk = desks.get(id) ?? deskOf(0, roster.length)
@@ -378,10 +503,7 @@ export function TeamStage(props: TeamStageProps) {
             member.effort,
             member.relation === 'peer' ? t('relation.peer') : t('relation.managed'),
           )}
-        onOpen={() => {
-          if (member === undefined) openLeader(leaderId)
-          else openMember(leaderId, id)
-        }}
+        onOpen={open}
         onFocus={setFocus}
         t={t}
       />
@@ -425,51 +547,17 @@ export function TeamStage(props: TeamStageProps) {
               <span className={css.skirting} />
             </span>
 
-            <RoomWall />
+            {WALL}
 
-            {/* Over the desk field and the shelf: the ceiling between the
-                windows is where a real office hangs its lamps. */}
-            <span className={css.pendant} style={{ left: `${onWall(50)}%` }} aria-hidden>
-              <PendantFigure />
-            </span>
+            {PENDANT}
 
-            {/* The service wall on the left: the things an office has that
-                nobody has a desk for. */}
-            <span className={css.utility} style={at({ x: 4.5, y: 64 }, 1)} aria-hidden>
-              <span className={css.utilityCabinet} data-prop="cabinet"><CabinetFigure /></span>
-              <span className={css.utilityPrinter} data-prop="printer"><PrinterFigure /></span>
-              <span className={css.utilityCoffee} data-prop="coffee"><CoffeeFigure /></span>
-            </span>
+            {UTILITY}
 
-            <span className={css.cat} data-prop="cat" aria-hidden>
-              <CatFigure />
-            </span>
+            {CAT}
 
-            {/* The treadmill in the front-right corner: the wellness zone, in
-                front of the lounge where the floor is empty, clear of the
-                cooler above it and of everybody's way past it. */}
-            <span className={css.treadmill} data-prop="treadmill" style={at({ x: 93, y: 87 }, 1)} aria-hidden>
-              <TreadmillFigure />
-            </span>
+            {TREADMILL}
 
-            <div className={css.lounge} aria-hidden>
-              <span className={css.rug} data-prop="rug" style={loungePiece(rugRect)} />
-              <span className={css.sofa} data-prop="sofa" style={loungePiece(sofaBlock!)}>
-                <SofaFigure />
-              </span>
-              <span className={css.table} data-prop="table" style={loungePiece(tableBlock!)}>
-                <TableFigure />
-              </span>
-              <span className={css.lamp} data-prop="lamp" style={loungePiece(lampRect)}>
-                <LampFigure />
-              </span>
-              <span className={css.plant} data-prop="plant" style={loungePiece(plantBlock!)}>
-                <Plant kind={plantOf(0)} />
-              </span>
-              <span className={css.cooler} data-prop="cooler" style={loungePiece(coolerBlock!)}>
-                <CoolerFigure />
-              </span>
-            </div>
+            {LOUNGE}
 
             {roster.map((id, index) => {
               const seat = index - 1
@@ -482,7 +570,7 @@ export function TeamStage(props: TeamStageProps) {
                   desk={desk}
                   seat={seat}
                   pose={poseFor(live, touched.get(id), openOf(id))}
-                  line={screenLineOf(id, tasks, messages)}
+                  line={lines.get(id)}
                   empty={away.has(id) || (errand !== undefined && errand.fromId === id)}
                   t={t}
                 />
@@ -584,8 +672,8 @@ export function TeamStage(props: TeamStageProps) {
                           entry={entry}
                           index={index}
                           seats={seats}
-                          focus={focus}
-                          onFocus={onFocus => { setFocus(onFocus) }}
+                          focused={focus === entry.authorId}
+                          onFocus={setFocus}
                         />
                       ))}
                     </div>
@@ -677,27 +765,6 @@ function errandOf(
 }
 
 /**
- * What one member's monitor is showing: the task it is on, or the last thing
- * that was said to it. A screen with nothing on it is a screen switched off.
- */
-function screenLineOf(
-  memberId: string,
-  tasks: readonly TeamTaskView[],
-  messages: readonly TeamMessageView[],
-): string | undefined {
-  const active = tasks.find(task => task.assigneeId === memberId && task.status === 'active')
-    ?? tasks.find(task => task.assigneeId === memberId && task.status !== 'done')
-  if (active !== undefined) return short(active.title, 34)
-  // Scanned backwards in place: a copy-and-reverse per member per render is
-  // the one cost this stage does not need to pay on every snapshot.
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index]
-    if (message?.to === memberId) return short(message.text, 34)
-  }
-  return undefined
-}
-
-/**
  * The back wall of the room, and everything hung on it.
  *
  * Every fixture is placed by the SAME floor coordinate a member would stand at
@@ -780,9 +847,10 @@ function RoomWall() {
 /**
  * One workstation: the desk, the computer on it, the keyboard and the mug. It
  * belongs to the member whose desk it is and stays furnished while its owner
- * is away — a member walks off, its screen keeps working.
+ * is away — a member walks off, its screen keeps working. Memoized on a plan
+ * that only changes when the facts do.
  */
-function Workstation(props: {
+const Workstation = memo(function Workstation(props: {
   readonly id: string
   readonly desk: Desk
   readonly seat: number
@@ -849,10 +917,14 @@ function Workstation(props: {
       </span>
     </>
   )
-}
+})
 
-/** One member of the team, standing — or walking — where its own state puts it. */
-function MemberTile(props: {
+/**
+ * One member of the team, standing — or walking — where its own state puts it.
+ * Memoized: the room re-renders whenever the pointer moves, and only the tile
+ * under the pointer (or the one it left) has actually changed.
+ */
+const MemberTile = memo(function MemberTile(props: {
   readonly id: string
   readonly name: string
   readonly seat: number
@@ -876,7 +948,7 @@ function MemberTile(props: {
   readonly tasks: number
   readonly label: string
   readonly title: string
-  readonly onOpen: () => void
+  readonly onOpen: (id: string) => void
   readonly onFocus: (memberId: string | undefined) => void
   readonly t: Translate
 }) {
@@ -917,7 +989,7 @@ function MemberTile(props: {
         ...chairDelay(seat),
         ...stagger(seat + 1),
       }}
-      onClick={onOpen}
+      onClick={() => { onOpen(id) }}
       onMouseEnter={() => { onFocus(id) }}
       onMouseLeave={() => { onFocus(undefined) }}
       aria-label={label}
@@ -971,7 +1043,7 @@ function MemberTile(props: {
       </span>
     </button>
   )
-}
+})
 
 /** One member's line in the roster strip: what it is doing, and its latest word. */
 interface CrewRow {
@@ -1001,18 +1073,39 @@ function MessageFeed(props: {
 }) {
   const { roster, messages, names, seats, leaderLabel, focus, onFocus, t } = props
   const scroller = useRef<HTMLDivElement>(null)
+  const lastId = messages.length > 0 ? messages[messages.length - 1]!.messageId : undefined
+
+  // The newest traffic naming each member, and which way it went — scanned
+  // once per mailbox change rather than once per crew row per render.
+  const latestOf = useMemo(() => {
+    const out = new Map<string, { readonly text: string, readonly way: 'got' | 'sent' }>()
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      const message = messages[index]
+      if (message === undefined) continue
+      if (message.from !== undefined && !out.has(message.from)) {
+        out.set(message.from, { text: message.text, way: 'sent' })
+      }
+      if (message.to !== undefined && !out.has(message.to)) {
+        out.set(message.to, { text: message.text, way: 'got' })
+      }
+    }
+    return out
+  }, [messages])
 
   // A new delivery is the point of the log: keep the newest row in view.
+  // Keyed on the newest row's identity, not the count — a bounded feed
+  // replaces its oldest row once full, and the count stops moving exactly
+  // when the mail keeps coming.
   useEffect(() => {
     const node = scroller.current
     if (node !== null) node.scrollTop = node.scrollHeight
-  }, [messages.length])
+  }, [lastId])
 
   return (
     <div className={css.feed}>
       <div className={css.crewList} aria-label={t('feed.crew')}>
         {roster.map(row => {
-          const latest = latestOf(row.id, messages)
+          const latest = latestOf.get(row.id)
           return (
             <div
               key={row.id}
@@ -1033,7 +1126,7 @@ function MessageFeed(props: {
               <span className={css.crewLine} title={latest?.text}>
                 {latest === undefined
                   ? t('feed.quiet')
-                  : `${latest.way === 'got' ? '←' : '→'} ${short(latest.text, 40)}`}
+                  : `${latest.way === 'got' ? '←' : '→'} ${short(latest.text, CREW_CHARS)}`}
               </span>
             </div>
           )
@@ -1045,53 +1138,43 @@ function MessageFeed(props: {
         ? <p className={css.empty}>{t('stage.noMessages')}</p>
         : (
           <div className={css.log} ref={scroller}>
-            {messages.map((message, index) => (
-              <LogRow
-                key={message.messageId}
-                message={message}
-                index={index}
-                names={names}
-                seats={seats}
-                leaderLabel={leaderLabel}
-                focus={focus}
-                onFocus={onFocus}
-                t={t}
-              />
-            ))}
+            {messages.map((message, index) => {
+              const partner = message.from ?? message.to
+              return (
+                <LogRow
+                  key={message.messageId}
+                  message={message}
+                  index={index}
+                  names={names}
+                  seats={seats}
+                  leaderLabel={leaderLabel}
+                  focused={partner !== undefined && focus === partner}
+                  onFocus={onFocus}
+                  t={t}
+                />
+              )
+            })}
           </div>
         )}
     </div>
   )
 }
 
-/** The newest traffic naming one member, and which way it went. */
-function latestOf(
-  memberId: string,
-  messages: readonly TeamMessageView[],
-): { readonly text: string, readonly way: 'got' | 'sent' } | undefined {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index]
-    if (message === undefined) continue
-    if (message.from === memberId) return { text: message.text, way: 'sent' }
-    if (message.to === memberId) return { text: message.text, way: 'got' }
-  }
-  return undefined
-}
-
-/** One row of the log: who said what to whom, on one line, cut to fit. */
-function LogRow(props: {
+/** One row of the log: who said what to whom, on one line, cut to fit. Memoized
+ *  so a hover re-renders the row it lit and the row it unlit, nothing else. */
+const LogRow = memo(function LogRow(props: {
   readonly message: TeamMessageView
   readonly index: number
   readonly names: ReadonlyMap<string, string>
   readonly seats: ReadonlyMap<string, number>
   readonly leaderLabel: string
-  readonly focus: string | undefined
+  readonly focused: boolean
   readonly onFocus: (memberId: string | undefined) => void
   readonly t: Translate
 }) {
-  const { message, index, names, seats, leaderLabel, focus, onFocus, t } = props
+  const { message, index, names, seats, leaderLabel, focused, onFocus, t } = props
   const label = (id: string | undefined): string =>
-    id === undefined ? leaderLabel : names.get(id) ?? id.slice(0, 6)
+    id === undefined ? leaderLabel : names.get(id) ?? id.slice(0, SHORT_ID)
   const partner = message.from ?? message.to
   const author = label(message.from)
   return (
@@ -1099,7 +1182,7 @@ function LogRow(props: {
       className={css.logRow}
       data-message-kind={message.kind}
       data-hop={message.hop === undefined ? undefined : String(message.hop)}
-      data-focus={partner !== undefined && focus === partner ? 'true' : undefined}
+      data-focus={focused ? 'true' : undefined}
       style={stagger(index)}
       onMouseEnter={() => { onFocus(partner) }}
       onMouseLeave={() => { onFocus(undefined) }}
@@ -1131,22 +1214,23 @@ function LogRow(props: {
       </span>
     </div>
   )
-}
+})
 
-/** One note pinned to the shared workspace, as the leader last saw it. */
-function NoteCard(props: {
+/** One note pinned to the shared workspace, as the leader last saw it. Memoized
+ *  like the log rows: a hover re-renders only the note it lit. */
+const NoteCard = memo(function NoteCard(props: {
   readonly entry: TeamBoardEntryView
   readonly index: number
   readonly seats: ReadonlyMap<string, number>
-  readonly focus: string | undefined
+  readonly focused: boolean
   readonly onFocus: (memberId: string | undefined) => void
 }) {
-  const { entry, index, seats, focus, onFocus } = props
+  const { entry, index, seats, focused, onFocus } = props
   return (
     <div
       className={css.note}
       data-note-key={entry.key}
-      data-focus={focus === entry.authorId ? 'true' : undefined}
+      data-focus={focused ? 'true' : undefined}
       style={stagger(index)}
       onMouseEnter={() => { onFocus(entry.authorId) }}
       onMouseLeave={() => { onFocus(undefined) }}
@@ -1164,7 +1248,7 @@ function NoteCard(props: {
       </span>
     </div>
   )
-}
+})
 
 /** One lane of the shared task board. */
 function TaskColumn(props: {
@@ -1207,7 +1291,7 @@ function TaskColumn(props: {
               )}
               {task.assigneeId === undefined
                 ? t('task.unassigned')
-                : names.get(task.assigneeId) ?? task.assigneeId.slice(0, 6)}
+                : names.get(task.assigneeId) ?? task.assigneeId.slice(0, SHORT_ID)}
             </span>
             {task.note !== undefined && <span className={css.cardNote} title={task.note}>{task.note}</span>}
           </span>

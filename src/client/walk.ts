@@ -90,7 +90,6 @@ export function useWalk(
   const gait = useRef(0)
   const facing = useRef<Facing>('front')
   const scale = useRef(base)
-  scale.current = base
   const [pose, setPose] = useState<{ readonly facing: Facing, readonly walking: boolean }>(
     { facing: 'front', walking: false },
   )
@@ -113,16 +112,33 @@ export function useWalk(
   }, [place])
 
   // A member that is standing still still has to be re-hung when the room
-  // rescales it — a new teammate arrives and every desk shrinks.
-  useEffect(() => { place(at.current) }, [place, base])
+  // rescales it — a new teammate arrives and every desk shrinks. The scale
+  // rides a ref, but is written here rather than during render: a render
+  // that is thrown away must not leave a stale scale behind.
+  useEffect(() => {
+    scale.current = base
+    place(at.current)
+  }, [place, base])
+
+  /** Stop wherever the member stands, without keeping a walk pose alive. */
+  const settle = useCallback((): void => {
+    facing.current = 'front'
+    setPose(current => current.walking ? { facing: 'front', walking: false } : current)
+  }, [])
 
   useEffect(() => {
     const start = at.current
-    if (Math.abs(start.x - target.x) < NEAR && Math.abs(start.y - target.y) < NEAR) return undefined
+    // Already there — or a trip cancelled within a step of its target. Either
+    // way the member lands: a walk pose nobody is paying for would keep the
+    // gait animation and the standing silhouette running in place forever.
+    if (Math.abs(start.x - target.x) < NEAR && Math.abs(start.y - target.y) < NEAR) {
+      settle()
+      return undefined
+    }
     if (still()) {
       at.current = { x: target.x, y: target.y }
       place(at.current)
-      setPose({ facing: 'front', walking: false })
+      settle()
       return undefined
     }
 
@@ -131,6 +147,7 @@ export function useWalk(
     if (total < NEAR) {
       at.current = { x: target.x, y: target.y }
       place(at.current)
+      settle()
       return undefined
     }
     /** Distance along the path at which each corner is reached. */
@@ -145,11 +162,13 @@ export function useWalk(
     const began = now()
     const from = gait.current
     let frame = 0
+    // Covered distance only ever grows, so the leg cursor rides along with it
+    // instead of rescanning from the first corner on every frame.
+    let leg = 1
 
     const tick = (): void => {
       const through = Math.min(1, (now() - began) / span)
       const covered = ease(through) * total
-      let leg = 1
       while (leg < marks.length - 1 && marks[leg]! < covered) leg += 1
       const back = path[leg - 1]!
       const ahead = path[leg]!
@@ -181,7 +200,7 @@ export function useWalk(
     setPose({ facing: facing.current, walking: true })
     frame = requestAnimationFrame(tick)
     return () => { cancelAnimationFrame(frame) }
-  }, [target.x, target.y, obstacles, place])
+  }, [target.x, target.y, obstacles, place, settle])
 
   return { ref: hang, facing: pose.facing, walking: pose.walking }
 }

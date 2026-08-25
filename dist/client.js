@@ -171,7 +171,7 @@ window.__ModuleLoader__.load({
 			h: 60
 		};
 		/** The break corner, in the near right of the room. */
-		const LOUNGE = {
+		const LOUNGE$1 = {
 			x: 69,
 			y: 40,
 			w: 29,
@@ -252,16 +252,16 @@ window.__ModuleLoader__.load({
 		function breakAt(index) {
 			const spots = [
 				{
-					x: LOUNGE.x + 8,
-					y: LOUNGE.y + 29
+					x: LOUNGE$1.x + 8,
+					y: LOUNGE$1.y + 29
 				},
 				{
-					x: LOUNGE.x + 15,
-					y: LOUNGE.y + 33
+					x: LOUNGE$1.x + 15,
+					y: LOUNGE$1.y + 33
 				},
 				{
-					x: LOUNGE.x + 14,
-					y: LOUNGE.y + 23
+					x: LOUNGE$1.x + 14,
+					y: LOUNGE$1.y + 23
 				}
 			];
 			const spot = spots[index % spots.length] ?? spots[0];
@@ -309,32 +309,32 @@ window.__ModuleLoader__.load({
 			(
 			/** The sofa, along the back of the corner. */
 			{
-				x: LOUNGE.x + 2.3,
-				y: LOUNGE.y + 1,
+				x: LOUNGE$1.x + 2.3,
+				y: LOUNGE$1.y + 1,
 				w: 14.5,
 				h: 7
 			}),
 			(
 			/** The low table in front of it. */
 			{
-				x: LOUNGE.x + 4.9,
-				y: LOUNGE.y + 11,
+				x: LOUNGE$1.x + 4.9,
+				y: LOUNGE$1.y + 11,
 				w: 10,
 				h: 4.5
 			}),
 			(
 			/** The plant, in the far corner. */
 			{
-				x: LOUNGE.x + 21,
-				y: LOUNGE.y + 2,
+				x: LOUNGE$1.x + 21,
+				y: LOUNGE$1.y + 2,
 				w: 6,
 				h: 6
 			}),
 			(
 			/** The water cooler, against the right wall. */
 			{
-				x: LOUNGE.x + 22,
-				y: LOUNGE.y + 12,
+				x: LOUNGE$1.x + 22,
+				y: LOUNGE$1.y + 12,
 				w: 6,
 				h: 6.5
 			}),
@@ -542,7 +542,11 @@ window.__ModuleLoader__.load({
 				const grown = inflate(rect, CLEARANCE * .5);
 				return !inside(from, grown) && !inside(to, grown);
 			});
-			const clear = (a, b) => !blocks.some((rect) => crossesRect(a, b, rect));
+			const clear = (a, b) => !blocks.some((rect) => {
+				if (crossesRect(a, b, rect)) return true;
+				const grown = inflate(rect, CLEARANCE);
+				return !inside(a, grown) && !inside(b, grown) && crossesRect(a, b, grown);
+			});
 			if (clear(from, to)) return [from, to];
 			const nodes = [
 				from,
@@ -556,13 +560,16 @@ window.__ModuleLoader__.load({
 			best[0] = 0;
 			for (;;) {
 				let at = -1;
-				for (const [index, cost] of best.entries()) if (!done[index] && cost < (at < 0 ? Infinity : best[at])) at = index;
+				for (let index = 0; index < nodes.length; index += 1) {
+					const cost = best[index];
+					if (!done[index] && cost < (at < 0 ? Infinity : best[at])) at = index;
+				}
 				if (at < 0 || at === goal) break;
 				done[at] = true;
 				const here = nodes[at];
-				for (const [index, node] of nodes.entries()) {
-					if (done[index] || index === at || !clear(here, node)) continue;
-					const cost = best[at] + span(here, node);
+				for (let index = 0; index < nodes.length; index += 1) {
+					if (done[index] || index === at || !clear(here, nodes[index])) continue;
+					const cost = best[at] + span(here, nodes[index]);
 					if (cost < best[index]) {
 						best[index] = cost;
 						via[index] = at;
@@ -911,7 +918,6 @@ window.__ModuleLoader__.load({
 			const gait = (0, react.useRef)(0);
 			const facing = (0, react.useRef)("front");
 			const scale = (0, react.useRef)(base);
-			scale.current = base;
 			const [pose, setPose] = (0, react.useState)({
 				facing: "front",
 				walking: false
@@ -932,21 +938,30 @@ window.__ModuleLoader__.load({
 				place(at.current);
 			}, [place]);
 			(0, react.useEffect)(() => {
+				scale.current = base;
 				place(at.current);
 			}, [place, base]);
+			/** Stop wherever the member stands, without keeping a walk pose alive. */
+			const settle = (0, react.useCallback)(() => {
+				facing.current = "front";
+				setPose((current) => current.walking ? {
+					facing: "front",
+					walking: false
+				} : current);
+			}, []);
 			(0, react.useEffect)(() => {
 				const start = at.current;
-				if (Math.abs(start.x - target.x) < NEAR && Math.abs(start.y - target.y) < NEAR) return void 0;
+				if (Math.abs(start.x - target.x) < NEAR && Math.abs(start.y - target.y) < NEAR) {
+					settle();
+					return;
+				}
 				if (still()) {
 					at.current = {
 						x: target.x,
 						y: target.y
 					};
 					place(at.current);
-					setPose({
-						facing: "front",
-						walking: false
-					});
+					settle();
 					return;
 				}
 				const path = smooth(routeBetween(start, target, obstacles), obstacles);
@@ -957,6 +972,7 @@ window.__ModuleLoader__.load({
 						y: target.y
 					};
 					place(at.current);
+					settle();
 					return;
 				}
 				/** Distance along the path at which each corner is reached. */
@@ -966,10 +982,10 @@ window.__ModuleLoader__.load({
 				const began = now();
 				const from = gait.current;
 				let frame = 0;
+				let leg = 1;
 				const tick = () => {
 					const through = Math.min(1, (now() - began) / span);
 					const covered = ease(through) * total;
-					let leg = 1;
 					while (leg < marks.length - 1 && marks[leg] < covered) leg += 1;
 					const back = path[leg - 1];
 					const ahead = path[leg];
@@ -1017,7 +1033,8 @@ window.__ModuleLoader__.load({
 				target.x,
 				target.y,
 				obstacles,
-				place
+				place,
+				settle
 			]);
 			return {
 				ref: hang,
@@ -1062,487 +1079,512 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var TeamStage_module_css_default = {
-			"pendant": "nesYQG_pendant",
-			"propBoxTop": "nesYQG_propBoxTop",
-			"team-drift": "nesYQG_team-drift",
-			"crewHoodOpening": "nesYQG_crewHoodOpening",
-			"chairMesh": "nesYQG_chairMesh",
-			"sail": "nesYQG_sail",
-			"crewBuckle": "nesYQG_crewBuckle",
-			"noteKey": "nesYQG_noteKey",
-			"pendantRose": "nesYQG_pendantRose",
-			"coolerNeck": "nesYQG_coolerNeck",
-			"team-halo": "nesYQG_team-halo",
-			"skirting": "nesYQG_skirting",
-			"propPaperLine": "nesYQG_propPaperLine",
-			"floraShade": "nesYQG_floraShade",
-			"boardTray": "nesYQG_boardTray",
-			"coolerFaucet": "nesYQG_coolerFaucet",
-			"chairLumbarKnob": "nesYQG_chairLumbarKnob",
-			"crewSmile": "nesYQG_crewSmile",
-			"crewGlasses": "nesYQG_crewGlasses",
-			"crewCrest": "nesYQG_crewCrest",
-			"propInset": "nesYQG_propInset",
-			"treadmillStopKey": "nesYQG_treadmillStopKey",
-			"team-caret": "nesYQG_team-caret",
-			"acBreeze": "nesYQG_acBreeze",
-			"catPupil": "nesYQG_catPupil",
-			"treadmillBase": "nesYQG_treadmillBase",
-			"tableSaucer": "nesYQG_tableSaucer",
-			"team-steam": "nesYQG_team-steam",
-			"wallLeft": "nesYQG_wallLeft",
-			"chairArmrest": "nesYQG_chairArmrest",
-			"acLedPower": "nesYQG_acLedPower",
-			"crewLimbFront": "nesYQG_crewLimbFront",
-			"lampShadeTop": "nesYQG_lampShadeTop",
-			"pendantBulb": "nesYQG_pendantBulb",
-			"clockHand": "nesYQG_clockHand",
-			"propWarmerPlate": "nesYQG_propWarmerPlate",
-			"barTitle": "nesYQG_barTitle",
-			"cameoCrew": "nesYQG_cameoCrew",
-			"crewVest": "nesYQG_crewVest",
-			"crewBlowhole": "nesYQG_crewBlowhole",
-			"crewTrouserCrease": "nesYQG_crewTrouserCrease",
+			"emptyHint": "nesYQG_emptyHint",
+			"paneNote": "nesYQG_paneNote",
+			"plankBracket": "nesYQG_plankBracket",
+			"propSteam": "nesYQG_propSteam",
+			"lamp": "nesYQG_lamp",
+			"deskModesty": "nesYQG_deskModesty",
+			"crewPleat": "nesYQG_crewPleat",
 			"crewKnitLine": "nesYQG_crewKnitLine",
-			"sofaArmTop": "nesYQG_sofaArmTop",
-			"tableMugHandle": "nesYQG_tableMugHandle",
-			"treadmillKeyCord": "nesYQG_treadmillKeyCord",
-			"card": "nesYQG_card",
-			"acGrille": "nesYQG_acGrille",
-			"treadmillMetrics": "nesYQG_treadmillMetrics",
-			"clockProp": "nesYQG_clockProp",
-			"pendantGlow": "nesYQG_pendantGlow",
-			"floraBloomHeart": "nesYQG_floraBloomHeart",
-			"logHop": "nesYQG_logHop",
-			"crewClip": "nesYQG_crewClip",
-			"propLampIdle": "nesYQG_propLampIdle",
+			"catEye": "nesYQG_catEye",
+			"deskApron": "nesYQG_deskApron",
+			"crewTrouserCrease": "nesYQG_crewTrouserCrease",
+			"crewCansBand": "nesYQG_crewCansBand",
+			"log": "nesYQG_log",
+			"calendar": "nesYQG_calendar",
+			"treadmill": "nesYQG_treadmill",
+			"team-halo": "nesYQG_team-halo",
+			"chairMeshSpine": "nesYQG_chairMeshSpine",
 			"pendantSvg": "nesYQG_pendantSvg",
-			"crewBadgePhoto": "nesYQG_crewBadgePhoto",
+			"crewTuskSpiral": "nesYQG_crewTuskSpiral",
+			"crewNose": "nesYQG_crewNose",
+			"propBox": "nesYQG_propBox",
+			"feed": "nesYQG_feed",
+			"chairSvg": "nesYQG_chairSvg",
+			"base": "nesYQG_base",
+			"coolerFaucet": "nesYQG_coolerFaucet",
+			"treadmillArm": "nesYQG_treadmillArm",
+			"crewMouth": "nesYQG_crewMouth",
+			"crewOpen": "nesYQG_crewOpen",
+			"team-caret": "nesYQG_team-caret",
+			"skirting": "nesYQG_skirting",
+			"crewNeck": "nesYQG_crewNeck",
+			"propBoxHole": "nesYQG_propBoxHole",
+			"crewKnobHighlight": "nesYQG_crewKnobHighlight",
+			"acEdge": "nesYQG_acEdge",
+			"propGaugeNeedle": "nesYQG_propGaugeNeedle",
+			"noteKey": "nesYQG_noteKey",
+			"drawerClose": "nesYQG_drawerClose",
+			"catTailTip": "nesYQG_catTailTip",
+			"coolerSvg": "nesYQG_coolerSvg",
+			"whiteboard": "nesYQG_whiteboard",
+			"treadmillHoodSheen": "nesYQG_treadmillHoodSheen",
+			"drawerBody": "nesYQG_drawerBody",
+			"crewSpout": "nesYQG_crewSpout",
+			"propSeam": "nesYQG_propSeam",
+			"floraCactusDetails": "nesYQG_floraCactusDetails",
+			"chairMeshLine": "nesYQG_chairMeshLine",
+			"coolerCabinetEdge": "nesYQG_coolerCabinetEdge",
+			"propSpout": "nesYQG_propSpout",
+			"crewScrunchie": "nesYQG_crewScrunchie",
+			"crewShoeToe": "nesYQG_crewShoeToe",
+			"treadmillBase": "nesYQG_treadmillBase",
+			"pendantFilament": "nesYQG_pendantFilament",
+			"floraRimLip": "nesYQG_floraRimLip",
+			"logAvatar": "nesYQG_logAvatar",
+			"treadmillHood": "nesYQG_treadmillHood",
+			"dockCount": "nesYQG_dockCount",
+			"propCup": "nesYQG_propCup",
+			"propScreenGlint": "nesYQG_propScreenGlint",
+			"boardPens": "nesYQG_boardPens",
+			"crewBuckle": "nesYQG_crewBuckle",
+			"treadmillSensor": "nesYQG_treadmillSensor",
+			"crewSpeckle": "nesYQG_crewSpeckle",
+			"team-say-in": "nesYQG_team-say-in",
+			"coolerCap": "nesYQG_coolerCap",
+			"sofaSeat": "nesYQG_sofaSeat",
+			"noteAuthor": "nesYQG_noteAuthor",
+			"crewScarfFringe": "nesYQG_crewScarfFringe",
+			"crewHairHighlight": "nesYQG_crewHairHighlight",
+			"propFront": "nesYQG_propFront",
+			"coolerTap": "nesYQG_coolerTap",
+			"crewVest": "nesYQG_crewVest",
+			"chairPanTop": "nesYQG_chairPanTop",
+			"crewTuskGroup": "nesYQG_crewTuskGroup",
+			"treadmillPost": "nesYQG_treadmillPost",
+			"neck": "nesYQG_neck",
+			"acLouver": "nesYQG_acLouver",
+			"floraMoss": "nesYQG_floraMoss",
+			"chairCasters": "nesYQG_chairCasters",
+			"propFolderTab": "nesYQG_propFolderTab",
+			"propMugHandle": "nesYQG_propMugHandle",
+			"floraBladeLit": "nesYQG_floraBladeLit",
+			"floraGlaze": "nesYQG_floraGlaze",
+			"lampBulb": "nesYQG_lampBulb",
+			"notePreview": "nesYQG_notePreview",
+			"lounge": "nesYQG_lounge",
+			"coolerShineRim": "nesYQG_coolerShineRim",
+			"lampFinial": "nesYQG_lampFinial",
+			"propTextLines": "nesYQG_propTextLines",
+			"acSvg": "nesYQG_acSvg",
+			"team-person-sit": "nesYQG_team-person-sit",
+			"crewSmile": "nesYQG_crewSmile",
+			"clockProp": "nesYQG_clockProp",
+			"dock": "nesYQG_dock",
+			"crewName": "nesYQG_crewName",
+			"floor": "nesYQG_floor",
+			"flora": "nesYQG_flora",
+			"crewButton": "nesYQG_crewButton",
+			"logArrow": "nesYQG_logArrow",
+			"floraPotShade": "nesYQG_floraPotShade",
+			"crewShoeTrim": "nesYQG_crewShoeTrim",
+			"hangerPlant": "nesYQG_hangerPlant",
+			"floraBloomStamen": "nesYQG_floraBloomStamen",
+			"team-breeze": "nesYQG_team-breeze",
+			"card": "nesYQG_card",
+			"crewWrinkle": "nesYQG_crewWrinkle",
+			"sofaBack": "nesYQG_sofaBack",
+			"propShade": "nesYQG_propShade",
+			"coolerPanelDepth": "nesYQG_coolerPanelDepth",
+			"coolerDoorSeam": "nesYQG_coolerDoorSeam",
+			"catGlint": "nesYQG_catGlint",
+			"chairRide": "nesYQG_chairRide",
+			"cardNote": "nesYQG_cardNote",
+			"sofaPillowCool": "nesYQG_sofaPillowCool",
+			"sillTop": "nesYQG_sillTop",
+			"lampStem": "nesYQG_lampStem",
+			"logText": "nesYQG_logText",
+			"barIcon": "nesYQG_barIcon",
+			"treadmillSvg": "nesYQG_treadmillSvg",
+			"floraBloomOuter": "nesYQG_floraBloomOuter",
+			"treadmillMetrics": "nesYQG_treadmillMetrics",
+			"crewShoeBadge": "nesYQG_crewShoeBadge",
+			"ceiling": "nesYQG_ceiling",
+			"sofaArmTop": "nesYQG_sofaArmTop",
+			"chairLumbar": "nesYQG_chairLumbar",
+			"plate": "nesYQG_plate",
+			"crewCord": "nesYQG_crewCord",
+			"utilityPrinter": "nesYQG_utilityPrinter",
+			"window": "nesYQG_window",
+			"acTemp": "nesYQG_acTemp",
+			"cat": "nesYQG_cat",
+			"propScreen": "nesYQG_propScreen",
+			"floraBlade": "nesYQG_floraBlade",
+			"mug": "nesYQG_mug",
+			"crewMelon": "nesYQG_crewMelon",
+			"crewBlush": "nesYQG_crewBlush",
+			"chair": "nesYQG_chair",
+			"blankHint": "nesYQG_blankHint",
+			"crewMelonHighlight": "nesYQG_crewMelonHighlight",
+			"crewFacialGroup": "nesYQG_crewFacialGroup",
+			"sofaPillowWarm": "nesYQG_sofaPillowWarm",
+			"crewJacket": "nesYQG_crewJacket",
+			"calendarHead": "nesYQG_calendarHead",
+			"crewScarfPattern": "nesYQG_crewScarfPattern",
+			"logTo": "nesYQG_logTo",
+			"table": "nesYQG_table",
+			"coolerBubble": "nesYQG_coolerBubble",
+			"team-bubble": "nesYQG_team-bubble",
+			"crewArmFront": "nesYQG_crewArmFront",
+			"drawerHead": "nesYQG_drawerHead",
+			"propPaperGauge": "nesYQG_propPaperGauge",
+			"floraPot": "nesYQG_floraPot",
+			"floraSaucerLip": "nesYQG_floraSaucerLip",
+			"catBody": "nesYQG_catBody",
+			"crewCrossStrap": "nesYQG_crewCrossStrap",
+			"pendantNeck": "nesYQG_pendantNeck",
+			"coolerDrip": "nesYQG_coolerDrip",
+			"lampSvg": "nesYQG_lampSvg",
+			"crown": "nesYQG_crown",
+			"crewBib": "nesYQG_crewBib",
+			"state": "nesYQG_state",
+			"cameoDot": "nesYQG_cameoDot",
+			"dockButton": "nesYQG_dockButton",
+			"blankTitle": "nesYQG_blankTitle",
+			"utilityCabinet": "nesYQG_utilityCabinet",
+			"plateMeta": "nesYQG_plateMeta",
+			"crew": "nesYQG_crew",
+			"doze": "nesYQG_doze",
+			"bookLeaning": "nesYQG_bookLeaning",
+			"team-listen": "nesYQG_team-listen",
+			"floraStem": "nesYQG_floraStem",
+			"team-blink": "nesYQG_team-blink",
+			"crewPackTrim": "nesYQG_crewPackTrim",
+			"crewPlacket": "nesYQG_crewPlacket",
+			"crewGlassesGlass": "nesYQG_crewGlassesGlass",
+			"clockHand": "nesYQG_clockHand",
+			"sofaBackTop": "nesYQG_sofaBackTop",
+			"propDrawerHandle": "nesYQG_propDrawerHandle",
+			"desk": "nesYQG_desk",
+			"crewBadge": "nesYQG_crewBadge",
+			"team-chair-rise": "nesYQG_team-chair-rise",
+			"crewHoodShade": "nesYQG_crewHoodShade",
+			"tableSaucer": "nesYQG_tableSaucer",
+			"bar": "nesYQG_bar",
+			"catNose": "nesYQG_catNose",
+			"floraSaucer": "nesYQG_floraSaucer",
+			"hanger": "nesYQG_hanger",
+			"screenApp": "nesYQG_screenApp",
+			"team-drift": "nesYQG_team-drift",
+			"sofaSeam": "nesYQG_sofaSeam",
+			"pendantRose": "nesYQG_pendantRose",
+			"load": "nesYQG_load",
+			"logAuthor": "nesYQG_logAuthor",
+			"crewGlassesFrame": "nesYQG_crewGlassesFrame",
+			"paneTitle": "nesYQG_paneTitle",
+			"team-prowl": "nesYQG_team-prowl",
+			"crewShirt": "nesYQG_crewShirt",
 			"crewSleeve": "nesYQG_crewSleeve",
-			"floraSoil": "nesYQG_floraSoil",
+			"sofa": "nesYQG_sofa",
+			"lampShadeTop": "nesYQG_lampShadeTop",
+			"crewRib": "nesYQG_crewRib",
+			"crewHoodOpening": "nesYQG_crewHoodOpening",
+			"propPortafilter": "nesYQG_propPortafilter",
+			"floraVein": "nesYQG_floraVein",
+			"team-glow": "nesYQG_team-glow",
+			"propTray": "nesYQG_propTray",
+			"sofaPillowLine": "nesYQG_sofaPillowLine",
+			"lampBeam": "nesYQG_lampBeam",
+			"boardTrayTop": "nesYQG_boardTrayTop",
+			"books": "nesYQG_books",
+			"statLive": "nesYQG_statLive",
+			"calendarGrid": "nesYQG_calendarGrid",
+			"acLedPower": "nesYQG_acLedPower",
+			"propLampIdle": "nesYQG_propLampIdle",
+			"crewHoodFabric": "nesYQG_crewHoodFabric",
+			"crewList": "nesYQG_crewList",
+			"mullion": "nesYQG_mullion",
+			"team-person-in": "nesYQG_team-person-in",
+			"rug": "nesYQG_rug",
+			"crewGlassesBridge": "nesYQG_crewGlassesBridge",
+			"team-bob": "nesYQG_team-bob",
+			"floraSpine": "nesYQG_floraSpine",
+			"crewHair": "nesYQG_crewHair",
+			"coolerCapTop": "nesYQG_coolerCapTop",
+			"crewDraw": "nesYQG_crewDraw",
+			"logKind": "nesYQG_logKind",
+			"crewPocket": "nesYQG_crewPocket",
+			"crewBrow": "nesYQG_crewBrow",
+			"crewPenClip": "nesYQG_crewPenClip",
+			"coolerDripWell": "nesYQG_coolerDripWell",
+			"crewFace": "nesYQG_crewFace",
+			"pane": "nesYQG_pane",
+			"team-doze": "nesYQG_team-doze",
+			"columnTitle": "nesYQG_columnTitle",
+			"crewBadgePhoto": "nesYQG_crewBadgePhoto",
+			"clockTicks": "nesYQG_clockTicks",
+			"propLampLive": "nesYQG_propLampLive",
+			"treadmillTread": "nesYQG_treadmillTread",
+			"logRow": "nesYQG_logRow",
+			"lampBase": "nesYQG_lampBase",
+			"crewNeckBand": "nesYQG_crewNeckBand",
+			"scene": "nesYQG_scene",
+			"chairSpine": "nesYQG_chairSpine",
+			"propSvg": "nesYQG_propSvg",
+			"crewCrest": "nesYQG_crewCrest",
+			"team-drawer-in": "nesYQG_team-drawer-in",
+			"screenText": "nesYQG_screenText",
+			"sky": "nesYQG_sky",
+			"plant": "nesYQG_plant",
+			"coolerWater": "nesYQG_coolerWater",
+			"logHead": "nesYQG_logHead",
+			"logTime": "nesYQG_logTime",
+			"cardTitle": "nesYQG_cardTitle",
+			"crewLimbFront": "nesYQG_crewLimbFront",
+			"wallLeft": "nesYQG_wallLeft",
+			"propWarmerPlate": "nesYQG_propWarmerPlate",
+			"coolerNeck": "nesYQG_coolerNeck",
+			"catSvg": "nesYQG_catSvg",
+			"floraBladeDetail": "nesYQG_floraBladeDetail",
+			"crewSeam": "nesYQG_crewSeam",
+			"speech": "nesYQG_speech",
+			"treadmillScreen": "nesYQG_treadmillScreen",
+			"tableCup": "nesYQG_tableCup",
+			"chairArmrest": "nesYQG_chairArmrest",
+			"propPaper": "nesYQG_propPaper",
+			"propPaperLine": "nesYQG_propPaperLine",
+			"tableTop": "nesYQG_tableTop",
+			"propBoxTop": "nesYQG_propBoxTop",
+			"propBean": "nesYQG_propBean",
+			"crewShoeEyelet": "nesYQG_crewShoeEyelet",
+			"boardNote": "nesYQG_boardNote",
+			"sail": "nesYQG_sail",
+			"coolerBottle": "nesYQG_coolerBottle",
+			"tableEdge": "nesYQG_tableEdge",
+			"coolerCabinet": "nesYQG_coolerCabinet",
+			"crewPocketStitch": "nesYQG_crewPocketStitch",
+			"logTail": "nesYQG_logTail",
+			"sea": "nesYQG_sea",
+			"shelf": "nesYQG_shelf",
+			"logBody": "nesYQG_logBody",
+			"plank": "nesYQG_plank",
+			"columnCount": "nesYQG_columnCount",
+			"chairPanStitch": "nesYQG_chairPanStitch",
+			"glare": "nesYQG_glare",
+			"empty": "nesYQG_empty",
+			"propTop": "nesYQG_propTop",
+			"wallBack": "nesYQG_wallBack",
+			"crewCansPivot": "nesYQG_crewCansPivot",
+			"crewStrap": "nesYQG_crewStrap",
+			"deskTop": "nesYQG_deskTop",
+			"tableLeg": "nesYQG_tableLeg",
+			"catEarInner": "nesYQG_catEarInner",
+			"chairMechanism": "nesYQG_chairMechanism",
+			"crewGlasses": "nesYQG_crewGlasses",
+			"crewLine": "nesYQG_crewLine",
+			"treadmillKeyCord": "nesYQG_treadmillKeyCord",
+			"coolerLedPower": "nesYQG_coolerLedPower",
+			"reveal": "nesYQG_reveal",
+			"team-screen": "nesYQG_team-screen",
+			"chairShell": "nesYQG_chairShell",
+			"crewHoodSheen": "nesYQG_crewHoodSheen",
+			"barStats": "nesYQG_barStats",
+			"sofaArm": "nesYQG_sofaArm",
+			"crewGill": "nesYQG_crewGill",
+			"crewAglet": "nesYQG_crewAglet",
+			"crewScarf": "nesYQG_crewScarf",
+			"coolerHandleCool": "nesYQG_coolerHandleCool",
 			"chairPan": "nesYQG_chairPan",
 			"wallRight": "nesYQG_wallRight",
-			"sill": "nesYQG_sill",
-			"shell": "nesYQG_shell",
-			"team-blink": "nesYQG_team-blink",
-			"floraSaucer": "nesYQG_floraSaucer",
-			"chairSpine": "nesYQG_chairSpine",
-			"monitor": "nesYQG_monitor",
-			"coolerPanel": "nesYQG_coolerPanel",
-			"crewCollar": "nesYQG_crewCollar",
-			"lamp": "nesYQG_lamp",
-			"sofaArm": "nesYQG_sofaArm",
-			"tableMagazine": "nesYQG_tableMagazine",
-			"dockButton": "nesYQG_dockButton",
-			"crewHoodFabric": "nesYQG_crewHoodFabric",
-			"propShade": "nesYQG_propShade",
-			"pendantFlex": "nesYQG_pendantFlex",
-			"treadmillPost": "nesYQG_treadmillPost",
-			"tableGrain": "nesYQG_tableGrain",
-			"propScannerHandle": "nesYQG_propScannerHandle",
-			"crewList": "nesYQG_crewList",
-			"chairHub": "nesYQG_chairHub",
-			"wall": "nesYQG_wall",
-			"mullion": "nesYQG_mullion",
-			"team-sway": "nesYQG_team-sway",
-			"crewPackTrim": "nesYQG_crewPackTrim",
-			"crewPackZip": "nesYQG_crewPackZip",
-			"propHandle": "nesYQG_propHandle",
-			"utilityCabinet": "nesYQG_utilityCabinet",
-			"crewTrouser": "nesYQG_crewTrouser",
-			"pendantShade": "nesYQG_pendantShade",
-			"table": "nesYQG_table",
-			"deskFlank": "nesYQG_deskFlank",
-			"catSvg": "nesYQG_catSvg",
-			"team-stage-in": "nesYQG_team-stage-in",
-			"floor": "nesYQG_floor",
-			"acLedCool": "nesYQG_acLedCool",
-			"floraVein": "nesYQG_floraVein",
-			"crewFlipperTrim": "nesYQG_crewFlipperTrim",
-			"propScreenGlint": "nesYQG_propScreenGlint",
-			"crewPlacket": "nesYQG_crewPlacket",
-			"columnCount": "nesYQG_columnCount",
-			"chairMeshSpine": "nesYQG_chairMeshSpine",
-			"load": "nesYQG_load",
-			"crewBadgeLine": "nesYQG_crewBadgeLine",
-			"catEye": "nesYQG_catEye",
-			"crewSeam": "nesYQG_crewSeam",
-			"propPortafilter": "nesYQG_propPortafilter",
-			"propBean": "nesYQG_propBean",
-			"propPaper": "nesYQG_propPaper",
-			"team-person-in": "nesYQG_team-person-in",
-			"crewBelt": "nesYQG_crewBelt",
-			"figure": "nesYQG_figure",
-			"noteAuthor": "nesYQG_noteAuthor",
-			"crewScrunchie": "nesYQG_crewScrunchie",
 			"propSide": "nesYQG_propSide",
-			"screenText": "nesYQG_screenText",
-			"shelf": "nesYQG_shelf",
-			"crewShoeStripe": "nesYQG_crewShoeStripe",
-			"crewScarfFringe": "nesYQG_crewScarfFringe",
-			"feed": "nesYQG_feed",
-			"crewLine": "nesYQG_crewLine",
-			"chairPanStitch": "nesYQG_chairPanStitch",
-			"crewEye": "nesYQG_crewEye",
-			"lampBulb": "nesYQG_lampBulb",
-			"floraStem": "nesYQG_floraStem",
-			"deskPlant": "nesYQG_deskPlant",
-			"chairShellEdge": "nesYQG_chairShellEdge",
-			"window": "nesYQG_window",
-			"crewKnobHighlight": "nesYQG_crewKnobHighlight",
-			"utilityPrinter": "nesYQG_utilityPrinter",
-			"crewTuskSpiral": "nesYQG_crewTuskSpiral",
-			"cardNote": "nesYQG_cardNote",
-			"drawerHead": "nesYQG_drawerHead",
-			"boardEraser": "nesYQG_boardEraser",
-			"tableMagPage": "nesYQG_tableMagPage",
-			"log": "nesYQG_log",
-			"floraBloomStamen": "nesYQG_floraBloomStamen",
-			"drawerClose": "nesYQG_drawerClose",
-			"crewPocket": "nesYQG_crewPocket",
-			"propCarafeHandle": "nesYQG_propCarafeHandle",
-			"team-bob": "nesYQG_team-bob",
-			"scene": "nesYQG_scene",
-			"coolerCapTop": "nesYQG_coolerCapTop",
-			"columnTitle": "nesYQG_columnTitle",
-			"sea": "nesYQG_sea",
-			"listening": "nesYQG_listening",
-			"stage": "nesYQG_stage",
-			"crewBrow": "nesYQG_crewBrow",
-			"crewCuff": "nesYQG_crewCuff",
-			"mug": "nesYQG_mug",
-			"crewEyeGlint": "nesYQG_crewEyeGlint",
-			"cat": "nesYQG_cat",
-			"team-sail": "nesYQG_team-sail",
-			"tableLeg": "nesYQG_tableLeg",
-			"propScreen": "nesYQG_propScreen",
-			"sofaBackTop": "nesYQG_sofaBackTop",
-			"deskGrain": "nesYQG_deskGrain",
-			"screen": "nesYQG_screen",
-			"pendantMouth": "nesYQG_pendantMouth",
-			"papers": "nesYQG_papers",
-			"chairMechanism": "nesYQG_chairMechanism",
-			"chair": "nesYQG_chair",
-			"crewPackPocket": "nesYQG_crewPackPocket",
-			"crewHand": "nesYQG_crewHand",
-			"crewHairHighlight": "nesYQG_crewHairHighlight",
-			"crewShoeTrim": "nesYQG_crewShoeTrim",
 			"sofaSeatSeam": "nesYQG_sofaSeatSeam",
-			"propLampLive": "nesYQG_propLampLive",
-			"coolerRib": "nesYQG_coolerRib",
-			"team-bubble": "nesYQG_team-bubble",
-			"crewPleat": "nesYQG_crewPleat",
-			"crewEyeGlintSub": "nesYQG_crewEyeGlintSub",
-			"tableTop": "nesYQG_tableTop",
-			"sillTop": "nesYQG_sillTop",
-			"sky": "nesYQG_sky",
-			"crewStrapBuckle": "nesYQG_crewStrapBuckle",
-			"crewShoe": "nesYQG_crewShoe",
-			"pane": "nesYQG_pane",
-			"crewTusk": "nesYQG_crewTusk",
-			"barIcon": "nesYQG_barIcon",
-			"crewPenClip": "nesYQG_crewPenClip",
-			"chairLumbar": "nesYQG_chairLumbar",
-			"plateMeta": "nesYQG_plateMeta",
-			"propSeam": "nesYQG_propSeam",
-			"catWhisker": "nesYQG_catWhisker",
-			"plateName": "nesYQG_plateName",
-			"propGauge": "nesYQG_propGauge",
-			"calendarGrid": "nesYQG_calendarGrid",
-			"propMugHandle": "nesYQG_propMugHandle",
-			"deskSurface": "nesYQG_deskSurface",
-			"crewHoodRidge": "nesYQG_crewHoodRidge",
-			"crewNose": "nesYQG_crewNose",
-			"boardPens": "nesYQG_boardPens",
-			"shelfPlant": "nesYQG_shelfPlant",
-			"team-tick": "nesYQG_team-tick",
-			"treadmillHood": "nesYQG_treadmillHood",
-			"treadmillScreen": "nesYQG_treadmillScreen",
-			"propFolder": "nesYQG_propFolder",
-			"cardWho": "nesYQG_cardWho",
-			"cameo": "nesYQG_cameo",
-			"lampShadeBottom": "nesYQG_lampShadeBottom",
-			"team-type": "nesYQG_team-type",
-			"treadmillHoodVent": "nesYQG_treadmillHoodVent",
-			"crewMouth": "nesYQG_crewMouth",
-			"floraCrumb": "nesYQG_floraCrumb",
-			"tableEdge": "nesYQG_tableEdge",
-			"catBody": "nesYQG_catBody",
-			"catNose": "nesYQG_catNose",
-			"chairShell": "nesYQG_chairShell",
-			"crewHood": "nesYQG_crewHood",
-			"crewPackHandle": "nesYQG_crewPackHandle",
-			"coolerDripWell": "nesYQG_coolerDripWell",
-			"crewFacialGroup": "nesYQG_crewFacialGroup",
-			"crewShirt": "nesYQG_crewShirt",
-			"sofaBack": "nesYQG_sofaBack",
-			"base": "nesYQG_base",
-			"sofaSeatPiping": "nesYQG_sofaSeatPiping",
-			"propBox": "nesYQG_propBox",
-			"floraBladeDetail": "nesYQG_floraBladeDetail",
-			"treadmillConsole": "nesYQG_treadmillConsole",
-			"notes": "nesYQG_notes",
-			"utility": "nesYQG_utility",
-			"floraBloom": "nesYQG_floraBloom",
-			"acLouver": "nesYQG_acLouver",
-			"chairSvg": "nesYQG_chairSvg",
-			"propGlass": "nesYQG_propGlass",
-			"propCup": "nesYQG_propCup",
-			"lampShade": "nesYQG_lampShade",
-			"stat": "nesYQG_stat",
-			"treadmillSensor": "nesYQG_treadmillSensor",
-			"team-person-sit": "nesYQG_team-person-sit",
-			"propFront": "nesYQG_propFront",
-			"crewOpen": "nesYQG_crewOpen",
-			"trophy": "nesYQG_trophy",
-			"catLeg": "nesYQG_catLeg",
-			"bookLeaning": "nesYQG_bookLeaning",
-			"emptyHint": "nesYQG_emptyHint",
-			"chairCasters": "nesYQG_chairCasters",
-			"crewMelonHighlight": "nesYQG_crewMelonHighlight",
-			"crewCrossStrap": "nesYQG_crewCrossStrap",
-			"crewShoeEyelet": "nesYQG_crewShoeEyelet",
-			"noteTime": "nesYQG_noteTime",
-			"lounge": "nesYQG_lounge",
-			"crewAglet": "nesYQG_crewAglet",
-			"floraPot": "nesYQG_floraPot",
-			"crewBlush": "nesYQG_crewBlush",
-			"floraRim": "nesYQG_floraRim",
-			"deskApron": "nesYQG_deskApron",
-			"crewWrinkle": "nesYQG_crewWrinkle",
-			"sofaSvg": "nesYQG_sofaSvg",
-			"cardFoot": "nesYQG_cardFoot",
-			"team-row-in": "nesYQG_team-row-in",
-			"tableCup": "nesYQG_tableCup",
-			"crewPupil": "nesYQG_crewPupil",
-			"team-say-in": "nesYQG_team-say-in",
-			"paneNote": "nesYQG_paneNote",
-			"roomPane": "nesYQG_roomPane",
-			"beam": "nesYQG_beam",
-			"flora": "nesYQG_flora",
-			"crewArmBack": "nesYQG_crewArmBack",
-			"sofaSeat": "nesYQG_sofaSeat",
-			"logBody": "nesYQG_logBody",
-			"crown": "nesYQG_crown",
-			"logAvatar": "nesYQG_logAvatar",
-			"sofa": "nesYQG_sofa",
-			"treadmillBelt": "nesYQG_treadmillBelt",
-			"propTop": "nesYQG_propTop",
-			"crewNeckBand": "nesYQG_crewNeckBand",
-			"column": "nesYQG_column",
-			"blankHint": "nesYQG_blankHint",
-			"calendarHead": "nesYQG_calendarHead",
-			"logText": "nesYQG_logText",
-			"treadmillBottle": "nesYQG_treadmillBottle",
-			"acEdge": "nesYQG_acEdge",
-			"crewGill": "nesYQG_crewGill",
-			"crewCansPivot": "nesYQG_crewCansPivot",
-			"logArrow": "nesYQG_logArrow",
-			"catTail": "nesYQG_catTail",
-			"propSteam": "nesYQG_propSteam",
-			"tableSvg": "nesYQG_tableSvg",
-			"team-screen": "nesYQG_team-screen",
-			"treadmillRail": "nesYQG_treadmillRail",
-			"sofaPillowWarm": "nesYQG_sofaPillowWarm",
-			"coolerLedPower": "nesYQG_coolerLedPower",
-			"hangerBracket": "nesYQG_hangerBracket",
-			"crewScarf": "nesYQG_crewScarf",
-			"coolerLedCold": "nesYQG_coolerLedCold",
-			"propSpout": "nesYQG_propSpout",
-			"team-glow": "nesYQG_team-glow",
-			"floraBlade": "nesYQG_floraBlade",
-			"coolerDrip": "nesYQG_coolerDrip",
-			"reveal": "nesYQG_reveal",
-			"cloud": "nesYQG_cloud",
-			"coolerSvg": "nesYQG_coolerSvg",
-			"barHint": "nesYQG_barHint",
-			"sofaPillowCool": "nesYQG_sofaPillowCool",
-			"lampSvg": "nesYQG_lampSvg",
-			"crewScarfPattern": "nesYQG_crewScarfPattern",
-			"logKind": "nesYQG_logKind",
-			"team-drawer-in": "nesYQG_team-drawer-in",
-			"clockPin": "nesYQG_clockPin",
-			"hanger": "nesYQG_hanger",
-			"cooler": "nesYQG_cooler",
-			"coolerCap": "nesYQG_coolerCap",
-			"treadmill": "nesYQG_treadmill",
-			"floorPlane": "nesYQG_floorPlane",
-			"glare": "nesYQG_glare",
-			"acSeam": "nesYQG_acSeam",
-			"crewDraw": "nesYQG_crewDraw",
-			"deskModesty": "nesYQG_deskModesty",
 			"tableSurface": "nesYQG_tableSurface",
-			"acBody": "nesYQG_acBody",
-			"ceiling": "nesYQG_ceiling",
-			"coolerBottle": "nesYQG_coolerBottle",
-			"lampBeam": "nesYQG_lampBeam",
-			"crewHairShine": "nesYQG_crewHairShine",
-			"crewButton": "nesYQG_crewButton",
-			"crewGlassesGlass": "nesYQG_crewGlassesGlass",
-			"logTail": "nesYQG_logTail",
-			"sofaPillowLine": "nesYQG_sofaPillowLine",
-			"pendantNeck": "nesYQG_pendantNeck",
-			"crewSpout": "nesYQG_crewSpout",
-			"composerAway": "nesYQG_composerAway",
-			"statLive": "nesYQG_statLive",
-			"sofaLeg": "nesYQG_sofaLeg",
-			"floraSaucerLip": "nesYQG_floraSaucerLip",
-			"floraLeaf": "nesYQG_floraLeaf",
-			"screenApp": "nesYQG_screenApp",
-			"crewHair": "nesYQG_crewHair",
-			"logAuthor": "nesYQG_logAuthor",
-			"propSvg": "nesYQG_propSvg",
-			"plank": "nesYQG_plank",
-			"blankTitle": "nesYQG_blankTitle",
-			"coolerDoorSeam": "nesYQG_coolerDoorSeam",
-			"coolerWater": "nesYQG_coolerWater",
-			"chairRide": "nesYQG_chairRide",
-			"team-breeze": "nesYQG_team-breeze",
-			"crewGlassesFrame": "nesYQG_crewGlassesFrame",
-			"crewShoeBadge": "nesYQG_crewShoeBadge",
-			"crewSaddle": "nesYQG_crewSaddle",
-			"airConditioner": "nesYQG_airConditioner",
-			"crewCansBand": "nesYQG_crewCansBand",
-			"drawer": "nesYQG_drawer",
-			"crewBib": "nesYQG_crewBib",
-			"keyboard": "nesYQG_keyboard",
-			"propLabelLine": "nesYQG_propLabelLine",
-			"logTo": "nesYQG_logTo",
-			"propLabel": "nesYQG_propLabel",
-			"treadmillHoodSheen": "nesYQG_treadmillHoodSheen",
-			"floraMoss": "nesYQG_floraMoss",
-			"crewCansCushion": "nesYQG_crewCansCushion",
-			"chairMeshLine": "nesYQG_chairMeshLine",
-			"coolerGrille": "nesYQG_coolerGrille",
-			"floraRimLip": "nesYQG_floraRimLip",
-			"propTextLines": "nesYQG_propTextLines",
-			"plant": "nesYQG_plant",
-			"chairSpokes": "nesYQG_chairSpokes",
-			"noteFoot": "nesYQG_noteFoot",
-			"notePreview": "nesYQG_notePreview",
-			"coolerTap": "nesYQG_coolerTap",
-			"crewName": "nesYQG_crewName",
-			"crewStrap": "nesYQG_crewStrap",
-			"coolerShineRim": "nesYQG_coolerShineRim",
-			"crewShoeToe": "nesYQG_crewShoeToe",
-			"whiteboard": "nesYQG_whiteboard",
-			"coolerCabinet": "nesYQG_coolerCabinet",
-			"crewMelon": "nesYQG_crewMelon",
-			"crewBadge": "nesYQG_crewBadge",
-			"crewArmFront": "nesYQG_crewArmFront",
-			"wallBack": "nesYQG_wallBack",
-			"barStats": "nesYQG_barStats",
-			"propGaugeNeedle": "nesYQG_propGaugeNeedle",
-			"plate": "nesYQG_plate",
-			"hangerPlant": "nesYQG_hangerPlant",
-			"logHead": "nesYQG_logHead",
-			"team-chair-rise": "nesYQG_team-chair-rise",
-			"crewShoeBuckle": "nesYQG_crewShoeBuckle",
-			"team-doze": "nesYQG_team-doze",
-			"crewRow": "nesYQG_crewRow",
-			"team-swing": "nesYQG_team-swing",
-			"catStripe": "nesYQG_catStripe",
-			"clockTicks": "nesYQG_clockTicks",
-			"treadmillSvg": "nesYQG_treadmillSvg",
-			"crewPatch": "nesYQG_crewPatch",
-			"crewLimbBack": "nesYQG_crewLimbBack",
-			"doze": "nesYQG_doze",
-			"crewJacket": "nesYQG_crewJacket",
-			"crewPocketStitch": "nesYQG_crewPocketStitch",
-			"crewFace": "nesYQG_crewFace",
-			"propBrew": "nesYQG_propBrew",
-			"acTemp": "nesYQG_acTemp",
-			"desk": "nesYQG_desk",
-			"crewCans": "nesYQG_crewCans",
-			"crewState": "nesYQG_crewState",
-			"crewStripes": "nesYQG_crewStripes",
-			"propLampWifi": "nesYQG_propLampWifi",
-			"coolerShine": "nesYQG_coolerShine",
-			"lampBase": "nesYQG_lampBase",
-			"coolerHandleWarm": "nesYQG_coolerHandleWarm",
-			"deskLegs": "nesYQG_deskLegs",
-			"treadmillTread": "nesYQG_treadmillTread",
-			"catTailTip": "nesYQG_catTailTip",
-			"propTray": "nesYQG_propTray",
-			"utilityCoffee": "nesYQG_utilityCoffee",
-			"crewHoodShade": "nesYQG_crewHoodShade",
-			"pendantFilament": "nesYQG_pendantFilament",
-			"chairLift": "nesYQG_chairLift",
-			"crewSpeckle": "nesYQG_crewSpeckle",
-			"note": "nesYQG_note",
-			"propPaperGauge": "nesYQG_propPaperGauge",
-			"floraBloomOuter": "nesYQG_floraBloomOuter",
-			"crewPack": "nesYQG_crewPack",
-			"crewTuskGroup": "nesYQG_crewTuskGroup",
-			"team-chair-stretch": "nesYQG_team-chair-stretch",
-			"empty": "nesYQG_empty",
-			"propDrawerHandle": "nesYQG_propDrawerHandle",
-			"deskTop": "nesYQG_deskTop",
-			"discGlyph": "nesYQG_discGlyph",
-			"plankTop": "nesYQG_plankTop",
-			"cardTitle": "nesYQG_cardTitle",
-			"catEar": "nesYQG_catEar",
-			"calendar": "nesYQG_calendar",
-			"acSvg": "nesYQG_acSvg",
-			"floraPotShade": "nesYQG_floraPotShade",
-			"propFolderTab": "nesYQG_propFolderTab",
-			"boardTrayTop": "nesYQG_boardTrayTop",
-			"propBoxHole": "nesYQG_propBoxHole",
-			"team-prowl": "nesYQG_team-prowl",
-			"columns": "nesYQG_columns",
-			"dockCount": "nesYQG_dockCount",
-			"coolerPanelDepth": "nesYQG_coolerPanelDepth",
-			"floraCactusDetails": "nesYQG_floraCactusDetails",
-			"feedTitle": "nesYQG_feedTitle",
-			"crew": "nesYQG_crew",
-			"crewBelly": "nesYQG_crewBelly",
-			"logTime": "nesYQG_logTime",
-			"lampStem": "nesYQG_lampStem",
-			"sofaButton": "nesYQG_sofaButton",
-			"catGlint": "nesYQG_catGlint",
-			"team-listen": "nesYQG_team-listen",
-			"logRow": "nesYQG_logRow",
-			"crewDroplet": "nesYQG_crewDroplet",
-			"drawerBody": "nesYQG_drawerBody",
-			"floraSpine": "nesYQG_floraSpine",
-			"treadmillArm": "nesYQG_treadmillArm",
-			"state": "nesYQG_state",
-			"plankBracket": "nesYQG_plankBracket",
-			"person": "nesYQG_person",
-			"floraBladeLit": "nesYQG_floraBladeLit",
-			"body": "nesYQG_body",
+			"crewCollar": "nesYQG_crewCollar",
+			"pendantMouth": "nesYQG_pendantMouth",
+			"treadmillConsole": "nesYQG_treadmillConsole",
+			"utility": "nesYQG_utility",
+			"noteTime": "nesYQG_noteTime",
+			"crewPackHandle": "nesYQG_crewPackHandle",
+			"crewEye": "nesYQG_crewEye",
 			"crewEar": "nesYQG_crewEar",
-			"crewCord": "nesYQG_crewCord",
-			"lampFinial": "nesYQG_lampFinial",
-			"bar": "nesYQG_bar",
-			"boardGhost": "nesYQG_boardGhost",
-			"boardNote": "nesYQG_boardNote",
-			"dock": "nesYQG_dock",
-			"coolerBubble": "nesYQG_coolerBubble",
-			"coolerHandleCool": "nesYQG_coolerHandleCool",
-			"crewNeck": "nesYQG_crewNeck",
-			"crewKnob": "nesYQG_crewKnob",
-			"boardInk": "nesYQG_boardInk",
-			"books": "nesYQG_books",
-			"crewHoodSheen": "nesYQG_crewHoodSheen",
-			"catEarInner": "nesYQG_catEarInner",
+			"catTail": "nesYQG_catTail",
 			"crewCansCup": "nesYQG_crewCansCup",
-			"crewGlassesBridge": "nesYQG_crewGlassesBridge",
-			"paneTitle": "nesYQG_paneTitle",
-			"rug": "nesYQG_rug",
-			"neck": "nesYQG_neck",
-			"cameoDot": "nesYQG_cameoDot",
-			"speech": "nesYQG_speech",
-			"coolerCabinetEdge": "nesYQG_coolerCabinetEdge",
-			"chairPanTop": "nesYQG_chairPanTop",
-			"floraGlaze": "nesYQG_floraGlaze",
-			"crewRib": "nesYQG_crewRib",
-			"crewShoeSole": "nesYQG_crewShoeSole",
+			"propScannerHandle": "nesYQG_propScannerHandle",
+			"note": "nesYQG_note",
+			"chairLumbarKnob": "nesYQG_chairLumbarKnob",
+			"team-chair-stretch": "nesYQG_team-chair-stretch",
+			"crewPatch": "nesYQG_crewPatch",
+			"crewTusk": "nesYQG_crewTusk",
+			"crewLimbBack": "nesYQG_crewLimbBack",
+			"floraRim": "nesYQG_floraRim",
+			"deskLegs": "nesYQG_deskLegs",
+			"crewEyeGlint": "nesYQG_crewEyeGlint",
+			"boardTray": "nesYQG_boardTray",
+			"feedTitle": "nesYQG_feedTitle",
+			"propLabel": "nesYQG_propLabel",
+			"tableMagazine": "nesYQG_tableMagazine",
+			"hangerBracket": "nesYQG_hangerBracket",
+			"team-type": "nesYQG_team-type",
+			"floraSoil": "nesYQG_floraSoil",
+			"shelfPlant": "nesYQG_shelfPlant",
+			"cardFoot": "nesYQG_cardFoot",
+			"papers": "nesYQG_papers",
+			"crewHand": "nesYQG_crewHand",
+			"coolerPanel": "nesYQG_coolerPanel",
+			"shell": "nesYQG_shell",
+			"deskPlant": "nesYQG_deskPlant",
+			"plankTop": "nesYQG_plankTop",
+			"propGauge": "nesYQG_propGauge",
+			"crewSaddle": "nesYQG_crewSaddle",
+			"crewCuff": "nesYQG_crewCuff",
+			"coolerGrille": "nesYQG_coolerGrille",
+			"coolerLedCold": "nesYQG_coolerLedCold",
+			"crewEyeGlintSub": "nesYQG_crewEyeGlintSub",
+			"propBrew": "nesYQG_propBrew",
+			"lampShadeBottom": "nesYQG_lampShadeBottom",
 			"crewStitch": "nesYQG_crewStitch",
-			"sofaSeam": "nesYQG_sofaSeam"
+			"sofaSvg": "nesYQG_sofaSvg",
+			"floraShade": "nesYQG_floraShade",
+			"noteFoot": "nesYQG_noteFoot",
+			"logHop": "nesYQG_logHop",
+			"acBreeze": "nesYQG_acBreeze",
+			"catWhisker": "nesYQG_catWhisker",
+			"trophy": "nesYQG_trophy",
+			"propGlass": "nesYQG_propGlass",
+			"sill": "nesYQG_sill",
+			"tableMugHandle": "nesYQG_tableMugHandle",
+			"crewStrapBuckle": "nesYQG_crewStrapBuckle",
+			"crewTrouser": "nesYQG_crewTrouser",
+			"crewCansCushion": "nesYQG_crewCansCushion",
+			"deskFlank": "nesYQG_deskFlank",
+			"barHint": "nesYQG_barHint",
+			"utilityCoffee": "nesYQG_utilityCoffee",
+			"sofaSeatPiping": "nesYQG_sofaSeatPiping",
+			"propHandle": "nesYQG_propHandle",
+			"team-row-in": "nesYQG_team-row-in",
+			"treadmillBottle": "nesYQG_treadmillBottle",
+			"screen": "nesYQG_screen",
+			"pendantFlex": "nesYQG_pendantFlex",
+			"pendant": "nesYQG_pendant",
+			"team-sway": "nesYQG_team-sway",
+			"chairShellEdge": "nesYQG_chairShellEdge",
+			"crewBadgeLine": "nesYQG_crewBadgeLine",
+			"keyboard": "nesYQG_keyboard",
+			"coolerHandleWarm": "nesYQG_coolerHandleWarm",
+			"drawer": "nesYQG_drawer",
+			"pendantBulb": "nesYQG_pendantBulb",
+			"catEar": "nesYQG_catEar",
+			"body": "nesYQG_body",
+			"cameo": "nesYQG_cameo",
+			"lampShade": "nesYQG_lampShade",
+			"crewClip": "nesYQG_crewClip",
+			"acGrille": "nesYQG_acGrille",
+			"floraLeaf": "nesYQG_floraLeaf",
+			"beam": "nesYQG_beam",
+			"propFolder": "nesYQG_propFolder",
+			"crewStripes": "nesYQG_crewStripes",
+			"team-stage-in": "nesYQG_team-stage-in",
+			"crewBelly": "nesYQG_crewBelly",
+			"boardGhost": "nesYQG_boardGhost",
+			"coolerShine": "nesYQG_coolerShine",
+			"crewShoe": "nesYQG_crewShoe",
+			"catLeg": "nesYQG_catLeg",
+			"floraCrumb": "nesYQG_floraCrumb",
+			"catStripe": "nesYQG_catStripe",
+			"stage": "nesYQG_stage",
+			"chairHub": "nesYQG_chairHub",
+			"boardEraser": "nesYQG_boardEraser",
+			"chairSpokes": "nesYQG_chairSpokes",
+			"person": "nesYQG_person",
+			"crewKnob": "nesYQG_crewKnob",
+			"column": "nesYQG_column",
+			"clockPin": "nesYQG_clockPin",
+			"discGlyph": "nesYQG_discGlyph",
+			"roomPane": "nesYQG_roomPane",
+			"chairLift": "nesYQG_chairLift",
+			"crewDroplet": "nesYQG_crewDroplet",
+			"crewBelt": "nesYQG_crewBelt",
+			"propLampWifi": "nesYQG_propLampWifi",
+			"team-sail": "nesYQG_team-sail",
+			"crewHood": "nesYQG_crewHood",
+			"crewPupil": "nesYQG_crewPupil",
+			"acBody": "nesYQG_acBody",
+			"treadmillHoodVent": "nesYQG_treadmillHoodVent",
+			"listening": "nesYQG_listening",
+			"tableGrain": "nesYQG_tableGrain",
+			"crewHairShine": "nesYQG_crewHairShine",
+			"treadmillBelt": "nesYQG_treadmillBelt",
+			"crewRow": "nesYQG_crewRow",
+			"crewPackPocket": "nesYQG_crewPackPocket",
+			"tableSvg": "nesYQG_tableSvg",
+			"crewPackZip": "nesYQG_crewPackZip",
+			"crewBlowhole": "nesYQG_crewBlowhole",
+			"treadmillRail": "nesYQG_treadmillRail",
+			"sofaLeg": "nesYQG_sofaLeg",
+			"monitor": "nesYQG_monitor",
+			"acLedCool": "nesYQG_acLedCool",
+			"figure": "nesYQG_figure",
+			"team-tick": "nesYQG_team-tick",
+			"pendantShade": "nesYQG_pendantShade",
+			"stat": "nesYQG_stat",
+			"floraBloom": "nesYQG_floraBloom",
+			"acSeam": "nesYQG_acSeam",
+			"crewState": "nesYQG_crewState",
+			"treadmillStopKey": "nesYQG_treadmillStopKey",
+			"tableMagPage": "nesYQG_tableMagPage",
+			"crewShoeStripe": "nesYQG_crewShoeStripe",
+			"airConditioner": "nesYQG_airConditioner",
+			"propLabelLine": "nesYQG_propLabelLine",
+			"crewFlipperTrim": "nesYQG_crewFlipperTrim",
+			"composerAway": "nesYQG_composerAway",
+			"cameoCrew": "nesYQG_cameoCrew",
+			"wall": "nesYQG_wall",
+			"catPupil": "nesYQG_catPupil",
+			"sofaButton": "nesYQG_sofaButton",
+			"propCarafeHandle": "nesYQG_propCarafeHandle",
+			"cardWho": "nesYQG_cardWho",
+			"plateName": "nesYQG_plateName",
+			"deskSurface": "nesYQG_deskSurface",
+			"pendantGlow": "nesYQG_pendantGlow",
+			"chairMesh": "nesYQG_chairMesh",
+			"crewHoodRidge": "nesYQG_crewHoodRidge",
+			"coolerRib": "nesYQG_coolerRib",
+			"crewPack": "nesYQG_crewPack",
+			"crewArmBack": "nesYQG_crewArmBack",
+			"barTitle": "nesYQG_barTitle",
+			"crewShoeSole": "nesYQG_crewShoeSole",
+			"floorPlane": "nesYQG_floorPlane",
+			"boardInk": "nesYQG_boardInk",
+			"notes": "nesYQG_notes",
+			"columns": "nesYQG_columns",
+			"crewShoeBuckle": "nesYQG_crewShoeBuckle",
+			"cloud": "nesYQG_cloud",
+			"deskGrain": "nesYQG_deskGrain",
+			"team-steam": "nesYQG_team-steam",
+			"crewCans": "nesYQG_crewCans",
+			"propInset": "nesYQG_propInset",
+			"team-swing": "nesYQG_team-swing",
+			"floraBloomHeart": "nesYQG_floraBloomHeart",
+			"cooler": "nesYQG_cooler"
 		};
 		//#endregion
 		//#region src/client/crew.tsx
+		/**
+		* The team's cast: one crew member per seat, and a different sea-creature
+		* hood per seat, so a member is recognizable in the room before its nameplate
+		* is read.
+		*
+		* Every character is a person — shoes, trousers, a shirt, arms at its sides —
+		* wearing a whale or shark as an exquisite plush hood: the hood is drawn in
+		* profile, snout forward and flukes over the back of the head, because a whale
+		* reads as a whale from the side and as a blob from the front. The face looks out
+		* from under its chin with delicate chibi-style catchlights and expressions.
+		* Legs and arms are their own groups so the stylesheet can swing them while the
+		* member walks.
+		*
+		* Under the hood everybody is their own person: a hairstyle, a hair colour, a
+		* skin tone, an outfit, shoes and one piece of gear, all picked by seat index
+		* so a member looks the same on every render and no two neighbours are twins.
+		* Tone and skin ride data attributes rather than inline colours, so the theme
+		* still owns the palette.
+		*
+		* A member at work is drawn from BEHIND: the screen faces the room, so its
+		* owner faces the screen. The back view keeps the same figure and turns the
+		* hood the other way — snout toward the monitor on its left — so the hood is
+		* still read in profile while the human face, which nobody needs while somebody
+		* is typing, is simply not there to draw.
+		*/
 		/** The sea-creature hoods a seat can wear, in the order seats take them. */
 		const MASKS = [
 			"blue",
@@ -1846,6 +1888,10 @@ window.__ModuleLoader__.load({
 		const HOOD_SHADE = "M13.5 21 C19.5 25 28 25 35 22 C42 19 50 14.5 59.5 11 C52 16 44.5 19 37.5 21.5 C29.5 24.2 20.5 24.8 13.5 21 Z";
 		/** A ribbed hem across the bottom of a sweater. */
 		const RIB_HEM = "M16 73.5 L48 73.5 L48 80.5 L16 80.5 Z";
+		/** The collar of a buttoned shirt: one soft curve under the hood's chin. */
+		const COLLAR = "M25 48.5 C28 52.8 36 52.8 39 48.5";
+		/** The self-edge neckband of a jersey, folded back on itself. */
+		const NECK_BAND = "M24.5 48 C27.5 51.8 36.5 51.8 39.5 48 C38.5 53.5 25.5 53.5 24.5 48 Z";
 		/** A kangaroo pocket across the front of a hoodie with reinforced corner bar-tacks. */
 		const POCKET = "M26.5 56.5 C28.5 53 35.5 53 37.5 56.5 L39 63.5 L25 63.5 Z";
 		/** The hood fabric lying around the neck of a hoodie. */
@@ -2133,7 +2179,7 @@ window.__ModuleLoader__.load({
 		* band runs over the head, and the plush ear cups sit naturally on both ears
 		* under the jawline with metal pivots.
 		*/
-		function headGearUnder(kind, back) {
+		function headGearUnder(kind) {
 			if (kind !== "headphones") return null;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
 				className: TeamStage_module_css_default.crewCans,
@@ -2458,7 +2504,7 @@ window.__ModuleLoader__.load({
 					className: TeamStage_module_css_default.crewHairShine,
 					d: HAIR_SHINE_SECONDARY
 				}),
-				headGearUnder(gear, back),
+				headGearUnder(gear),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("g", {
 					transform: back ? "translate(64 3) scale(-1 1)" : "translate(0 3)",
 					children: [
@@ -2534,7 +2580,7 @@ window.__ModuleLoader__.load({
 					children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 							className: TeamStage_module_css_default.crewCollar,
-							d: "M25 48.5 C28 52.8 36 52.8 39 48.5"
+							d: COLLAR
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 							className: TeamStage_module_css_default.crewPlacket,
@@ -2573,7 +2619,7 @@ window.__ModuleLoader__.load({
 					children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 							className: TeamStage_module_css_default.crewCollar,
-							d: "M25 48.5 C28 52.8 36 52.8 39 48.5"
+							d: COLLAR
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 							className: TeamStage_module_css_default.crewPlacket,
@@ -2603,7 +2649,7 @@ window.__ModuleLoader__.load({
 					className: TeamStage_module_css_default.crewOutfitDetails,
 					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewNeckBand,
-						d: "M24.5 48 C27.5 51.8 36.5 51.8 39.5 48 C38.5 53.5 25.5 53.5 24.5 48 Z"
+						d: NECK_BAND
 					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewStitch,
 						d: "M17.5 67 H23.5 M40.5 67 H46.5"
@@ -2681,7 +2727,7 @@ window.__ModuleLoader__.load({
 					children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 							className: TeamStage_module_css_default.crewCollar,
-							d: "M25 48.5 C28 52.8 36 52.8 39 48.5"
+							d: COLLAR
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 							className: TeamStage_module_css_default.crewVest,
@@ -2722,7 +2768,7 @@ window.__ModuleLoader__.load({
 					className: TeamStage_module_css_default.crewOutfitDetails,
 					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewNeckBand,
-						d: "M24.5 48 C27.5 51.8 36.5 51.8 39.5 48 C38.5 53.5 25.5 53.5 24.5 48 Z"
+						d: NECK_BAND
 					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 						className: TeamStage_module_css_default.crewStripes,
 						d: STRIPES
@@ -2733,7 +2779,7 @@ window.__ModuleLoader__.load({
 					children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 							className: TeamStage_module_css_default.crewNeckBand,
-							d: "M24.5 48 C27.5 51.8 36.5 51.8 39.5 48 C38.5 53.5 25.5 53.5 24.5 48 Z"
+							d: NECK_BAND
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
 							className: TeamStage_module_css_default.crewBib,
@@ -2810,12 +2856,13 @@ window.__ModuleLoader__.load({
 			}
 		}
 		/**
-		* One member of the crew.
+		* One member of the crew. Memoized: every prop is a primitive, and one stage
+		* renders this figure per seat, per log row, per note and per task card.
 		* @param props - the whale it wears, whether you are behind it, whether only
 		* the head is wanted (a portrait), and everything it is dressed in.
 		* @returns the character.
 		*/
-		function Crew(props) {
+		const Crew = (0, react.memo)(function Crew(props) {
 			const { kind, className, back = false, portrait = false, outfit = "shirt", shoes = "sneaker", hair = "crop", gear = "none", tone = 0, skin = 0 } = props;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
 				className: `${TeamStage_module_css_default.crew} ${className ?? ""}`,
@@ -2949,7 +2996,7 @@ window.__ModuleLoader__.load({
 					bodyGear(gear, back)
 				] }), head(kind, hair, gear, back)]
 			});
-		}
+		});
 		//#endregion
 		//#region src/client/flora.tsx
 		/** The plants the room keeps, in the order places take them. */
@@ -4931,6 +4978,12 @@ window.__ModuleLoader__.load({
 		const SPEECH_CHARS = 44;
 		/** How much of a message one log row carries. */
 		const LOG_CHARS = 110;
+		/** How much of a message one crew line in the feed carries. */
+		const CREW_CHARS = 40;
+		/** How much text one workstation screen carries. */
+		const SCREEN_CHARS = 34;
+		/** How much of an unknown session id a ledger shows. */
+		const SHORT_ID = 6;
 		/** How long one delivery keeps its carrier away from its own desk. */
 		const ERRAND_MS = 9e3;
 		/** The board's columns, left to right. */
@@ -5000,8 +5053,9 @@ window.__ModuleLoader__.load({
 				children: Array.from({ length: APP_BARS[app] }, (_, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("i", {}, index))
 			});
 		}
-		/** A member as a tiny portrait: its own mask in its own accent. */
-		function Cameo(props) {
+		/** A member as a tiny portrait: its own mask in its own accent. Memoized: one
+		*  feed renders dozens of these, and every prop is a primitive. */
+		const Cameo = (0, react.memo)(function Cameo(props) {
 			const { seat, name } = props;
 			if (seat === void 0) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 				className: TeamStage_module_css_default.discGlyph,
@@ -5021,7 +5075,7 @@ window.__ModuleLoader__.load({
 					skin: skinOf(seat)
 				})
 			});
-		}
+		});
 		/** Where one thing stands on the floor, and how big it draws there. */
 		function at(post, scale) {
 			const screen = project(post);
@@ -5036,6 +5090,134 @@ window.__ModuleLoader__.load({
 		function chairDelay(seat) {
 			return { "--team-chair-delay": `${-((seat + 1) % 5) * 1.35}s` };
 		}
+		/**
+		* Where one piece of the break corner stands, and how large it draws there.
+		* A piece is placed by its OWN plan rectangle — the same rectangle a walk
+		* goes around — so the furniture it is drawn as and the furniture it is
+		* walked around as are the same furniture, and it can never creep off the
+		* floor and up a wall.
+		*/
+		function loungePiece(rect) {
+			const screen = project({
+				x: rect.x + rect.w / 2,
+				y: rect.y + rect.h / 2
+			});
+			return {
+				left: `${screen.left}%`,
+				top: `${screen.top}%`,
+				"--team-depth": Math.round(rect.y + rect.h / 2),
+				"--team-scale": Math.round(screen.scale * 1e3) / 1e3
+			};
+		}
+		/** The rug and the floor lamp are furniture too, so they get plan rects. */
+		const RUG_RECT = {
+			x: 70.5,
+			y: 53.5,
+			w: 21,
+			h: 7.5
+		};
+		const LAMP_RECT = {
+			x: 70,
+			y: 47.5,
+			w: 3,
+			h: 7
+		};
+		const [SOFA_BLOCK, TABLE_BLOCK, PLANT_BLOCK, COOLER_BLOCK] = ROOM_BLOCKS;
+		/**
+		* The room's fixed furniture, hoisted to module level: none of it reads the
+		* roster or the ledgers, and a shared element reference is the one signal
+		* React never re-renders — however often the stage re-renders around it, the
+		* wall, the lounge and the props are drawn exactly once.
+		*/
+		const WALL = /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoomWall, {});
+		const PENDANT = /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+			className: TeamStage_module_css_default.pendant,
+			style: { left: `${onWall(50)}%` },
+			"aria-hidden": true,
+			children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(PendantFigure, {})
+		});
+		const UTILITY = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+			className: TeamStage_module_css_default.utility,
+			style: at({
+				x: 4.5,
+				y: 64
+			}, 1),
+			"aria-hidden": true,
+			children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					className: TeamStage_module_css_default.utilityCabinet,
+					"data-prop": "cabinet",
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CabinetFigure, {})
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					className: TeamStage_module_css_default.utilityPrinter,
+					"data-prop": "printer",
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(PrinterFigure, {})
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					className: TeamStage_module_css_default.utilityCoffee,
+					"data-prop": "coffee",
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CoffeeFigure, {})
+				})
+			]
+		});
+		const CAT = /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+			className: TeamStage_module_css_default.cat,
+			"data-prop": "cat",
+			"aria-hidden": true,
+			children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CatFigure, {})
+		});
+		const TREADMILL = /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+			className: TeamStage_module_css_default.treadmill,
+			"data-prop": "treadmill",
+			style: at({
+				x: 93,
+				y: 87
+			}, 1),
+			"aria-hidden": true,
+			children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TreadmillFigure, {})
+		});
+		const LOUNGE = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+			className: TeamStage_module_css_default.lounge,
+			"aria-hidden": true,
+			children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					className: TeamStage_module_css_default.rug,
+					"data-prop": "rug",
+					style: loungePiece(RUG_RECT)
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					className: TeamStage_module_css_default.sofa,
+					"data-prop": "sofa",
+					style: loungePiece(SOFA_BLOCK),
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(SofaFigure, {})
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					className: TeamStage_module_css_default.table,
+					"data-prop": "table",
+					style: loungePiece(TABLE_BLOCK),
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TableFigure, {})
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					className: TeamStage_module_css_default.lamp,
+					"data-prop": "lamp",
+					style: loungePiece(LAMP_RECT),
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(LampFigure, {})
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					className: TeamStage_module_css_default.plant,
+					"data-prop": "plant",
+					style: loungePiece(PLANT_BLOCK),
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Plant, { kind: plantOf(0) })
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					className: TeamStage_module_css_default.cooler,
+					"data-prop": "cooler",
+					style: loungePiece(COOLER_BLOCK),
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CoolerFigure, {})
+				})
+			]
+		});
 		/**
 		* The delivery currently being carried across the room. One message keeps its
 		* carrier away from its own desk for a while and then lets it walk back: the
@@ -5066,15 +5248,16 @@ window.__ModuleLoader__.load({
 		function TeamStage(props) {
 			const { useTeam, useSessions, openMember, openLeader, holdComposer, t } = props;
 			const state = useTeam((snapshot) => snapshot);
-			const sessions = useSessions((snapshot) => snapshot);
+			const sessionsById = useSessions((snapshot) => snapshot.byId);
 			/** The member the pointer is over, anywhere on the stage. */
 			const [focus, setFocus] = (0, react.useState)(void 0);
 			/** Which ledger the drawer is showing; the room stands alone by default. */
 			const [panel, setPanel] = (0, react.useState)(void 0);
 			const { leaderId, currentId, members, tasks, messages, board, boardAt } = state;
 			const visit = useVisit(messages[messages.length - 1]);
+			const lastId = messages.length > 0 ? messages[messages.length - 1].messageId : void 0;
 			(0, react.useEffect)(() => holdComposer?.(), [holdComposer]);
-			const running = (0, react.useMemo)(() => new Set(members.filter((member) => sessions.byId[member.memberId]?.running === true).map((member) => member.memberId)), [members, sessions.byId]);
+			const running = (0, react.useMemo)(() => new Set(members.filter((member) => sessionsById[member.memberId]?.running === true).map((member) => member.memberId)), [members, sessionsById]);
 			/** The last thing the visible mailbox tail says about each member. */
 			const touched = (0, react.useMemo)(() => {
 				const out = /* @__PURE__ */ new Map();
@@ -5084,12 +5267,27 @@ window.__ModuleLoader__.load({
 				}
 				return out;
 			}, [messages]);
-			/** Mail counted as read: everything that had arrived when the feed was last open. */
-			const seenMessages = (0, react.useRef)(messages.length);
+			/**
+			* Mail counted as read: the newest delivery that had arrived when the feed
+			* was last open — its identity, not the count, because a bounded feed stops
+			* growing exactly when the mail keeps coming, and so does a team switch,
+			* which starts the next team from a clean slate.
+			*/
+			const seen = (0, react.useRef)({
+				leader: void 0,
+				id: void 0
+			});
 			(0, react.useEffect)(() => {
-				if (panel === "feed") seenMessages.current = messages.length;
-			}, [panel, messages.length]);
-			const freshMail = panel !== "feed" && messages.length > seenMessages.current;
+				if (seen.current.leader !== leaderId || panel === "feed") seen.current = {
+					leader: leaderId,
+					id: lastId
+				};
+			}, [
+				panel,
+				leaderId,
+				lastId
+			]);
+			const freshMail = panel !== "feed" && seen.current.leader === leaderId && lastId !== void 0 && lastId !== seen.current.id;
 			if (leaderId === void 0 || members.length === 0) return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: TeamStage_module_css_default.stage,
 				"data-agent-team-stage": true,
@@ -5101,72 +5299,84 @@ window.__ModuleLoader__.load({
 					children: t("stage.noTeamHint")
 				})]
 			});
-			const names = /* @__PURE__ */ new Map([[leaderId, t("member.leader")]]);
-			for (const member of members) names.set(member.memberId, member.name);
-			/** Roster seat per member id, so the ledgers can draw the same cast. */
-			const seats = /* @__PURE__ */ new Map([[leaderId, -1]]);
-			members.forEach((member, index) => seats.set(member.memberId, index));
-			const openOf = (memberId) => tasks.filter((task) => task.assigneeId === memberId && task.status !== "done").length;
-			const roster = [leaderId, ...members.map((member) => member.memberId)];
-			const desks = new Map(roster.map((id, index) => [id, deskOf(index, roster.length)]));
-			/** Where each member is standing right now: its own desk, or the break corner. */
-			const homes = /* @__PURE__ */ new Map();
-			/** Who is away from its own desk, so the desk can be drawn empty. */
-			const away = /* @__PURE__ */ new Set();
-			const stations = [];
-			let breaks = 0;
-			for (const id of roster) {
-				const desk = desks.get(id) ?? deskOf(0, roster.length);
-				const station = id === leaderId ? "desk" : stationFor(running.has(id), touched.get(id), openOf(id));
-				if (station === "break") away.add(id);
-				stations.push(station === "break" ? breakAt(breaks++) : desk);
-			}
-			const parted = spread(stations);
-			roster.forEach((id, index) => {
-				const post = stations[index];
-				homes.set(id, {
-					...post,
-					...parted[index]
+			const { names, seats, openOf, roster, desks, homes, away, lines } = (0, react.useMemo)(() => {
+				const names = /* @__PURE__ */ new Map([[leaderId, t("member.leader")]]);
+				for (const member of members) names.set(member.memberId, member.name);
+				/** Roster seat per member id, so the ledgers can draw the same cast. */
+				const seats = /* @__PURE__ */ new Map([[leaderId, -1]]);
+				members.forEach((member, index) => seats.set(member.memberId, index));
+				const openCounts = /* @__PURE__ */ new Map();
+				for (const task of tasks) {
+					if (task.status === "done" || task.assigneeId === void 0) continue;
+					openCounts.set(task.assigneeId, (openCounts.get(task.assigneeId) ?? 0) + 1);
+				}
+				const openOf = (memberId) => openCounts.get(memberId) ?? 0;
+				const roster = [leaderId, ...members.map((member) => member.memberId)];
+				const desks = new Map(roster.map((id, index) => [id, deskOf(index, roster.length)]));
+				/** Where each member is standing right now: its own desk, or the break corner. */
+				const homes = /* @__PURE__ */ new Map();
+				/** Who is away from its own desk, so the desk can be drawn empty. */
+				const away = /* @__PURE__ */ new Set();
+				const stations = [];
+				let breaks = 0;
+				for (const id of roster) {
+					const desk = desks.get(id) ?? deskOf(0, roster.length);
+					const station = id === leaderId ? "desk" : stationFor(running.has(id), touched.get(id), openOf(id));
+					if (station === "break") away.add(id);
+					stations.push(station === "break" ? breakAt(breaks++) : desk);
+				}
+				const parted = spread(stations);
+				roster.forEach((id, index) => {
+					const post = stations[index];
+					homes.set(id, {
+						...post,
+						...parted[index]
+					});
 				});
-			});
-			/**
-			* Where one piece of the break corner stands, and how large it draws there.
-			* A piece is placed by its OWN plan rectangle — the same rectangle a walk
-			* goes around — so the furniture it is drawn as and the furniture it is
-			* walked around as are the same furniture, and it can never creep off the
-			* floor and up a wall.
-			*/
-			const loungePiece = (rect) => {
-				const screen = project({
-					x: rect.x + rect.w / 2,
-					y: rect.y + rect.h / 2
-				});
+				/** What one member's monitor shows: its active task, or the last thing said to it. */
+				const lines = /* @__PURE__ */ new Map();
+				for (const id of roster) {
+					const active = tasks.find((task) => task.assigneeId === id && task.status === "active") ?? tasks.find((task) => task.assigneeId === id && task.status !== "done");
+					if (active !== void 0) {
+						lines.set(id, short(active.title, SCREEN_CHARS));
+						continue;
+					}
+					for (let index = messages.length - 1; index >= 0; index -= 1) {
+						const message = messages[index];
+						if (message?.to === id) {
+							lines.set(id, short(message.text, SCREEN_CHARS));
+							break;
+						}
+					}
+				}
 				return {
-					left: `${screen.left}%`,
-					top: `${screen.top}%`,
-					"--team-depth": Math.round(rect.y + rect.h / 2),
-					"--team-scale": Math.round(screen.scale * 1e3) / 1e3
+					names,
+					seats,
+					openOf,
+					roster,
+					desks,
+					homes,
+					away,
+					lines
 				};
-			};
-			/** The rug and the floor lamp are furniture too, so they get plan rects. */
-			const rugRect = {
-				x: 70.5,
-				y: 53.5,
-				w: 21,
-				h: 7.5
-			};
-			const lampRect = {
-				x: 70,
-				y: 47.5,
-				w: 3,
-				h: 7
-			};
-			const [sofaBlock, tableBlock, plantBlock, coolerBlock] = ROOM_BLOCKS;
+			}, [
+				leaderId,
+				members,
+				tasks,
+				messages,
+				running,
+				touched,
+				t
+			]);
 			const peers = members.filter((member) => member.relation === "peer");
 			const openTasks = tasks.filter((task) => task.status !== "done").length;
-			const leaderRunning = sessions.byId[leaderId]?.running === true;
+			const leaderRunning = sessionsById[leaderId]?.running === true;
 			/** The delivery on its feet: who carries it, to whom, and where they meet. */
-			const errand = errandOf(visit, leaderId, homes);
+			const errand = (0, react.useMemo)(() => errandOf(visit, leaderId, homes), [
+				visit,
+				leaderId,
+				homes
+			]);
 			const visitOf = (id) => errand !== void 0 && errand.fromId === id ? errand.meet : void 0;
 			/** Which way the two ends of a delivery turn while they talk. */
 			const turnOf = (id) => {
@@ -5178,6 +5388,15 @@ window.__ModuleLoader__.load({
 				setPanel((current) => current === id ? void 0 : id);
 			};
 			const titleOf = (id) => id === "feed" ? t("stage.feed") : id === "workspace" ? t("stage.workspace") : t("stage.board");
+			/** One stable opener for every tile: the tiles are memoized on their props. */
+			const open = (0, react.useCallback)((id) => {
+				if (id === leaderId) openLeader(leaderId);
+				else openMember(leaderId, id);
+			}, [
+				leaderId,
+				openLeader,
+				openMember
+			]);
 			const tileOf = (id, seat, member) => {
 				const desk = desks.get(id) ?? deskOf(0, roster.length);
 				const home = homes.get(id) ?? desk;
@@ -5204,10 +5423,7 @@ window.__ModuleLoader__.load({
 					tasks: openOf(id),
 					label: member === void 0 ? t("member.openLeader") : t("member.open", { name }),
 					title: member === void 0 ? t("member.leader") : meta(member.name, member.role, member.model, member.effort, member.relation === "peer" ? t("relation.peer") : t("relation.managed")),
-					onOpen: () => {
-						if (member === void 0) openLeader(leaderId);
-						else openMember(leaderId, id);
-					},
+					onOpen: open,
 					onFocus: setFocus,
 					t
 				}, id);
@@ -5272,95 +5488,12 @@ window.__ModuleLoader__.load({
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: TeamStage_module_css_default.skirting })
 										]
 									}),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoomWall, {}),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										className: TeamStage_module_css_default.pendant,
-										style: { left: `${onWall(50)}%` },
-										"aria-hidden": true,
-										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(PendantFigure, {})
-									}),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-										className: TeamStage_module_css_default.utility,
-										style: at({
-											x: 4.5,
-											y: 64
-										}, 1),
-										"aria-hidden": true,
-										children: [
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-												className: TeamStage_module_css_default.utilityCabinet,
-												"data-prop": "cabinet",
-												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CabinetFigure, {})
-											}),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-												className: TeamStage_module_css_default.utilityPrinter,
-												"data-prop": "printer",
-												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(PrinterFigure, {})
-											}),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-												className: TeamStage_module_css_default.utilityCoffee,
-												"data-prop": "coffee",
-												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CoffeeFigure, {})
-											})
-										]
-									}),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										className: TeamStage_module_css_default.cat,
-										"data-prop": "cat",
-										"aria-hidden": true,
-										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CatFigure, {})
-									}),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										className: TeamStage_module_css_default.treadmill,
-										"data-prop": "treadmill",
-										style: at({
-											x: 93,
-											y: 87
-										}, 1),
-										"aria-hidden": true,
-										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TreadmillFigure, {})
-									}),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-										className: TeamStage_module_css_default.lounge,
-										"aria-hidden": true,
-										children: [
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-												className: TeamStage_module_css_default.rug,
-												"data-prop": "rug",
-												style: loungePiece(rugRect)
-											}),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-												className: TeamStage_module_css_default.sofa,
-												"data-prop": "sofa",
-												style: loungePiece(sofaBlock),
-												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(SofaFigure, {})
-											}),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-												className: TeamStage_module_css_default.table,
-												"data-prop": "table",
-												style: loungePiece(tableBlock),
-												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TableFigure, {})
-											}),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-												className: TeamStage_module_css_default.lamp,
-												"data-prop": "lamp",
-												style: loungePiece(lampRect),
-												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(LampFigure, {})
-											}),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-												className: TeamStage_module_css_default.plant,
-												"data-prop": "plant",
-												style: loungePiece(plantBlock),
-												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Plant, { kind: plantOf(0) })
-											}),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-												className: TeamStage_module_css_default.cooler,
-												"data-prop": "cooler",
-												style: loungePiece(coolerBlock),
-												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CoolerFigure, {})
-											})
-										]
-									}),
+									WALL,
+									PENDANT,
+									UTILITY,
+									CAT,
+									TREADMILL,
+									LOUNGE,
 									roster.map((id, index) => {
 										const seat = index - 1;
 										const desk = desks.get(id) ?? deskOf(index, roster.length);
@@ -5370,7 +5503,7 @@ window.__ModuleLoader__.load({
 											desk,
 											seat,
 											pose: poseFor(live, touched.get(id), openOf(id)),
-											line: screenLineOf(id, tasks, messages),
+											line: lines.get(id),
 											empty: away.has(id) || errand !== void 0 && errand.fromId === id,
 											t
 										}, `desk-${id}`);
@@ -5471,10 +5604,8 @@ window.__ModuleLoader__.load({
 											entry,
 											index,
 											seats,
-											focus,
-											onFocus: (onFocus) => {
-												setFocus(onFocus);
-											}
+											focused: focus === entry.authorId,
+											onFocus: setFocus
 										}, entry.key))
 									})),
 									panel === "tasks" && (tasks.length === 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
@@ -5537,18 +5668,6 @@ window.__ModuleLoader__.load({
 				host,
 				meet: visitAt(host, from.x)
 			};
-		}
-		/**
-		* What one member's monitor is showing: the task it is on, or the last thing
-		* that was said to it. A screen with nothing on it is a screen switched off.
-		*/
-		function screenLineOf(memberId, tasks, messages) {
-			const active = tasks.find((task) => task.assigneeId === memberId && task.status === "active") ?? tasks.find((task) => task.assigneeId === memberId && task.status !== "done");
-			if (active !== void 0) return short(active.title, 34);
-			for (let index = messages.length - 1; index >= 0; index -= 1) {
-				const message = messages[index];
-				if (message?.to === memberId) return short(message.text, 34);
-			}
 		}
 		/**
 		* The back wall of the room, and everything hung on it.
@@ -5676,9 +5795,10 @@ window.__ModuleLoader__.load({
 		/**
 		* One workstation: the desk, the computer on it, the keyboard and the mug. It
 		* belongs to the member whose desk it is and stays furnished while its owner
-		* is away — a member walks off, its screen keeps working.
+		* is away — a member walks off, its screen keeps working. Memoized on a plan
+		* that only changes when the facts do.
 		*/
-		function Workstation(props) {
+		const Workstation = (0, react.memo)(function Workstation(props) {
 			const { id, desk, seat, pose, line, empty, t } = props;
 			const screen = pose === "working" ? "working" : line !== void 0 ? "reading" : "off";
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -5753,9 +5873,13 @@ window.__ModuleLoader__.load({
 				"aria-hidden": true,
 				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ChairFigure, {})
 			})] });
-		}
-		/** One member of the team, standing — or walking — where its own state puts it. */
-		function MemberTile(props) {
+		});
+		/**
+		* One member of the team, standing — or walking — where its own state puts it.
+		* Memoized: the room re-renders whenever the pointer moves, and only the tile
+		* under the pointer (or the one it left) has actually changed.
+		*/
+		const MemberTile = (0, react.memo)(function MemberTile(props) {
 			const { id, name, seat, home, errand, count, scale, relation, role, current, running, pose, away, focused, talking, turn, speech, tasks, label, title, onOpen, onFocus, t } = props;
 			const obstacles = (0, react.useMemo)(() => obstaclesOf(Array.from({ length: count }, (_, index) => deskOf(index, count))), [count]);
 			const loose = seat >= 0 && pose === "idle" && errand === void 0 && talking === void 0;
@@ -5776,7 +5900,9 @@ window.__ModuleLoader__.load({
 					...chairDelay(seat),
 					...stagger(seat + 1)
 				},
-				onClick: onOpen,
+				onClick: () => {
+					onOpen(id);
+				},
 				onMouseEnter: () => {
 					onFocus(id);
 				},
@@ -5857,7 +5983,7 @@ window.__ModuleLoader__.load({
 					})
 				]
 			});
-		}
+		});
 		/**
 		* The mailbox, as a log rather than a chat: a roster strip that keeps one
 		* refreshed line per member — the newest thing it said or was told, truncated
@@ -5868,10 +5994,27 @@ window.__ModuleLoader__.load({
 		function MessageFeed(props) {
 			const { roster, messages, names, seats, leaderLabel, focus, onFocus, t } = props;
 			const scroller = (0, react.useRef)(null);
+			const lastId = messages.length > 0 ? messages[messages.length - 1].messageId : void 0;
+			const latestOf = (0, react.useMemo)(() => {
+				const out = /* @__PURE__ */ new Map();
+				for (let index = messages.length - 1; index >= 0; index -= 1) {
+					const message = messages[index];
+					if (message === void 0) continue;
+					if (message.from !== void 0 && !out.has(message.from)) out.set(message.from, {
+						text: message.text,
+						way: "sent"
+					});
+					if (message.to !== void 0 && !out.has(message.to)) out.set(message.to, {
+						text: message.text,
+						way: "got"
+					});
+				}
+				return out;
+			}, [messages]);
 			(0, react.useEffect)(() => {
 				const node = scroller.current;
 				if (node !== null) node.scrollTop = node.scrollHeight;
-			}, [messages.length]);
+			}, [lastId]);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: TeamStage_module_css_default.feed,
 				children: [
@@ -5879,7 +6022,7 @@ window.__ModuleLoader__.load({
 						className: TeamStage_module_css_default.crewList,
 						"aria-label": t("feed.crew"),
 						children: roster.map((row) => {
-							const latest = latestOf(row.id, messages);
+							const latest = latestOf.get(row.id);
 							return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 								className: TeamStage_module_css_default.crewRow,
 								"data-crew-row": row.id,
@@ -5915,7 +6058,7 @@ window.__ModuleLoader__.load({
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 										className: TeamStage_module_css_default.crewLine,
 										title: latest?.text,
-										children: latest === void 0 ? t("feed.quiet") : `${latest.way === "got" ? "←" : "→"} ${short(latest.text, 40)}`
+										children: latest === void 0 ? t("feed.quiet") : `${latest.way === "got" ? "←" : "→"} ${short(latest.text, CREW_CHARS)}`
 									})
 								]
 							}, row.id);
@@ -5931,46 +6074,35 @@ window.__ModuleLoader__.load({
 					}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 						className: TeamStage_module_css_default.log,
 						ref: scroller,
-						children: messages.map((message, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(LogRow, {
-							message,
-							index,
-							names,
-							seats,
-							leaderLabel,
-							focus,
-							onFocus,
-							t
-						}, message.messageId))
+						children: messages.map((message, index) => {
+							const partner = message.from ?? message.to;
+							return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(LogRow, {
+								message,
+								index,
+								names,
+								seats,
+								leaderLabel,
+								focused: partner !== void 0 && focus === partner,
+								onFocus,
+								t
+							}, message.messageId);
+						})
 					})
 				]
 			});
 		}
-		/** The newest traffic naming one member, and which way it went. */
-		function latestOf(memberId, messages) {
-			for (let index = messages.length - 1; index >= 0; index -= 1) {
-				const message = messages[index];
-				if (message === void 0) continue;
-				if (message.from === memberId) return {
-					text: message.text,
-					way: "sent"
-				};
-				if (message.to === memberId) return {
-					text: message.text,
-					way: "got"
-				};
-			}
-		}
-		/** One row of the log: who said what to whom, on one line, cut to fit. */
-		function LogRow(props) {
-			const { message, index, names, seats, leaderLabel, focus, onFocus, t } = props;
-			const label = (id) => id === void 0 ? leaderLabel : names.get(id) ?? id.slice(0, 6);
+		/** One row of the log: who said what to whom, on one line, cut to fit. Memoized
+		*  so a hover re-renders the row it lit and the row it unlit, nothing else. */
+		const LogRow = (0, react.memo)(function LogRow(props) {
+			const { message, index, names, seats, leaderLabel, focused, onFocus, t } = props;
+			const label = (id) => id === void 0 ? leaderLabel : names.get(id) ?? id.slice(0, SHORT_ID);
 			const partner = message.from ?? message.to;
 			const author = label(message.from);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: TeamStage_module_css_default.logRow,
 				"data-message-kind": message.kind,
 				"data-hop": message.hop === void 0 ? void 0 : String(message.hop),
-				"data-focus": partner !== void 0 && focus === partner ? "true" : void 0,
+				"data-focus": focused ? "true" : void 0,
 				style: stagger(index),
 				onMouseEnter: () => {
 					onFocus(partner);
@@ -6031,14 +6163,15 @@ window.__ModuleLoader__.load({
 					})
 				]
 			});
-		}
-		/** One note pinned to the shared workspace, as the leader last saw it. */
-		function NoteCard(props) {
-			const { entry, index, seats, focus, onFocus } = props;
+		});
+		/** One note pinned to the shared workspace, as the leader last saw it. Memoized
+		*  like the log rows: a hover re-renders only the note it lit. */
+		const NoteCard = (0, react.memo)(function NoteCard(props) {
+			const { entry, index, seats, focused, onFocus } = props;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: TeamStage_module_css_default.note,
 				"data-note-key": entry.key,
-				"data-focus": focus === entry.authorId ? "true" : void 0,
+				"data-focus": focused ? "true" : void 0,
 				style: stagger(index),
 				onMouseEnter: () => {
 					onFocus(entry.authorId);
@@ -6076,7 +6209,7 @@ window.__ModuleLoader__.load({
 					})
 				]
 			});
-		}
+		});
 		/** One lane of the shared task board. */
 		function TaskColumn(props) {
 			const { status, tasks, names, seats, focus, onFocus, t } = props;
@@ -6116,7 +6249,7 @@ window.__ModuleLoader__.load({
 									seat: seats.get(task.assigneeId),
 									name: names.get(task.assigneeId) ?? task.assigneeId
 								})
-							}), task.assigneeId === void 0 ? t("task.unassigned") : names.get(task.assigneeId) ?? task.assigneeId.slice(0, 6)]
+							}), task.assigneeId === void 0 ? t("task.unassigned") : names.get(task.assigneeId) ?? task.assigneeId.slice(0, SHORT_ID)]
 						}), task.note !== void 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 							className: TeamStage_module_css_default.cardNote,
 							title: task.note,
@@ -6182,7 +6315,6 @@ window.__ModuleLoader__.load({
 			"member.leader": "主会话",
 			"member.open": "打开 {name} 的会话",
 			"member.openLeader": "回到主会话",
-			"member.here": "你正在看这个会话",
 			"relation.managed": "受管",
 			"relation.peer": "同级",
 			"status.running": "工作中",
@@ -6227,7 +6359,6 @@ window.__ModuleLoader__.load({
 			"member.leader": "Main session",
 			"member.open": "Open the session of {name}",
 			"member.openLeader": "Back to the main session",
-			"member.here": "You are reading this session",
 			"relation.managed": "Managed",
 			"relation.peer": "Peer",
 			"status.running": "Working",
@@ -6403,7 +6534,7 @@ window.__ModuleLoader__.load({
 						try {
 							sessions.openSubagent(address);
 						} catch {}
-					});
+					}, () => {});
 				}
 			};
 			/**

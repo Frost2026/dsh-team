@@ -366,7 +366,16 @@ export function routeBetween(
     const grown = inflate(rect, CLEARANCE * 0.5)
     return !inside(from, grown) && !inside(to, grown)
   })
-  const clear = (a: Point, b: Point): boolean => !blocks.some(rect => crossesRect(a, b, rect))
+  // A leg is blocked when it plows through a piece of furniture, or when it
+  // TRANSITS the clearance a walker keeps around one — neither end standing
+  // inside that buffer, which a visitor beside a desk does by design. Corners
+  // sit on the grown boundary and grazing a boundary is not crossing it, so
+  // the corridors between buffers stay walkable.
+  const clear = (a: Point, b: Point): boolean => !blocks.some(rect => {
+    if (crossesRect(a, b, rect)) return true
+    const grown = inflate(rect, CLEARANCE)
+    return !inside(a, grown) && !inside(b, grown) && crossesRect(a, b, grown)
+  })
   if (clear(from, to)) return [from, to]
 
   const nodes: Point[] = [from, ...cornersOf(blocks), to]
@@ -377,15 +386,16 @@ export function routeBetween(
   best[0] = 0
   for (;;) {
     let at = -1
-    for (const [index, cost] of best.entries()) {
+    for (let index = 0; index < nodes.length; index += 1) {
+      const cost = best[index]!
       if (!done[index] && cost < (at < 0 ? Infinity : best[at]!)) at = index
     }
     if (at < 0 || at === goal) break
     done[at] = true
     const here = nodes[at]!
-    for (const [index, node] of nodes.entries()) {
-      if (done[index] || index === at || !clear(here, node)) continue
-      const cost = best[at]! + span(here, node)
+    for (let index = 0; index < nodes.length; index += 1) {
+      if (done[index] || index === at || !clear(here, nodes[index]!)) continue
+      const cost = best[at]! + span(here, nodes[index]!)
       if (cost < best[index]!) {
         best[index] = cost
         via[index] = at

@@ -194,6 +194,8 @@ export function apply(ctx: ClientContext): void {
           // The child is genuinely absent from the refreshed catalog (dismissed
           // and pruned, or a backend read failure); the stage stays put.
         }
+      }, () => {
+        // The catalog read itself failed; the stage stays put, same as above.
       })
     }
   }

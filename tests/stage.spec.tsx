@@ -462,6 +462,26 @@ describe('the drawer', () => {
     fireEvent.click(door())
     expect(door().getAttribute('data-fresh')).toBeNull()
   })
+
+  it('flags the mailbox door even once the feed is full and replacing its oldest row', () => {
+    // A bounded feed stops growing exactly when it is full: the row count the
+    // door used to key on freezes there, while the mail keeps coming.
+    const full = Array.from({ length: 50 }, (_, index) => ({
+      messageId: `m${index}`, to: 'child-1' as const, kind: 'message' as const,
+      text: `note ${index}`, time: index,
+    }))
+    const view = mount({ leaderId: 'leader-1', currentId: 'leader-1', members: [alice, bob], messages: full })
+    const door = () => screen.getByRole('button', { name: en['stage.feed'] })
+    expect(door().getAttribute('data-fresh')).toBeNull()
+
+    view.rerender(element({
+      leaderId: 'leader-1',
+      currentId: 'leader-1',
+      members: [alice, bob],
+      messages: [...full.slice(1), { messageId: 'm50', to: 'child-2', kind: 'message', text: 'next', time: 50 }],
+    }))
+    expect(door().getAttribute('data-fresh')).toBe('true')
+  })
 })
 
 describe('mailbox', () => {
