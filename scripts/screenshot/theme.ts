@@ -1,0 +1,45 @@
+/**
+ * The theme tokens the stage stylesheet mixes its surfaces from, as the
+ * shipped theme sheet defines them for the light scheme (the README shot).
+ * See the dsh-client-ui-theme package's alias sheet; every token here is one
+ * the TeamStage.module.css actually reads.
+ */
+export const themeTokens: Record<string, string> = {
+  '--dsw-alias-bg-base': '#fff',
+  '--dsw-alias-bg-overlay': '#e9ecf2',
+  '--dsw-alias-label-primary': '#0f1115',
+  '--dsw-alias-label-secondary': '#61666b',
+  '--dsw-alias-label-tertiary': '#81858c',
+  '--dsw-alias-label-dimmed': '#e1e5ee',
+  '--dsw-alias-border-l1': '#0000000a',
+  '--dsw-alias-border-l2': '#0000001a',
+  '--dsw-alias-brand-primary': '#0f1115',
+  '--dsw-alias-label-primary-inverted': '#fff',
+  '--dsw-alias-interactive-bg-hover': '#2631480f',
+  '--dsw-alias-state-business-primary': '#4176e6',
+  '--dsw-alias-state-warn-primary': '#f59e0b',
+  '--dsw-alias-state-warn-secondary': '#f7ad31',
+  '--dsw-alias-state-success-primary': '#22c55e',
+  '--dsw-alias-state-error-primary': '#ec1313',
+  '--dsw-alias-bg-mask-1': '#0000003d',
+  '--dsw-alias-bg-mask-2': '#0000001f',
+  '--dsw-static-neutral-00': '#fff',
+  '--dsw-static-neutral-100': '#f5f5f5',
+  '--dsw-static-neutral-200': '#e5e5e5',
+  '--dsw-static-neutral-300': '#d4d4d4',
+  '--dsw-static-neutral-400': '#a2a4a6',
+  '--dsw-static-neutral-500': '#7f8287',
+  '--dsw-static-neutral-600': '#545557',
+  '--dsw-static-neutral-700': '#3c3c3d',
+  '--dsw-static-neutral-800': '#292929',
+  '--dsw-static-neutral-900': '#0f0f0f',
+  '--dsw-static-neutral-1000': '#000',
+  '--dsw-static-deepseek-450': '#5686fe',
+  '--dsw-static-amber-400': '#f7ad31',
+  '--dsw-static-amber-600': '#dd8629',
+  '--dsw-static-amber-700': '#b26a1b',
+  '--dsw-static-amber-500': '#f59e0b',
+  '--dsw-static-red-400': '#f25a5a',
+  '--dsw-static-red-600': '#ec1313',
+  '--dsw-static-green-500': '#22c55e',
+}

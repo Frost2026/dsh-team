@@ -1,0 +1,63 @@
+name: Screenshot
+
+# Keep the README's team-room capture honest: re-shoot it whenever the stage
+# changes, or on a weekly beat, and commit the refreshed PNG straight onto
+# main. The capture is rendered from the committed source, so a UI change can
+# never sit unreflected in the README again.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * 1'
+  push:
+    branches: [main]
+    paths:
+      - 'src/client/**'
+      - 'scripts/screenshot/**'
+      - '.github/workflows/screenshot.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: screenshot
+  cancel-in-progress: false
+
+jobs:
+  shoot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      # The room's copy is Chinese; without a CJK font the capture is tofu.
+      - name: CJK fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk
+      - name: Capture the team room
+        run: pnpm run screenshot
+      - uses: actions/upload-artifact@v4
+        with:
+          name: team-room
+          path: screenshots/image.png
+          if-no-files-found: error
+      - name: Commit the refreshed capture
+        run: |
+          if git diff --quiet -- screenshots/image.png; then
+            echo "The room looks the same; nothing to commit."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add screenshots/image.png
+          git commit -m 'docs: refresh the team room screenshot'
+          git push
