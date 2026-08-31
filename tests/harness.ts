@@ -12,7 +12,7 @@ import type { CommandDefinition } from '@deepseek-ai/dsh-commands'
 import type { ContentBlock, MessageSource, UserMessage } from '@deepseek-ai/dsh-llm'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { SessionId } from '@deepseek-ai/dsh-session'
-import type { SessionEvent, SessionId as SessionIdType } from '@deepseek-ai/dsh-session'
+import type { SessionEvent, SessionHeader, SessionId as SessionIdType } from '@deepseek-ai/dsh-session'
 
 /** One delivery an agent double accepted through its inbox. */
 export interface AcceptedMessage {
@@ -282,4 +282,12 @@ export class FakeCommands {
 /** A tool execution context double: the acting agent plus a live signal. */
 export function fakeExec(agent: FakeAgent): { agent: Agent; signal: AbortSignal } {
   return { agent: agent.agent, signal: new AbortController().signal }
+}
+
+/**
+ * One session header, handed to a projection unit's `init`. The team shape
+ * starts empty for every session, so the double carries nothing but identity.
+ */
+export function testHeader(id = 'session-1'): SessionHeader {
+  return { version: 0, id: SessionId(id), createdAt: 1_700_000_000_000 }
 }

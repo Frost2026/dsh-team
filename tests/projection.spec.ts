@@ -8,7 +8,7 @@
 import { describe, expect, it } from 'vitest'
 import { EMPTY_TEAM_VIEW, type TeamView } from '../src/contract.ts'
 import { teamProjection } from '../src/projection.ts'
-import { toolResultEvent, userMessageEvent } from './harness.ts'
+import { testHeader, toolResultEvent, userMessageEvent } from './harness.ts'
 
 const unit = teamProjection(3)
 
@@ -16,11 +16,11 @@ describe('teamProjection', () => {
   it('is registered under the key the client reads, with a stated state version', () => {
     expect(unit.key).toBe('team')
     expect(unit.stateVersion).toBe(3)
-    expect(unit.init()).toEqual(EMPTY_TEAM_VIEW)
+    expect(unit.init(testHeader())).toEqual(EMPTY_TEAM_VIEW)
   })
 
   it('serves its state as the value: one fold, no second shape to keep in step', () => {
-    const state = unit.apply(unit.init(), toolResultEvent({
+    const state = unit.apply(unit.init(testHeader()), toolResultEvent({
       team: 'member-added',
       member: { memberId: 'child-1', name: 'Alice', relation: 'peer' },
     }))
@@ -28,12 +28,12 @@ describe('teamProjection', () => {
   })
 
   it('returns the same state for an event it does not own', () => {
-    const state = unit.init()
+    const state = unit.init(testHeader())
     expect(unit.apply(state, toolResultEvent({ tool: 'bash' }))).toBe(state)
   })
 
   it('honours the deployment mailbox bound it was built with', () => {
-    let state = unit.init()
+    let state = unit.init(testHeader())
     for (let index = 0; index < 5; index += 1) {
       state = unit.apply(state, toolResultEvent({
         team: 'message', messageId: `m${index}`, to: 'child-1', text: `t${index}`,
@@ -43,7 +43,7 @@ describe('teamProjection', () => {
   })
 
   it('validates the whole served value, including every mailbox kind', () => {
-    let state = unit.apply(unit.init(), toolResultEvent({
+    let state = unit.apply(unit.init(testHeader()), toolResultEvent({
       team: 'member-added',
       member: { memberId: 'child-1', name: 'Alice', relation: 'peer', role: 'reviewer', model: 'x', effort: 'high' },
     }))

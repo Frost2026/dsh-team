@@ -1,4 +1,3 @@
 node_modules/
 *.tsbuildinfo
-pnpm-workspace.yaml
 .tmp-screenshot/
