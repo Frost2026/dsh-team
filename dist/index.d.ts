@@ -61,12 +61,31 @@ interface TeamMemberView {
   readonly name: string;
   readonly role?: string;
   readonly relation: TeamRelation;
+  /** Provider route recorded at spawn, when the leader overrode its own. */
+  readonly provider?: string;
   /** Model route recorded at spawn, when the leader overrode its own. */
   readonly model?: string;
   /** Provider-owned reasoning effort recorded at spawn, when one was requested. */
   readonly effort?: string;
   /** Epoch ms of the spawn that added this member. */
   readonly joinedAt: number;
+}
+/** Detailed inspection of one teammate's live runtime state and tail log. */
+interface TeamMemberInspection {
+  readonly memberId: string;
+  readonly name: string;
+  readonly role?: string;
+  readonly relation: TeamRelation;
+  readonly provider?: string;
+  readonly model?: string;
+  readonly effort?: string;
+  readonly status: 'running' | 'idle' | 'ready';
+  readonly elapsedMs?: number;
+  readonly currentTurn?: number;
+  readonly isThinking?: boolean;
+  readonly thinkingChunks?: number;
+  readonly thinkingPreview?: string;
+  readonly recentLogs: string[];
 }
 /** One shared task. */
 interface TeamTaskView {
@@ -165,6 +184,7 @@ interface TeamMemberFact {
   readonly name: string;
   readonly role?: string;
   readonly relation: TeamRelation;
+  readonly provider?: string;
   readonly model?: string;
   readonly effort?: string;
 }
@@ -241,6 +261,7 @@ interface TeamSpawnRequest {
   readonly persona?: string;
   readonly relation: TeamRelation;
   readonly task: string;
+  readonly provider?: string;
   readonly model?: string;
   readonly reasoningEffort?: string;
 }
@@ -438,6 +459,14 @@ declare class TeamService extends Service {
    */
   private assertEffortOffered;
   /**
+   * Inspect one teammate's live runtime state, thinking progress, and recent event logs.
+   * @param actorAgent - the acting agent or leader.
+   * @param memberName - display name of the teammate to inspect.
+   * @param tailLines - number of recent event log entries to tail (default 20).
+   * @returns detailed inspection report including status, reasoning state, and tail logs.
+   */
+  inspect(actorAgent: Agent, memberName: string, tailLines?: number): Promise<TeamMemberInspection>;
+  /**
    * Stop one teammate's current work. Residency belongs to the continuation
    * manager, so dismissal interrupts rather than disposes: an interrupted
    * teammate settles on its own and its session stays readable.
@@ -602,4 +631,4 @@ declare const inject: string[];
  */
 declare function apply(ctx: Context, config: TeamConfig): void;
 //#endregion
-export { Config, EMPTY_TEAM_VIEW, SHARED_AREA, TEAM_PROJECTION_KEY, TeamBoardEntryView, TeamChain, type TeamConfig, TeamError, type TeamErrorCode, type TeamFact, type TeamMemberFact, TeamMemberView, TeamMessageKind, TeamMessageSource, TeamMessageView, TeamRelation, TeamService, TeamTaskStatus, TeamTaskView, TeamView, TeamWorkspace, WORKSPACE_DOMAIN, type WorkspaceEntry, apply, foldTeam, inject, name, teamProjection };
+export { Config, EMPTY_TEAM_VIEW, SHARED_AREA, TEAM_PROJECTION_KEY, TeamBoardEntryView, TeamChain, type TeamConfig, TeamError, type TeamErrorCode, type TeamFact, type TeamMemberFact, TeamMemberInspection, TeamMemberView, TeamMessageKind, TeamMessageSource, TeamMessageView, TeamRelation, TeamService, TeamTaskStatus, TeamTaskView, TeamView, TeamWorkspace, WORKSPACE_DOMAIN, type WorkspaceEntry, apply, foldTeam, inject, name, teamProjection };

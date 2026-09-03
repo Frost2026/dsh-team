@@ -159,17 +159,20 @@ function mount(): void {
             if (at >= 0) seats.splice(at, 1)
           }
         }
-        const tab: Tab = {
-          id: spec.id ?? '',
-          order: spec.order ?? 0,
-          label: spec.label ?? (() => ''),
-          face: spec.inject?.() as Injected,
+        if (spec.name === 'conversation.view') {
+          const tab: Tab = {
+            id: spec.id ?? '',
+            order: spec.order ?? 0,
+            label: spec.label ?? (() => ''),
+            face: spec.inject?.() as Injected,
+          }
+          tabs.push(tab)
+          return () => {
+            const at = tabs.indexOf(tab)
+            if (at >= 0) tabs.splice(at, 1)
+          }
         }
-        tabs.push(tab)
-        return () => {
-          const at = tabs.indexOf(tab)
-          if (at >= 0) tabs.splice(at, 1)
-        }
+        return () => {}
       },
     },
   } as unknown as ClientContext

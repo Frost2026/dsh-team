@@ -8,6 +8,7 @@
  * whether that session has a team at all, because the tab exists exactly while
  * it does: an ordinary conversation never grows a view it cannot fill.
  */
+import { createElement } from 'react'
 import type { ClientContext, ISessions, SessionId, SubagentAddress } from '@deepseek-ai/dsh-client-runtime/client'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
@@ -15,6 +16,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { TeamView } from '../contract.ts'
 import { TeamStage, type TeamInjected, type TeamPanelState } from './TeamStage.tsx'
 import { ComposerAway } from './composer.tsx'
+import { TeammateModelBadge } from './model-badge.tsx'
 import { en, NS, zh, type TeamKey } from './locales.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
@@ -288,6 +290,25 @@ export function apply(ctx: ClientContext): void {
       disposeTab?.()
       disposeTab = null
     }
+  })
+
+  /**
+   * Teammate Model Badge: displays the fixed model and reasoning effort of
+   * this teammate in the bottom-right of the input card (before the Send button).
+   */
+  ctx.slots.inject('conversation.input.right', () => {
+    return ctx.slots.register({
+      name: 'conversation.input.right',
+      id: 'teammate-model-badge',
+      order: 10,
+    }, (props: { sessionId?: SessionId; session?: { sessionId?: SessionId } }) => {
+      const activeId = props.sessionId ?? props.session?.sessionId
+      return createElement(TeammateModelBadge, {
+        ...activeId !== undefined ? { sessionId: activeId } : {},
+        store,
+        sessions,
+      })
+    })
   })
 }
 

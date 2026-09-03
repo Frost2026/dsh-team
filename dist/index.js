@@ -118,6 +118,7 @@ function readMember(value) {
 	const relation = asRelation(record["relation"]);
 	if (memberId === void 0 || name === void 0 || relation === void 0) return void 0;
 	const role = asText(record["role"]);
+	const provider = asText(record["provider"]);
 	const model = asText(record["model"]);
 	const effort = asText(record["effort"]);
 	return {
@@ -125,6 +126,7 @@ function readMember(value) {
 		name,
 		relation,
 		...role !== void 0 ? { role } : {},
+		...provider !== void 0 ? { provider } : {},
 		...model !== void 0 ? { model } : {},
 		...effort !== void 0 ? { effort } : {}
 	};
@@ -409,6 +411,7 @@ const teamViewSchema = z$1.object({
 		name: z$1.string(),
 		role: z$1.string().optional(),
 		relation: z$1.union([z$1.literal("managed"), z$1.literal("peer")]),
+		provider: z$1.string().optional(),
 		model: z$1.string().optional(),
 		effort: z$1.string().optional(),
 		joinedAt: z$1.number()
@@ -611,12 +614,17 @@ var TeamService = class extends Service {
 		if (team.members.size >= this.config.maxTeammates) throw new TeamError("MAX_TEAMMATES", String(this.config.maxTeammates));
 		if (findByName(team, request.name) !== void 0) throw new TeamError("DUPLICATE_NAME", request.name);
 		await this.assertEffortOffered(leader, request);
-		const agentOptions = { ...request.model !== void 0 ? { model: request.model } : {} };
+		const agentOptions = {
+			...request.provider !== void 0 ? { provider: request.provider } : {},
+			...request.model !== void 0 ? { model: request.model } : {},
+			...request.reasoningEffort !== void 0 ? { reasoningEffort: request.reasoningEffort } : {}
+		};
 		const pending = {
 			fact: {
 				name: request.name,
 				relation: request.relation,
 				...request.role !== void 0 ? { role: request.role } : {},
+				...request.provider !== void 0 ? { provider: request.provider } : {},
 				...request.model !== void 0 ? { model: request.model } : {},
 				...request.reasoningEffort !== void 0 ? { effort: request.reasoningEffort } : {}
 			},
@@ -999,13 +1007,106 @@ var TeamService = class extends Service {
 	*/
 	async assertEffortOffered(leader, request) {
 		if (request.reasoningEffort === void 0) return;
-		const llm = this.ctx.get("llm");
-		const provider = leader.options.provider;
+		const llm = this.ctx.get("llm") ?? this.ctx.llm;
+		const provider = request.provider ?? leader.options.provider;
 		const model = request.model ?? leader.options.model;
 		if (llm === void 0 || provider === void 0 || model === void 0) return;
-		const offered = (await llm.resolveModelInfo(provider, model)).reasoning?.efforts ?? [];
-		if (offered.some((effort) => effort.id === request.reasoningEffort)) return;
-		throw new TeamError("UNKNOWN_EFFORT", offered.length === 0 ? `${model} exposes no reasoning efforts` : `${model} offers ${offered.map((effort) => effort.id).join(", ")}`);
+		try {
+			const offered = (await llm.resolveModelInfo(provider, model))?.reasoning?.efforts ?? [];
+			if (offered.some((effort) => effort.id === request.reasoningEffort)) return;
+			throw new TeamError("UNKNOWN_EFFORT", offered.length === 0 ? `${model} exposes no reasoning efforts` : `${model} offers ${offered.map((effort) => effort.id).join(", ")}`);
+		} catch (e) {
+			if (e instanceof TeamError) throw e;
+		}
+	}
+	/**
+	* Inspect one teammate's live runtime state, thinking progress, and recent event logs.
+	* @param actorAgent - the acting agent or leader.
+	* @param memberName - display name of the teammate to inspect.
+	* @param tailLines - number of recent event log entries to tail (default 20).
+	* @returns detailed inspection report including status, reasoning state, and tail logs.
+	*/
+	async inspect(actorAgent, memberName, tailLines = 20) {
+		const member = findByName(this.resolveActor(actorAgent).team, memberName);
+		if (member === void 0) throw new TeamError("UNKNOWN_MEMBER", memberName);
+		const memberId = member.memberId;
+		const status = this.statusOf(memberId);
+		const liveAgent = this.ctx.agents.get(SessionId(memberId));
+		const sessionsService = this.ctx.get("sessions");
+		const events = (liveAgent?.session ?? sessionsService?.get(SessionId(memberId)))?.events ?? [];
+		const count = Math.min(Math.max(1, tailLines), 100);
+		let currentTurn;
+		let turnStartTime;
+		let isThinking = false;
+		let thinkingChunks = 0;
+		let thinkingPreview;
+		for (let i = events.length - 1; i >= 0; i--) {
+			const ev = events[i];
+			if (ev.type === "turn/start" && turnStartTime === void 0) {
+				turnStartTime = ev.time;
+				currentTurn = ev.data?.turn;
+			}
+			if (ev.type === "reasoning-chunks" || ev.type === "assistant/chunk" && ev.data?.chunk?.type === "reasoning-delta") {
+				thinkingChunks++;
+				if (!thinkingPreview) {
+					const texts = ev.data?.texts ?? (ev.data?.chunk?.text ? [ev.data.chunk.text] : []);
+					if (texts.length > 0) thinkingPreview = texts.join("");
+				}
+			}
+		}
+		if (status === "running" && (thinkingChunks > 0 || events[events.length - 1]?.type === "reasoning-chunks")) isThinking = true;
+		const elapsedMs = turnStartTime !== void 0 ? Math.max(0, Date.now() - turnStartTime) : void 0;
+		const recentLogs = [];
+		const slice = events.filter((e) => e.type === "user/message" || e.type === "assistant/message" || e.type === "tool/call" || e.type === "tool/result" || e.type === "turn/start" || e.type === "turn/end" || e.type === "step/start" || e.type === "step/end" || e.type.includes("error")).slice(-count);
+		for (const ev of slice) {
+			const timeStr = ev.time ? new Date(ev.time).toTimeString().slice(0, 8) : "--:--:--";
+			switch (ev.type) {
+				case "user/message": {
+					const text = ev.data?.content?.map((c) => c.text).filter(Boolean).join(" ") ?? "";
+					recentLogs.push(`[${timeStr}] [User Message] ${text.slice(0, 120)}${text.length > 120 ? "..." : ""}`);
+					break;
+				}
+				case "assistant/message": {
+					const text = ev.data?.content?.map((c) => c.text).filter(Boolean).join(" ") ?? "";
+					recentLogs.push(`[${timeStr}] [Assistant Output] ${text.slice(0, 120)}${text.length > 120 ? "..." : ""}`);
+					break;
+				}
+				case "tool/call": {
+					const args = JSON.stringify(ev.data?.arguments ?? {}).slice(0, 100);
+					recentLogs.push(`[${timeStr}] [Tool Call] ${ev.data?.name}(${args})`);
+					break;
+				}
+				case "tool/result": {
+					const res = JSON.stringify(ev.data ?? {}).slice(0, 100);
+					recentLogs.push(`[${timeStr}] [Tool Result] ${res}`);
+					break;
+				}
+				case "turn/start":
+					recentLogs.push(`[${timeStr}] [Turn ${ev.data?.turn ?? 1} Started]`);
+					break;
+				case "turn/end":
+					recentLogs.push(`[${timeStr}] [Turn ${ev.data?.turn ?? 1} Ended] reason=${ev.data?.reason?.kind ?? "unknown"}`);
+					break;
+				default: recentLogs.push(`[${timeStr}] [${ev.type}] ${JSON.stringify(ev.data ?? {}).slice(0, 80)}`);
+			}
+		}
+		if (recentLogs.length === 0 && events.length > 0) recentLogs.push(`Recorded ${events.length} session events, awaiting first turn settlement`);
+		return {
+			memberId: member.memberId,
+			name: member.name,
+			relation: member.relation,
+			status,
+			recentLogs,
+			...member.role !== void 0 ? { role: member.role } : {},
+			...member.provider !== void 0 ? { provider: member.provider } : {},
+			...member.model !== void 0 ? { model: member.model } : {},
+			...member.effort !== void 0 ? { effort: member.effort } : {},
+			...elapsedMs !== void 0 ? { elapsedMs } : {},
+			...currentTurn !== void 0 ? { currentTurn } : {},
+			...isThinking ? { isThinking: true } : {},
+			...thinkingChunks > 0 ? { thinkingChunks } : {},
+			...thinkingPreview !== void 0 ? { thinkingPreview } : {}
+		};
 	}
 	/**
 	* Stop one teammate's current work. Residency belongs to the continuation
@@ -1264,6 +1365,7 @@ const MEMBER_PROPERTIES = {
 		required: true,
 		enum: ["managed", "peer"]
 	},
+	provider: { type: "string" },
 	model: { type: "string" },
 	effort: { type: "string" }
 };
@@ -1296,6 +1398,7 @@ function memberValue(member) {
 		name: member.name,
 		relation: member.relation,
 		...member.role !== void 0 ? { role: member.role } : {},
+		...member.provider !== void 0 ? { provider: member.provider } : {},
 		...member.model !== void 0 ? { model: member.model } : {},
 		...member.effort !== void 0 ? { effort: member.effort } : {}
 	};
@@ -1309,7 +1412,7 @@ function memberValue(member) {
 function spawnTool(ctx) {
 	return defineTool({
 		name: "team_spawn",
-		description: "Add a teammate to your agent team. A teammate is a long-lived agent with its own session, its own memory and its own tools; it works in the background while you keep working, and it stays available until you dismiss it. Give it a name you will address it by and a first task. relation \"managed\" means it may only message you; \"peer\" means it may also message the other teammates directly and coordinate with them without going through you. Prefer a teammate over a one-shot subagent when the work needs several rounds, a durable owner, or someone the rest of the team can talk to. This is where a team begins: until one team_spawn has succeeded there is no team, no roster and no task list, and every other team_* tool has nothing to act on — call this one first.",
+		description: "Add a teammate to your agent team. Supports cross-provider heterogeneous AI models (Gemini via antigravity, Grok, Codex, OpenCode Go/GLM/DeepSeek). A teammate is a long-lived agent with its own session, its own memory and its own tools; it works in the background while you keep working, and it stays available until you dismiss it. Give it a name you will address it by and a first task. relation \"managed\" means it may only message you; \"peer\" means it may also message the other teammates directly and coordinate with them without going through you. Prefer a teammate over a one-shot subagent when the work needs several rounds, a durable owner, or someone the rest of the team can talk to. This is where a team begins: until one team_spawn has succeeded there is no team, no roster and no task list, and every other team_* tool has nothing to act on — call this one first.",
 		parameters: {
 			name: {
 				type: "string",
@@ -1335,13 +1438,17 @@ function spawnTool(ctx) {
 				type: "string",
 				description: "Optional persona replacing the deployment persona for this teammate only."
 			},
+			provider: {
+				type: "string",
+				description: "Optional LLM provider ID. Defaults to inheriting leader provider. Set explicitly when changing model family: \"antigravity\" (for Gemini/Claude), \"grok\" (for Grok), \"codex\" (for GPT-5.6), \"opencode-go\" (for GLM-5.3 / DeepSeek V4)."
+			},
 			model: {
 				type: "string",
-				description: "Optional model id; default inherits your own model."
+				description: "Optional model id. When switching provider, you MUST specify both provider and model: Gemini -> provider: \"antigravity\", model: \"gemini-3.8-flash\" | Grok -> provider: \"grok\", model: \"grok-4.6\" | Codex -> provider: \"codex\", model: \"gpt-5.6-luna\" / \"gpt-5.6-sol\" | GLM -> provider: \"opencode-go\", model: \"glm-5.3-flash\" | DeepSeek -> provider: \"opencode-go\", model: \"deepseek-v4-pro\"."
 			},
 			reasoning_effort: {
 				type: "string",
-				description: "Optional provider-owned reasoning effort for this teammate, e.g. high. Rejected when the model does not offer it."
+				description: "Optional provider reasoning effort. grok-4.6: \"xhigh\"|\"high\"|\"medium\"|\"low\"; gpt-5.6: \"max\"|\"xhigh\"|\"high\"|\"medium\"|\"low\"; gemini-3.8-flash: \"high\"|\"medium\"|\"low\"; glm-5.3-flash: \"max\"|\"high\"|\"low\"; deepseek-v4-pro: \"high\"|\"off\"."
 			}
 		},
 		output: {
@@ -1362,6 +1469,7 @@ function spawnTool(ctx) {
 		presentCall: (args) => call(`Spawn teammate ${args.name}`, {
 			relation: args.relation,
 			...args.role !== void 0 ? { role: args.role } : {},
+			...args.provider !== void 0 ? { provider: args.provider } : {},
 			...args.model !== void 0 ? { model: args.model } : {},
 			task: args.task
 		}),
@@ -1374,6 +1482,7 @@ function spawnTool(ctx) {
 				relation: args.relation,
 				...args.role !== void 0 ? { role: args.role } : {},
 				...args.persona !== void 0 ? { persona: args.persona } : {},
+				...args.provider !== void 0 ? { provider: args.provider } : {},
 				...args.model !== void 0 ? { model: args.model } : {},
 				...args.reasoning_effort !== void 0 ? { reasoningEffort: args.reasoning_effort } : {}
 			}, exec.signal));
@@ -1689,10 +1798,43 @@ function listTool(ctx, audience = "leader") {
 					}
 				}
 			},
-			render: (_args, value) => [{
-				type: "text",
-				text: value.active ? `${value.members.length} teammate(s), ${value.tasks.filter((task) => task.status !== "done").length} open task(s)` : audience === "leader" ? "no team yet — team_spawn starts one" : "the team is not readable from here right now; its main session is not loaded"
-			}]
+			render: (_args, value) => {
+				if (!value.active) return [{
+					type: "text",
+					text: audience === "leader" ? "No team active yet — call `team_spawn` first to start one." : "The team is not readable from here right now; its main session is not loaded."
+				}];
+				const openTasks = value.tasks.filter((task) => task.status !== "done");
+				const lines = [];
+				lines.push(`### Agent Team: ${value.members.length} teammate(s), ${openTasks.length} open task(s)`);
+				lines.push("");
+				lines.push("#### Members Roster");
+				for (const m of value.members) {
+					const roleStr = m.role ? ` (${m.role})` : "";
+					const routeStr = m.model ? ` [${m.provider ?? "inherited"}/${m.model}${m.effort ? ` effort:${m.effort}` : ""}]` : "";
+					const statusNotice = m.status === "running" ? "RUNNING (busy/thinking - do NOT spam messages or dismiss)" : m.status === "idle" ? "IDLE (ready for next task)" : "READY";
+					lines.push(`- **${m.name}**${roleStr} - relation: ${m.relation}${routeStr} | status: \`${statusNotice}\``);
+				}
+				if (value.tasks.length > 0) {
+					lines.push("");
+					lines.push("#### Tasks");
+					for (const t of value.tasks) {
+						const assignee = t.assigneeId ? ` (assignee: ${t.assigneeId})` : "";
+						const note = t.note ? ` - ${t.note}` : "";
+						lines.push(`- [${t.status.toUpperCase()}] ${t.title}${assignee}${note}`);
+					}
+				}
+				if (value.messages.length > 0) {
+					lines.push("");
+					lines.push("#### Recent Mailbox (latest 5)");
+					for (const msg of value.messages.slice(-5)) lines.push(`- ${msg.from} -> ${msg.to}: "${msg.text.slice(0, 100)}${msg.text.length > 100 ? "..." : ""}"`);
+				}
+				lines.push("");
+				lines.push("TIP: Use `team_inspect({ member: \"<name>\" })` to view any member's latest 20 log events and real-time thinking state.");
+				return [{
+					type: "text",
+					text: lines.join("\n")
+				}];
+			}
 		},
 		presentCall: () => ({
 			card: "generic",
@@ -1722,6 +1864,114 @@ function listTool(ctx, audience = "leader") {
 					...message.hop !== void 0 ? { hop: message.hop } : {}
 				}))
 			});
+		}
+	});
+}
+/**
+* `team_inspect` — inspect a teammate's live runtime state, reasoning progress, and tail event logs.
+* @param ctx - context carrying the team service.
+* @returns the tool definition.
+*/
+function inspectTool(ctx) {
+	return defineTool({
+		name: "team_inspect",
+		description: "Inspect a teammate's live runtime state, current turn activity, reasoning progress, and recent event logs (tail 20 lines). Use this tool before assuming a teammate is stuck or dead. If the member is in RUNNING state or thinking, DO NOT dismiss it or spam messages; wait for it to deliver.",
+		parameters: {
+			member: {
+				type: "string",
+				required: true,
+				description: "The teammate member display name to inspect (e.g. \"Alice\", \"glm\", \"gemini\")."
+			},
+			lines: {
+				type: "number",
+				description: "Number of recent event/log lines to tail (default 20, max 100)."
+			}
+		},
+		output: {
+			schema: {
+				type: "object",
+				additionalProperties: false,
+				properties: {
+					memberId: {
+						type: "string",
+						required: true
+					},
+					name: {
+						type: "string",
+						required: true
+					},
+					role: { type: "string" },
+					relation: {
+						type: "string",
+						required: true,
+						enum: ["managed", "peer"]
+					},
+					provider: { type: "string" },
+					model: { type: "string" },
+					effort: { type: "string" },
+					status: {
+						type: "string",
+						required: true,
+						enum: [
+							"running",
+							"idle",
+							"ready"
+						]
+					},
+					elapsedMs: { type: "number" },
+					currentTurn: { type: "number" },
+					isThinking: { type: "boolean" },
+					thinkingChunks: { type: "number" },
+					thinkingPreview: { type: "string" },
+					recentLogs: {
+						type: "array",
+						required: true,
+						items: { type: "string" }
+					}
+				}
+			},
+			render: (_args, value) => {
+				const lines = [];
+				const elapsed = value.elapsedMs !== void 0 ? `${Math.round(value.elapsedMs / 1e3)}s` : "unknown";
+				const statusBadge = value.status === "running" ? `RUNNING (active for ${elapsed})` : value.status.toUpperCase();
+				lines.push(`### Teammate Inspection: ${value.name}${value.role ? ` (${value.role})` : ""}`);
+				lines.push(`- **Status**: \`${statusBadge}\``);
+				lines.push(`- **Route**: provider=\`${value.provider ?? "inherited"}\`, model=\`${value.model ?? "inherited"}\`${value.effort ? `, effort=\`${value.effort}\`` : ""}`);
+				lines.push(`- **Relation**: ${value.relation} | Member ID: \`${value.memberId}\``);
+				if (value.isThinking) {
+					lines.push(`- **Reasoning State**: Generating thinking tokens (${value.thinkingChunks ?? 0} chunks emitted). **DO NOT INTERRUPT OR DISMISS.**`);
+					if (value.thinkingPreview) lines.push(`- **Latest Thought Preview**: "${value.thinkingPreview.slice(0, 150)}..."`);
+				}
+				lines.push("");
+				lines.push(`#### Recent Activity / Tail Logs (${value.recentLogs.length} events)`);
+				if (value.recentLogs.length === 0) lines.push("(no recorded events yet)");
+				else for (let i = 0; i < value.recentLogs.length; i++) lines.push(`${i + 1}. ${value.recentLogs[i]}`);
+				return [{
+					type: "text",
+					text: lines.join("\n")
+				}];
+			}
+		},
+		presentCall: (args) => call(`Inspect teammate ${args.member}`, { lines: args.lines ?? 20 }),
+		presentResult: (args, result) => result.isError ? done(`Inspect teammate ${args.member}`, `failed: ${failureText(result)}`) : done(`Inspected ${args.member}`),
+		async execute(args, exec) {
+			const res = await ctx.team.inspect(actor(exec.agent), args.member, args.lines ?? 20);
+			return {
+				memberId: res.memberId,
+				name: res.name,
+				relation: res.relation,
+				status: res.status,
+				recentLogs: [...res.recentLogs],
+				...res.role !== void 0 ? { role: res.role } : {},
+				...res.provider !== void 0 ? { provider: res.provider } : {},
+				...res.model !== void 0 ? { model: res.model } : {},
+				...res.effort !== void 0 ? { effort: res.effort } : {},
+				...res.elapsedMs !== void 0 ? { elapsedMs: res.elapsedMs } : {},
+				...res.currentTurn !== void 0 ? { currentTurn: res.currentTurn } : {},
+				...res.isThinking !== void 0 ? { isThinking: res.isThinking } : {},
+				...res.thinkingChunks !== void 0 ? { thinkingChunks: res.thinkingChunks } : {},
+				...res.thinkingPreview !== void 0 ? { thinkingPreview: res.thinkingPreview } : {}
+			};
 		}
 	});
 }
@@ -2124,8 +2374,31 @@ function installLeaderTools(ctx, agent) {
 		agent.ctx.tools.register(taskTool(ctx)),
 		agent.ctx.tools.register(relationTool(ctx)),
 		agent.ctx.tools.register(dismissTool(ctx)),
-		agent.ctx.tools.register(listTool(ctx))
+		agent.ctx.tools.register(listTool(ctx)),
+		agent.ctx.tools.register(inspectTool(ctx))
 	];
+	if (agent.ctx.systemPrompt?.section) disposers.push(agent.ctx.systemPrompt.section({
+		name: "team-leader-guide",
+		order: 100,
+		text: `
+# Agent Team Collaboration & Model Routing Guidelines
+
+## 1. Heterogeneous Model Selection
+When forming a team with specific models, use \`team_spawn\` with matching \`provider\` and \`model\`:
+- Gemini / 反重力: provider: "antigravity", model: "gemini-3.8-flash" (reasoning_effort: "high"|"medium"|"low").
+- Grok: provider: "grok", model: "grok-4.6" (reasoning_effort: "xhigh"|"high"|"medium"|"low", default "high").
+- Codex / ChatGPT: provider: "codex", model: "gpt-5.6-luna" or "gpt-5.6-sol" (reasoning_effort: "max"|"xhigh"|"high"|"medium"|"low").
+- OpenCode Go (GLM): provider: "opencode-go", model: "glm-5.3-flash" (reasoning_effort: "max"|"high"|"low", default "max").
+- OpenCode Go (DeepSeek): provider: "opencode-go", model: "deepseek-v4-pro" (reasoning_effort: "high"|"off").
+CRITICAL: When spawning teammates with a different model family, you MUST explicitly provide both \`provider\` and \`model\`.
+
+## 2. Autonomous Background Execution & No-Polling Principle
+- Teammates run autonomously in background sessions; deep thinking models naturally take several minutes.
+- When waiting for teammates to work, you DO NOT need to poll them. When they finish, they will report automatically, and the system will wake you up.
+- Do not call tools in a loop to wait. Unless the user explicitly asks you to inspect or you suspect an issue, only then call \`team_inspect\`.
+- If \`team_inspect\` shows a teammate is RUNNING or thinking, it is actively working: stop calling tools, give the user a brief note, and wait quietly for their report. Never dismiss a member that is actively thinking.
+        `.trim()
+	}));
 	return () => {
 		for (const dispose of disposers.reverse()) dispose();
 	};
