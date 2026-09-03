@@ -9,11 +9,11 @@
  * it does: an ordinary conversation never grows a view it cannot fill.
  */
 import { createElement } from 'react'
-import type { ClientContext, ISessions, SessionId, SubagentAddress } from '@deepseek-ai/dsh-client-runtime/client'
+import type { ClientContext, ISessions, SessionId, SnapshotStore, SubagentAddress } from '@deepseek-ai/dsh-client-runtime/client'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
-import type { TeamView } from '../contract.ts'
+import type { TeamMemberView, TeamView } from '../contract.ts'
 import { TeamStage, type TeamInjected, type TeamPanelState } from './TeamStage.tsx'
 import { ComposerAway } from './composer.tsx'
 import { TeammateModelBadge } from './model-badge.tsx'
@@ -310,6 +310,86 @@ export function apply(ctx: ClientContext): void {
       })
     })
   })
+
+  // Watch and enhance the portaled subagents lineage menu
+  observeSubagentsMenu(store)
+}
+
+function observeSubagentsMenu(store: SnapshotStore<TeamPanelState>): void {
+  if (typeof document === 'undefined') return
+
+  const processMenu = (): void => {
+    const menus = Array.from(document.querySelectorAll<HTMLElement>('[role="tree"]'))
+    const subagentMenu = menus.find(m => {
+      const cls = m.className || ''
+      return cls.includes('menu') || cls.includes('Menu') || m.querySelector('[data-state]') !== null
+    })
+    if (!subagentMenu || subagentMenu.dataset.dshProcessed === 'true') return
+
+    const state = store.getSnapshot()
+    const activeNames = new Set((state.members as readonly TeamMemberView[]).map(m => m.name.toLowerCase()))
+
+    const directChildren = Array.from(subagentMenu.children) as HTMLElement[]
+    const validRows = directChildren.filter(c => c.getAttribute('role') === 'treeitem' || c.querySelector('[role="treeitem"]') !== null)
+    if (validRows.length === 0) return
+
+    const seenNames = new Map<string, HTMLElement[]>()
+    for (const row of validRows) {
+      if (row.dataset.dshDismissed === 'true') continue
+      const labelEl = row.querySelector<HTMLElement>('span[class*="label"]')
+      const rawText = (labelEl?.innerText || row.innerText || '').split('\n')[0].trim()
+      const roleName = rawText.split(' ')[0].toLowerCase()
+      if (!seenNames.has(roleName)) seenNames.set(roleName, [])
+      seenNames.get(roleName)!.push(row)
+    }
+
+    const dismissedRows: HTMLElement[] = []
+    for (const [name, rows] of seenNames.entries()) {
+      if (rows.length > 1) {
+        // The newest one is active; older duplicates are dismissed
+        const activeOne = rows[rows.length - 1]
+        activeOne.dataset.dshActive = 'true'
+        const older = rows.slice(0, -1)
+        dismissedRows.push(...older)
+      } else if (!activeNames.has(name) && state.members.length > 0) {
+        dismissedRows.push(rows[0])
+      }
+    }
+
+    if (dismissedRows.length === 0) return
+    subagentMenu.dataset.dshProcessed = 'true'
+
+    for (const row of dismissedRows) {
+      if (row.dataset.dshDismissed === 'true') continue
+      row.dataset.dshDismissed = 'true'
+      row.style.opacity = '0.55'
+
+      const dot = row.querySelector<HTMLElement>('[data-state]')
+      if (dot) {
+        dot.style.filter = 'grayscale(1)'
+        dot.style.opacity = '0.35'
+      }
+
+      const label = row.querySelector<HTMLElement>('span[class*="label"]')
+      if (label && !label.innerText.includes('已解散')) {
+        const tag = document.createElement('span')
+        tag.innerText = '已解散'
+        tag.style.marginLeft = '6px'
+        tag.style.fontSize = '10px'
+        tag.style.padding = '0 4px'
+        tag.style.borderRadius = '3px'
+        tag.style.border = '1px solid rgba(125,125,125,0.3)'
+        tag.style.color = 'var(--dsw-alias-label-tertiary, #888)'
+        tag.style.fontWeight = 'normal'
+        label.appendChild(tag)
+      }
+
+      subagentMenu.appendChild(row)
+    }
+  }
+
+  const observer = new MutationObserver(processMenu)
+  observer.observe(document.body, { childList: true, subtree: true })
 }
 
 export type { TeamPanelState }

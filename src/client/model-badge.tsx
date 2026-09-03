@@ -71,13 +71,16 @@ export function TeammateModelBadge({ sessionId, store, sessions }: TeammateModel
   const model = member?.model ?? (fallbackModel || 'default')
   const effort = member?.effort
 
-  const label = `${model}${effort ? ` · ${effort}` : ''}`
+  // If team has active members and this teammate is not in roster, it has been dismissed
+  const isDismissed = isSubagent && teamState.members.length > 0 && !member
+
+  const label = isDismissed ? `已解散 · ${model}` : `${model}${effort ? ` · ${effort}` : ''}`
 
   const items: MenuEntry[] = [
     {
       type: 'label',
       id: 'header-label',
-      text: '子智能体模型配置（已锁定）',
+      text: isDismissed ? '子智能体配置（已解散）' : '子智能体模型配置（已锁定）',
     },
     {
       id: 'member-info',
@@ -105,7 +108,7 @@ export function TeammateModelBadge({ sessionId, store, sessions }: TeammateModel
     },
     {
       id: 'hint-info',
-      label: '模型在派生时已固定，切换需解散重建',
+      label: isDismissed ? '该成员已在团队中解散，当前会话仅供历史查阅' : '模型在派生时已固定，切换需解散重建',
       disabled: true,
     },
   ]
@@ -125,7 +128,8 @@ export function TeammateModelBadge({ sessionId, store, sessions }: TeammateModel
           ? 'var(--dsw-alias-interactive-bg-active, rgba(125, 125, 125, 0.2))'
           : 'var(--dsw-alias-interactive-bg-hover, rgba(125, 125, 125, 0.12))',
         border: '1px solid var(--dsw-alias-border-l2, rgba(125, 125, 125, 0.25))',
-        color: 'var(--dsw-alias-label-secondary, #888)',
+        color: isDismissed ? 'var(--dsw-alias-label-tertiary, #999)' : 'var(--dsw-alias-label-secondary, #888)',
+        opacity: isDismissed ? 0.65 : 1,
         fontSize: '12px',
         lineHeight: '18px',
         fontFamily: 'inherit',
@@ -155,7 +159,7 @@ export function TeammateModelBadge({ sessionId, store, sessions }: TeammateModel
           lineHeight: '12px',
         }}
       >
-        锁定
+        {isDismissed ? '归档' : '锁定'}
       </span>
     </button>
   )
