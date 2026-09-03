@@ -12,7 +12,7 @@ import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import type { ToolDefinition, ToolResult, ToolRunContext } from '@deepseek-ai/dsh-tools'
 import { readFact } from '../src/fold.ts'
 import { TeamError } from '../src/errors.ts'
-import { dismissTool, listTool, relationTool, sendTool, spawnTool, taskTool } from '../src/tools.ts'
+import { dismissTool, inspectTool, listTool, relationTool, sendTool, spawnTool, taskTool } from '../src/tools.ts'
 import { fakeAgent, fakeExec, type FakeAgent } from './harness.ts'
 
 /** Every call the tool layer made into the service. */
@@ -67,6 +67,25 @@ class FakeTeam {
       messages: [{ messageId: 'm1', to: 'child-1', kind: 'message', text: 'go', time: 1 }],
     }
   }
+
+  inspect(...args: unknown[]): Promise<unknown> {
+    this.record('inspect', ...args)
+    return Promise.resolve({
+      memberId: 'child-1',
+      name: 'Alice',
+      relation: 'peer',
+      status: 'running',
+      provider: 'grok',
+      model: 'grok-4.6',
+      effort: 'high',
+      elapsedMs: 5000,
+      currentTurn: 1,
+      isThinking: true,
+      thinkingChunks: 42,
+      thinkingPreview: 'Designing SVG bicycles...',
+      recentLogs: ['[12:00:00] [Turn 1 Started]', '[12:00:01] [Tool Call] bash()'],
+    })
+  }
 }
 
 /** Run one tool the way the registry does: validated args, live exec context. */
@@ -110,6 +129,16 @@ describe('team_spawn', () => {
     })
     expect(value).toEqual({
       memberId: 'child-1', name: 'Alice', role: 'reviewer', relation: 'peer', model: 'reasoner',
+    })
+  })
+
+  it('passes provider through when spawning cross-provider teammates', async () => {
+    const tool = spawnTool(ctx)
+    await run(tool, {
+      name: 'Bob', task: 'render svg', relation: 'peer', provider: 'grok', model: 'grok-4.6',
+    }, leader)
+    expect(team.calls[0]?.args[1]).toMatchObject({
+      name: 'Bob', provider: 'grok', model: 'grok-4.6',
     })
   })
 
@@ -229,6 +258,24 @@ describe('team_list', () => {
     const tool = listTool(ctx)
     const value = await run(tool, {}, leader)
     expect(JSON.stringify(tool.output.render({}, value))).toContain('1 teammate(s), 1 open task(s)')
+  })
+})
+
+describe('team_inspect', () => {
+  it('inspects teammate live runtime state and renders markdown', async () => {
+    const tool = inspectTool(ctx)
+    const value = await run(tool, { member: 'Alice', lines: 20 }, leader)
+    expect(value).toMatchObject({
+      name: 'Alice',
+      status: 'running',
+      provider: 'grok',
+      model: 'grok-4.6',
+      isThinking: true,
+    })
+    const rendered = tool.output.render({ member: 'Alice', lines: 20 }, value)
+    expect(JSON.stringify(rendered)).toContain('RUNNING')
+    expect(JSON.stringify(rendered)).toContain('grok-4.6')
+    expect(JSON.stringify(rendered)).toContain('Designing SVG bicycles')
   })
 })
 

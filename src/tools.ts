@@ -53,6 +53,7 @@ const MEMBER_PROPERTIES = {
   name: { type: 'string', required: true },
   role: { type: 'string' },
   relation: { type: 'string', required: true, enum: ['managed', 'peer'] },
+  provider: { type: 'string' },
   model: { type: 'string' },
   effort: { type: 'string' },
 } as const
@@ -68,13 +69,14 @@ const TASK_PROPERTIES = {
 
 /** Drop the undefined optional members a JSON fact must not carry. */
 function memberValue(member: TeamMemberFact): {
-  memberId: string; name: string; role?: string; relation: 'managed' | 'peer'; model?: string; effort?: string
+  memberId: string; name: string; role?: string; relation: 'managed' | 'peer'; provider?: string; model?: string; effort?: string
 } {
   return {
     memberId: member.memberId,
     name: member.name,
     relation: member.relation,
     ...member.role !== undefined ? { role: member.role } : {},
+    ...member.provider !== undefined ? { provider: member.provider } : {},
     ...member.model !== undefined ? { model: member.model } : {},
     ...member.effort !== undefined ? { effort: member.effort } : {},
   }
@@ -90,14 +92,11 @@ export function spawnTool(ctx: Context): ToolDefinition {
   return defineTool({
     name: 'team_spawn',
     description:
-      'Add a teammate to your agent team. A teammate is a long-lived agent with its own session, its own '
-      + 'memory and its own tools; it works in the background while you keep working, and it stays available '
-      + 'until you dismiss it. Give it a name you will address it by and a first task. relation "managed" '
-      + 'means it may only message you; "peer" means it may also message the other teammates directly and '
-      + 'coordinate with them without going through you. Prefer a teammate over a one-shot subagent when the '
-      + 'work needs several rounds, a durable owner, or someone the rest of the team can talk to. This is where '
-      + 'a team begins: until one team_spawn has succeeded there is no team, no roster and no task list, and '
-      + 'every other team_* tool has nothing to act on — call this one first.',
+      'Add a teammate to your agent team. Supports cross-provider heterogeneous AI models (Gemini via antigravity, Grok, Codex, OpenCode Go/GLM/DeepSeek). '
+      + 'A teammate is a long-lived agent with its own session, its own memory and its own tools; it works in the background while you keep working, and it stays available '
+      + 'until you dismiss it. Give it a name you will address it by and a first task. relation "managed" means it may only message you; "peer" means it may also message the other teammates directly and '
+      + 'coordinate with them without going through you. Prefer a teammate over a one-shot subagent when the work needs several rounds, a durable owner, or someone the rest of the team can talk to. '
+      + 'This is where a team begins: until one team_spawn has succeeded there is no team, no roster and no task list, and every other team_* tool has nothing to act on — call this one first.',
     parameters: {
       name: { type: 'string', required: true, description: 'Short display name you and the team will address it by, e.g. Alice.' },
       task: { type: 'string', required: true, description: 'The first task, self-contained: the teammate does not see your conversation.' },
@@ -109,8 +108,18 @@ export function spawnTool(ctx: Context): ToolDefinition {
       },
       role: { type: 'string', description: 'Optional role, e.g. reviewer. Shown to the whole team.' },
       persona: { type: 'string', description: 'Optional persona replacing the deployment persona for this teammate only.' },
-      model: { type: 'string', description: 'Optional model id; default inherits your own model.' },
-      reasoning_effort: { type: 'string', description: 'Optional provider-owned reasoning effort for this teammate, e.g. high. Rejected when the model does not offer it.' },
+      provider: {
+        type: 'string',
+        description: 'Optional LLM provider ID. Defaults to inheriting leader provider. Set explicitly when changing model family: "antigravity" (for Gemini/Claude), "grok" (for Grok), "codex" (for GPT-5.6), "opencode-go" (for GLM-5.3 / DeepSeek V4).',
+      },
+      model: {
+        type: 'string',
+        description: 'Optional model id. When switching provider, you MUST specify both provider and model: Gemini -> provider: "antigravity", model: "gemini-3.8-flash" | Grok -> provider: "grok", model: "grok-4.6" | Codex -> provider: "codex", model: "gpt-5.6-luna" / "gpt-5.6-sol" | GLM -> provider: "opencode-go", model: "glm-5.3-flash" | DeepSeek -> provider: "opencode-go", model: "deepseek-v4-pro".',
+      },
+      reasoning_effort: {
+        type: 'string',
+        description: 'Optional provider reasoning effort. grok-4.6: "xhigh"|"high"|"medium"|"low"; gpt-5.6: "max"|"xhigh"|"high"|"medium"|"low"; gemini-3.8-flash: "high"|"medium"|"low"; glm-5.3-flash: "max"|"high"|"low"; deepseek-v4-pro: "high"|"off".',
+      },
     },
     output: {
       schema: { type: 'object', additionalProperties: false, properties: MEMBER_PROPERTIES },
@@ -124,6 +133,7 @@ export function spawnTool(ctx: Context): ToolDefinition {
     presentCall: args => call(`Spawn teammate ${args.name}`, {
       relation: args.relation,
       ...args.role !== undefined ? { role: args.role } : {},
+      ...args.provider !== undefined ? { provider: args.provider } : {},
       ...args.model !== undefined ? { model: args.model } : {},
       task: args.task,
     }),
@@ -138,6 +148,7 @@ export function spawnTool(ctx: Context): ToolDefinition {
         relation: args.relation,
         ...args.role !== undefined ? { role: args.role } : {},
         ...args.persona !== undefined ? { persona: args.persona } : {},
+        ...args.provider !== undefined ? { provider: args.provider } : {},
         ...args.model !== undefined ? { model: args.model } : {},
         ...args.reasoning_effort !== undefined ? { reasoningEffort: args.reasoning_effort } : {},
       }, exec.signal)
@@ -402,14 +413,50 @@ export function listTool(ctx: Context, audience: 'leader' | 'member' = 'leader')
           },
         },
       },
-      render: (_args, value) => [{
-        type: 'text',
-        text: value.active
-          ? `${value.members.length} teammate(s), ${value.tasks.filter(task => task.status !== 'done').length} open task(s)`
-          : audience === 'leader'
-            ? 'no team yet — team_spawn starts one'
-            : 'the team is not readable from here right now; its main session is not loaded',
-      }],
+      render: (_args, value) => {
+        if (!value.active) {
+          return [{
+            type: 'text',
+            text: audience === 'leader'
+              ? 'No team active yet — call `team_spawn` first to start one.'
+              : 'The team is not readable from here right now; its main session is not loaded.',
+          }]
+        }
+        const openTasks = value.tasks.filter(task => task.status !== 'done')
+        const lines: string[] = []
+        lines.push(`### Agent Team: ${value.members.length} teammate(s), ${openTasks.length} open task(s)`)
+        lines.push('')
+        lines.push('#### Members Roster')
+        for (const m of value.members) {
+          const roleStr = m.role ? ` (${m.role})` : ''
+          const routeStr = m.model ? ` [${m.provider ?? 'inherited'}/${m.model}${m.effort ? ` effort:${m.effort}` : ''}]` : ''
+          const statusNotice = m.status === 'running'
+            ? 'RUNNING (busy/thinking - do NOT spam messages or dismiss)'
+            : m.status === 'idle'
+              ? 'IDLE (ready for next task)'
+              : 'READY'
+          lines.push(`- **${m.name}**${roleStr} - relation: ${m.relation}${routeStr} | status: \`${statusNotice}\``)
+        }
+        if (value.tasks.length > 0) {
+          lines.push('')
+          lines.push('#### Tasks')
+          for (const t of value.tasks) {
+            const assignee = t.assigneeId ? ` (assignee: ${t.assigneeId})` : ''
+            const note = t.note ? ` - ${t.note}` : ''
+            lines.push(`- [${t.status.toUpperCase()}] ${t.title}${assignee}${note}`)
+          }
+        }
+        if (value.messages.length > 0) {
+          lines.push('')
+          lines.push('#### Recent Mailbox (latest 5)')
+          for (const msg of value.messages.slice(-5)) {
+            lines.push(`- ${msg.from} -> ${msg.to}: "${msg.text.slice(0, 100)}${msg.text.length > 100 ? '...' : ''}"`)
+          }
+        }
+        lines.push('')
+        lines.push('TIP: Use `team_inspect({ member: "<name>" })` to view any member\'s latest 20 log events and real-time thinking state.')
+        return [{ type: 'text', text: lines.join('\n') }]
+      },
     },
     presentCall: () => ({ card: 'generic', title: 'Read the team', kind: 'read' }),
     presentResult: (_args, result) => result.isError ? done('Read the team', 'failed') : done('Team state'),
@@ -432,6 +479,104 @@ export function listTool(ctx: Context, audience: 'leader' | 'member' = 'leader')
           ...message.hop !== undefined ? { hop: message.hop } : {},
         })),
       })
+    },
+  })
+}
+
+/**
+ * `team_inspect` — inspect a teammate's live runtime state, reasoning progress, and tail event logs.
+ * @param ctx - context carrying the team service.
+ * @returns the tool definition.
+ */
+export function inspectTool(ctx: Context): ToolDefinition {
+  return defineTool({
+    name: 'team_inspect',
+    description:
+      'Inspect a teammate\'s live runtime state, current turn activity, reasoning progress, and recent event logs (tail 20 lines). '
+      + 'Use this tool before assuming a teammate is stuck or dead. If the member is in RUNNING state or thinking, DO NOT dismiss it or spam messages; wait for it to deliver.',
+    parameters: {
+      member: {
+        type: 'string',
+        required: true,
+        description: 'The teammate member display name to inspect (e.g. "Alice", "glm", "gemini").',
+      },
+      lines: {
+        type: 'number',
+        description: 'Number of recent event/log lines to tail (default 20, max 100).',
+      },
+    },
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          memberId: { type: 'string', required: true },
+          name: { type: 'string', required: true },
+          role: { type: 'string' },
+          relation: { type: 'string', required: true, enum: ['managed', 'peer'] },
+          provider: { type: 'string' },
+          model: { type: 'string' },
+          effort: { type: 'string' },
+          status: { type: 'string', required: true, enum: ['running', 'idle', 'ready'] },
+          elapsedMs: { type: 'number' },
+          currentTurn: { type: 'number' },
+          isThinking: { type: 'boolean' },
+          thinkingChunks: { type: 'number' },
+          thinkingPreview: { type: 'string' },
+          recentLogs: { type: 'array', required: true, items: { type: 'string' } },
+        },
+      },
+      render: (_args, value) => {
+        const lines: string[] = []
+        const elapsed = value.elapsedMs !== undefined ? `${Math.round(value.elapsedMs / 1000)}s` : 'unknown'
+        const statusBadge = value.status === 'running'
+          ? `RUNNING (active for ${elapsed})`
+          : value.status.toUpperCase()
+
+        lines.push(`### Teammate Inspection: ${value.name}${value.role ? ` (${value.role})` : ''}`)
+        lines.push(`- **Status**: \`${statusBadge}\``)
+        lines.push(`- **Route**: provider=\`${value.provider ?? 'inherited'}\`, model=\`${value.model ?? 'inherited'}\`${value.effort ? `, effort=\`${value.effort}\`` : ''}`)
+        lines.push(`- **Relation**: ${value.relation} | Member ID: \`${value.memberId}\``)
+        if (value.isThinking) {
+          lines.push(`- **Reasoning State**: Generating thinking tokens (${value.thinkingChunks ?? 0} chunks emitted). **DO NOT INTERRUPT OR DISMISS.**`)
+          if (value.thinkingPreview) {
+            lines.push(`- **Latest Thought Preview**: "${value.thinkingPreview.slice(0, 150)}..."`)
+          }
+        }
+        lines.push('')
+        lines.push(`#### Recent Activity / Tail Logs (${value.recentLogs.length} events)`)
+        if (value.recentLogs.length === 0) {
+          lines.push('(no recorded events yet)')
+        } else {
+          for (let i = 0; i < value.recentLogs.length; i++) {
+            lines.push(`${i + 1}. ${value.recentLogs[i]}`)
+          }
+        }
+        return [{ type: 'text', text: lines.join('\n') }]
+      },
+    },
+    presentCall: args => call(`Inspect teammate ${args.member}`, { lines: args.lines ?? 20 }),
+    presentResult: (args, result) => result.isError
+      ? done(`Inspect teammate ${args.member}`, `failed: ${failureText(result)}`)
+      : done(`Inspected ${args.member}`),
+    async execute(args, exec) {
+      const res = await ctx.team.inspect(actor(exec.agent), args.member, args.lines ?? 20)
+      return {
+        memberId: res.memberId,
+        name: res.name,
+        relation: res.relation,
+        status: res.status,
+        recentLogs: [...res.recentLogs],
+        ...res.role !== undefined ? { role: res.role } : {},
+        ...res.provider !== undefined ? { provider: res.provider } : {},
+        ...res.model !== undefined ? { model: res.model } : {},
+        ...res.effort !== undefined ? { effort: res.effort } : {},
+        ...res.elapsedMs !== undefined ? { elapsedMs: res.elapsedMs } : {},
+        ...res.currentTurn !== undefined ? { currentTurn: res.currentTurn } : {},
+        ...res.isThinking !== undefined ? { isThinking: res.isThinking } : {},
+        ...res.thinkingChunks !== undefined ? { thinkingChunks: res.thinkingChunks } : {},
+        ...res.thinkingPreview !== undefined ? { thinkingPreview: res.thinkingPreview } : {},
+      }
     },
   })
 }

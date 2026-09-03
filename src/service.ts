@@ -31,7 +31,7 @@ import type { SessionId as SessionIdType } from '@deepseek-ai/dsh-session'
 import type {} from '@deepseek-ai/dsh-subagent'
 import type {} from '@deepseek-ai/dsh-session-projection'
 import {
-  EMPTY_TEAM_VIEW, type TeamChain, type TeamMemberView, type TeamMessageView, type TeamRelation,
+  EMPTY_TEAM_VIEW, type TeamChain, type TeamMemberInspection, type TeamMemberView, type TeamMessageView, type TeamRelation,
   type TeamTaskStatus, type TeamTaskView, type TeamView,
 } from './contract.ts'
 import { TeamError } from './errors.ts'
@@ -83,6 +83,7 @@ export interface TeamSpawnRequest {
   readonly persona?: string
   readonly relation: TeamRelation
   readonly task: string
+  readonly provider?: string
   readonly model?: string
   readonly reasoningEffort?: string
 }
@@ -207,12 +208,17 @@ export class TeamService extends Service {
     }
     if (findByName(team, request.name) !== undefined) throw new TeamError('DUPLICATE_NAME', request.name)
     await this.assertEffortOffered(leader, request)
-    const agentOptions: AgentOptions = { ...request.model !== undefined ? { model: request.model } : {} }
+    const agentOptions: AgentOptions = {
+      ...request.provider !== undefined ? { provider: request.provider } : {},
+      ...request.model !== undefined ? { model: request.model } : {},
+      ...request.reasoningEffort !== undefined ? { reasoningEffort: request.reasoningEffort as any } : {},
+    }
     const pending: PendingSpawn = {
       fact: {
         name: request.name,
         relation: request.relation,
         ...request.role !== undefined ? { role: request.role } : {},
+        ...request.provider !== undefined ? { provider: request.provider } : {},
         ...request.model !== undefined ? { model: request.model } : {},
         ...request.reasoningEffort !== undefined ? { effort: request.reasoningEffort } : {},
       },
@@ -609,19 +615,143 @@ export class TeamService extends Service {
    */
   private async assertEffortOffered(leader: Agent, request: TeamSpawnRequest): Promise<void> {
     if (request.reasoningEffort === undefined) return
-    const llm = this.ctx.get('llm')
-    const provider = leader.options.provider
+    const llm = this.ctx.get('llm') ?? (this.ctx as any).llm
+    const provider = request.provider ?? leader.options.provider
     const model = request.model ?? leader.options.model
     if (llm === undefined || provider === undefined || model === undefined) return
-    const info = await llm.resolveModelInfo(provider, model)
-    const offered = info.reasoning?.efforts ?? []
-    if (offered.some(effort => effort.id === request.reasoningEffort)) return
-    throw new TeamError(
-      'UNKNOWN_EFFORT',
-      offered.length === 0
-        ? `${model} exposes no reasoning efforts`
-        : `${model} offers ${offered.map(effort => effort.id).join(', ')}`,
+    try {
+      const info = await llm.resolveModelInfo(provider, model)
+      const offered: { id: string }[] = info?.reasoning?.efforts ?? []
+      if (offered.some((effort: { id: string }) => effort.id === request.reasoningEffort)) return
+      throw new TeamError(
+        'UNKNOWN_EFFORT',
+        offered.length === 0
+          ? `${model} exposes no reasoning efforts`
+          : `${model} offers ${offered.map((effort: { id: string }) => effort.id).join(', ')}`,
+      )
+    } catch (e) {
+      if (e instanceof TeamError) throw e
+    }
+  }
+
+  /**
+   * Inspect one teammate's live runtime state, thinking progress, and recent event logs.
+   * @param actorAgent - the acting agent or leader.
+   * @param memberName - display name of the teammate to inspect.
+   * @param tailLines - number of recent event log entries to tail (default 20).
+   * @returns detailed inspection report including status, reasoning state, and tail logs.
+   */
+  async inspect(actorAgent: Agent, memberName: string, tailLines = 20): Promise<TeamMemberInspection> {
+    const actor = this.resolveActor(actorAgent)
+    const member = findByName(actor.team, memberName)
+    if (member === undefined) throw new TeamError('UNKNOWN_MEMBER', memberName)
+
+    const memberId = member.memberId
+    const status = this.statusOf(memberId)
+    const liveAgent = this.ctx.agents.get(SessionId(memberId))
+    const sessionsService = this.ctx.get('sessions')
+    const session = liveAgent?.session ?? sessionsService?.get(SessionId(memberId))
+
+    const events: readonly any[] = (session as any)?.events ?? []
+    const count = Math.min(Math.max(1, tailLines), 100)
+
+    let currentTurn: number | undefined
+    let turnStartTime: number | undefined
+    let isThinking = false
+    let thinkingChunks = 0
+    let thinkingPreview: string | undefined
+
+    for (let i = events.length - 1; i >= 0; i--) {
+      const ev = events[i]
+      if (ev.type === 'turn/start' && turnStartTime === undefined) {
+        turnStartTime = ev.time
+        currentTurn = ev.data?.turn
+      }
+      if (ev.type === 'reasoning-chunks' || (ev.type === 'assistant/chunk' && ev.data?.chunk?.type === 'reasoning-delta')) {
+        thinkingChunks++
+        if (!thinkingPreview) {
+          const texts = ev.data?.texts ?? (ev.data?.chunk?.text ? [ev.data.chunk.text] : [])
+          if (texts.length > 0) thinkingPreview = texts.join('')
+        }
+      }
+    }
+
+    if (status === 'running' && (thinkingChunks > 0 || events[events.length - 1]?.type === 'reasoning-chunks')) {
+      isThinking = true
+    }
+
+    const elapsedMs = turnStartTime !== undefined ? Math.max(0, Date.now() - turnStartTime) : undefined
+
+    const recentLogs: string[] = []
+    const meaningfulEvents = events.filter(e =>
+      e.type === 'user/message' ||
+      e.type === 'assistant/message' ||
+      e.type === 'tool/call' ||
+      e.type === 'tool/result' ||
+      e.type === 'turn/start' ||
+      e.type === 'turn/end' ||
+      e.type === 'step/start' ||
+      e.type === 'step/end' ||
+      e.type.includes('error')
     )
+
+    const slice = meaningfulEvents.slice(-count)
+    for (const ev of slice) {
+      const timeStr = ev.time ? new Date(ev.time).toTimeString().slice(0, 8) : '--:--:--'
+      switch (ev.type) {
+        case 'user/message': {
+          const text = ev.data?.content?.map((c: any) => c.text).filter(Boolean).join(' ') ?? ''
+          recentLogs.push(`[${timeStr}] [User Message] ${text.slice(0, 120)}${text.length > 120 ? '...' : ''}`)
+          break
+        }
+        case 'assistant/message': {
+          const text = ev.data?.content?.map((c: any) => c.text).filter(Boolean).join(' ') ?? ''
+          recentLogs.push(`[${timeStr}] [Assistant Output] ${text.slice(0, 120)}${text.length > 120 ? '...' : ''}`)
+          break
+        }
+        case 'tool/call': {
+          const args = JSON.stringify(ev.data?.arguments ?? {}).slice(0, 100)
+          recentLogs.push(`[${timeStr}] [Tool Call] ${ev.data?.name}(${args})`)
+          break
+        }
+        case 'tool/result': {
+          const res = JSON.stringify(ev.data ?? {}).slice(0, 100)
+          recentLogs.push(`[${timeStr}] [Tool Result] ${res}`)
+          break
+        }
+        case 'turn/start': {
+          recentLogs.push(`[${timeStr}] [Turn ${ev.data?.turn ?? 1} Started]`)
+          break
+        }
+        case 'turn/end': {
+          recentLogs.push(`[${timeStr}] [Turn ${ev.data?.turn ?? 1} Ended] reason=${ev.data?.reason?.kind ?? 'unknown'}`)
+          break
+        }
+        default:
+          recentLogs.push(`[${timeStr}] [${ev.type}] ${JSON.stringify(ev.data ?? {}).slice(0, 80)}`)
+      }
+    }
+
+    if (recentLogs.length === 0 && events.length > 0) {
+      recentLogs.push(`Recorded ${events.length} session events, awaiting first turn settlement`)
+    }
+
+    return {
+      memberId: member.memberId,
+      name: member.name,
+      relation: member.relation,
+      status,
+      recentLogs,
+      ...member.role !== undefined ? { role: member.role } : {},
+      ...member.provider !== undefined ? { provider: member.provider } : {},
+      ...member.model !== undefined ? { model: member.model } : {},
+      ...member.effort !== undefined ? { effort: member.effort } : {},
+      ...elapsedMs !== undefined ? { elapsedMs } : {},
+      ...currentTurn !== undefined ? { currentTurn } : {},
+      ...isThinking ? { isThinking: true } : {},
+      ...thinkingChunks > 0 ? { thinkingChunks } : {},
+      ...thinkingPreview !== undefined ? { thinkingPreview } : {},
+    }
   }
 
   /**

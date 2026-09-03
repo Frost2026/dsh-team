@@ -29,12 +29,32 @@ export interface TeamMemberView {
   readonly name: string
   readonly role?: string
   readonly relation: TeamRelation
+  /** Provider route recorded at spawn, when the leader overrode its own. */
+  readonly provider?: string
   /** Model route recorded at spawn, when the leader overrode its own. */
   readonly model?: string
   /** Provider-owned reasoning effort recorded at spawn, when one was requested. */
   readonly effort?: string
   /** Epoch ms of the spawn that added this member. */
   readonly joinedAt: number
+}
+
+/** Detailed inspection of one teammate's live runtime state and tail log. */
+export interface TeamMemberInspection {
+  readonly memberId: string
+  readonly name: string
+  readonly role?: string
+  readonly relation: TeamRelation
+  readonly provider?: string
+  readonly model?: string
+  readonly effort?: string
+  readonly status: 'running' | 'idle' | 'ready'
+  readonly elapsedMs?: number
+  readonly currentTurn?: number
+  readonly isThinking?: boolean
+  readonly thinkingChunks?: number
+  readonly thinkingPreview?: string
+  readonly recentLogs: string[]
 }
 
 /** One shared task. */

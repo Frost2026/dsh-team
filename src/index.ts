@@ -22,7 +22,7 @@ import { installCommand } from './command.ts'
 import { teamProjection } from './projection.ts'
 import { TeamService } from './service.ts'
 import { installTeammateWorkspace, installTeammateWorld } from './teammate.ts'
-import { boardTool, dismissTool, listTool, noteTool, relationTool, sendTool, spawnTool, taskTool } from './tools.ts'
+import { boardTool, dismissTool, inspectTool, listTool, noteTool, relationTool, sendTool, spawnTool, taskTool } from './tools.ts'
 import { TeamWorkspace } from './workspace.ts'
 
 export const name = 'team'
@@ -59,14 +59,41 @@ function leads(agent: Agent): boolean {
  * @returns the disposer for every registration made here.
  */
 function installLeaderTools(ctx: Context, agent: Agent): () => void {
-  const disposers = [
+  const disposers: (() => void)[] = [
     agent.ctx.tools.register(spawnTool(ctx)),
     agent.ctx.tools.register(sendTool(ctx, 'leader')),
     agent.ctx.tools.register(taskTool(ctx)),
     agent.ctx.tools.register(relationTool(ctx)),
     agent.ctx.tools.register(dismissTool(ctx)),
     agent.ctx.tools.register(listTool(ctx)),
+    agent.ctx.tools.register(inspectTool(ctx)),
   ]
+  if (agent.ctx.systemPrompt?.section) {
+    disposers.push(
+      agent.ctx.systemPrompt.section({
+        name: 'team-leader-guide',
+        order: 100,
+        text: `
+# Agent Team Collaboration & Model Routing Guidelines
+
+## 1. Heterogeneous Model Selection
+When forming a team with specific models, use \`team_spawn\` with matching \`provider\` and \`model\`:
+- Gemini / 反重力: provider: "antigravity", model: "gemini-3.8-flash" (reasoning_effort: "high"|"medium"|"low").
+- Grok: provider: "grok", model: "grok-4.6" (reasoning_effort: "xhigh"|"high"|"medium"|"low", default "high").
+- Codex / ChatGPT: provider: "codex", model: "gpt-5.6-luna" or "gpt-5.6-sol" (reasoning_effort: "max"|"xhigh"|"high"|"medium"|"low").
+- OpenCode Go (GLM): provider: "opencode-go", model: "glm-5.3-flash" (reasoning_effort: "max"|"high"|"low", default "max").
+- OpenCode Go (DeepSeek): provider: "opencode-go", model: "deepseek-v4-pro" (reasoning_effort: "high"|"off").
+CRITICAL: When spawning teammates with a different model family, you MUST explicitly provide both \`provider\` and \`model\`.
+
+## 2. Autonomous Background Execution & No-Polling Principle
+- Teammates run autonomously in background sessions; deep thinking models naturally take several minutes.
+- When waiting for teammates to work, you DO NOT need to poll them. When they finish, they will report automatically, and the system will wake you up.
+- Do not call tools in a loop to wait. Unless the user explicitly asks you to inspect or you suspect an issue, only then call \`team_inspect\`.
+- If \`team_inspect\` shows a teammate is RUNNING or thinking, it is actively working: stop calling tools, give the user a brief note, and wait quietly for their report. Never dismiss a member that is actively thinking.
+        `.trim(),
+      }),
+    )
+  }
   return () => {
     for (const dispose of disposers.reverse()) dispose()
   }
