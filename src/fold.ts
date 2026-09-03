@@ -266,11 +266,16 @@ function applyFact(view: TeamView, fact: TeamFact, time: number, bound: number):
         members: upsertMember(view.members, { ...fact.member, joinedAt: previous.joinedAt }),
       }
     }
-    case 'member-removed':
+    case 'member-removed': {
+      const removed = view.members.find(candidate => candidate.memberId === fact.memberId)
       return {
         ...view,
         members: view.members.filter(candidate => candidate.memberId !== fact.memberId),
+        ...removed !== undefined ? {
+          dismissedMembers: [...(view.dismissedMembers ?? []).filter(c => c.memberId !== fact.memberId), removed],
+        } : {},
       }
+    }
     case 'ended':
       return { active: false, members: [], tasks: [], messages: view.messages, board: [] }
     case 'message':

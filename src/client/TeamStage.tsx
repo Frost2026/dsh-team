@@ -47,6 +47,7 @@ export interface TeamPanelState {
   /** The session currently open, so the stage can mark the one you are reading. */
   readonly currentId?: string
   readonly members: readonly TeamMemberView[]
+  readonly dismissedMembers?: readonly TeamMemberView[]
   readonly tasks: readonly TeamTaskView[]
   readonly messages: readonly TeamMessageView[]
   /** The shared workspace as the leader's log last recorded it. */

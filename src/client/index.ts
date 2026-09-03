@@ -48,6 +48,7 @@ function panelState(leaderId: SessionId, currentId: SessionId, team: TeamView): 
     leaderId,
     currentId,
     members: team.members,
+    ...team.dismissedMembers !== undefined ? { dismissedMembers: team.dismissedMembers } : {},
     tasks: team.tasks,
     messages: team.messages,
     board: team.board,
@@ -315,76 +316,106 @@ export function apply(ctx: ClientContext): void {
   observeSubagentsMenu(store)
 }
 
+function getRowSessionId(row: HTMLElement): string | null {
+  const key = Object.keys(row).find(k => k.startsWith('__reactFiber'))
+  if (!key) return null
+  let curr = (row as any)[key]
+  while (curr) {
+    if (curr.memoizedProps?.entry?.id) return curr.memoizedProps.entry.id
+    if (curr.return?.memoizedProps?.entry?.id) return curr.return.memoizedProps.entry.id
+    if (curr.key && typeof curr.key === 'string' && curr.key.length > 20 && curr.key.includes('-')) {
+      return curr.key
+    }
+    curr = curr.return
+  }
+  return null
+}
+
 function observeSubagentsMenu(store: SnapshotStore<TeamPanelState>): void {
   if (typeof document === 'undefined') return
 
+  let isApplying = false
+
   const processMenu = (): void => {
+    if (isApplying) return
+
     const menus = Array.from(document.querySelectorAll<HTMLElement>('[role="tree"]'))
     const subagentMenu = menus.find(m => {
       const cls = m.className || ''
-      return cls.includes('menu') || cls.includes('Menu') || m.querySelector('[data-state]') !== null
+      return (cls.includes('menu') || cls.includes('Menu') || m.querySelector('[data-state]') !== null) &&
+        m.innerText.includes('continuable')
     })
-    if (!subagentMenu || subagentMenu.dataset.dshProcessed === 'true') return
+    if (!subagentMenu) return
+
+    const rows = Array.from(subagentMenu.querySelectorAll<HTMLElement>(':scope > div, :scope > [role="treeitem"]'))
+      .filter(el => el.getAttribute('role') === 'treeitem' || el.querySelector('[role="treeitem"]') !== null)
+    if (rows.length === 0) return
 
     const state = store.getSnapshot()
-    const activeNames = new Set((state.members as readonly TeamMemberView[]).map(m => m.name.toLowerCase()))
+    if (state.members.length === 0) return
 
-    const directChildren = Array.from(subagentMenu.children) as HTMLElement[]
-    const validRows = directChildren.filter(c => c.getAttribute('role') === 'treeitem' || c.querySelector('[role="treeitem"]') !== null)
-    if (validRows.length === 0) return
+    const activeMemberIds = new Set(state.members.map(m => m.memberId))
 
-    const seenNames = new Map<string, HTMLElement[]>()
-    for (const row of validRows) {
-      if (row.dataset.dshDismissed === 'true') continue
-      const labelEl = row.querySelector<HTMLElement>('span[class*="label"]')
-      const rawText = (labelEl?.innerText || row.innerText || '').split('\n')[0].trim()
-      const roleName = rawText.split(' ')[0].toLowerCase()
-      if (!seenNames.has(roleName)) seenNames.set(roleName, [])
-      seenNames.get(roleName)!.push(row)
-    }
-
+    const activeRows: HTMLElement[] = []
     const dismissedRows: HTMLElement[] = []
-    for (const [name, rows] of seenNames.entries()) {
-      if (rows.length > 1) {
-        // The newest one is active; older duplicates are dismissed
-        const activeOne = rows[rows.length - 1]
-        activeOne.dataset.dshActive = 'true'
-        const older = rows.slice(0, -1)
-        dismissedRows.push(...older)
-      } else if (!activeNames.has(name) && state.members.length > 0) {
-        dismissedRows.push(rows[0])
+
+    for (const row of rows) {
+      const sessionId = getRowSessionId(row)
+      if (!sessionId) continue
+
+      if (activeMemberIds.has(sessionId)) {
+        activeRows.push(row)
+      } else {
+        dismissedRows.push(row)
       }
     }
 
     if (dismissedRows.length === 0) return
-    subagentMenu.dataset.dshProcessed = 'true'
 
-    for (const row of dismissedRows) {
-      if (row.dataset.dshDismissed === 'true') continue
-      row.dataset.dshDismissed = 'true'
-      row.style.opacity = '0.55'
-
-      const dot = row.querySelector<HTMLElement>('[data-state]')
-      if (dot) {
-        dot.style.filter = 'grayscale(1)'
-        dot.style.opacity = '0.35'
+    isApplying = true
+    try {
+      // 1. Ensure active rows are clean and normal
+      for (const row of activeRows) {
+        row.style.opacity = '1'
+        const dot = row.querySelector<HTMLElement>('[data-state]')
+        if (dot) {
+          dot.style.filter = 'none'
+          dot.style.opacity = '1'
+        }
+        row.querySelectorAll('.dsh-dismissed-tag').forEach(tag => tag.remove())
       }
 
-      const label = row.querySelector<HTMLElement>('span[class*="label"]')
-      if (label && !label.innerText.includes('已解散')) {
-        const tag = document.createElement('span')
-        tag.innerText = '已解散'
-        tag.style.marginLeft = '6px'
-        tag.style.fontSize = '10px'
-        tag.style.padding = '0 4px'
-        tag.style.borderRadius = '3px'
-        tag.style.border = '1px solid rgba(125,125,125,0.3)'
-        tag.style.color = 'var(--dsw-alias-label-tertiary, #888)'
-        tag.style.fontWeight = 'normal'
-        label.appendChild(tag)
-      }
+      // 2. Mark dismissed rows and sink to bottom
+      for (const row of dismissedRows) {
+        row.style.opacity = '0.55'
 
-      subagentMenu.appendChild(row)
+        const dot = row.querySelector<HTMLElement>('[data-state]')
+        if (dot) {
+          dot.style.filter = 'grayscale(1)'
+          dot.style.opacity = '0.35'
+        }
+
+        const label = row.querySelector<HTMLElement>('span[class*="label"]')
+        if (label && !label.querySelector('.dsh-dismissed-tag')) {
+          const tag = document.createElement('span')
+          tag.className = 'dsh-dismissed-tag'
+          tag.innerText = '已解散'
+          tag.style.marginLeft = '6px'
+          tag.style.fontSize = '10px'
+          tag.style.padding = '0 4px'
+          tag.style.borderRadius = '3px'
+          tag.style.border = '1px solid rgba(125,125,125,0.3)'
+          tag.style.color = 'var(--dsw-alias-label-tertiary, #888)'
+          tag.style.fontWeight = 'normal'
+          label.appendChild(tag)
+        }
+
+        subagentMenu.appendChild(row)
+      }
+    } finally {
+      setTimeout(() => {
+        isApplying = false
+      }, 50)
     }
   }
 

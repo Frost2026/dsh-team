@@ -22,57 +22,46 @@ export function TeammateModelBadge({ sessionId, store, sessions }: TeammateModel
   const isSubagent = summary?.origin === 'subagent' || sessions.subagentAddress(currentId) !== undefined
   if (!isSubagent) return null
 
-  // 1. Try finding member from current store
-  let member = teamState.members.find(
-    m => m.memberId === currentId || (summary?.displayTitle && summary.displayTitle.includes(m.name)),
-  )
+  // 1. Try finding member from current store by exact memberId
+  let member = teamState.members.find((m: { readonly memberId: string }) => m.memberId === currentId)
+  let isDismissed = false
 
-  // 2. Fallback: try finding member from parent session's team projection
+  // Check if it is in current store's dismissedMembers
+  if (!member && teamState.dismissedMembers) {
+    const dismissed = teamState.dismissedMembers.find((m: { readonly memberId: string }) => m.memberId === currentId)
+    if (dismissed) {
+      member = dismissed
+      isDismissed = true
+    }
+  }
+
+  // 2. Fallback: try finding member from parent session's team projection by exact memberId
   if (!member && summary?.parentId) {
     const parentBinding = sessions.binding(summary.parentId as SessionId)
     if (parentBinding) {
       const parentTeam = parentBinding.session.projections.faceOf('team')?.getSnapshot() as TeamView | undefined
       if (parentTeam) {
-        member = parentTeam.members.find(
-          m => m.memberId === currentId || (summary?.displayTitle && summary.displayTitle.includes(m.name)),
-        )
+        member = parentTeam.members.find((m: { readonly memberId: string }) => m.memberId === currentId)
+        if (!member && parentTeam.dismissedMembers) {
+          const dismissed = parentTeam.dismissedMembers.find((m: { readonly memberId: string }) => m.memberId === currentId)
+          if (dismissed) {
+            member = dismissed
+            isDismissed = true
+          }
+        }
       }
     }
   }
 
-  // 3. Fallback: infer from subagent displayTitle if parent team projection unmounted
-  const title = summary?.displayTitle ?? ''
-  let fallbackName = title
-  let fallbackModel = ''
-  let fallbackProvider = ''
-
+  // If still not found in active members, this subagent session is an unmanaged or dismissed session
   if (!member) {
-    if (/grok/i.test(title)) {
-      fallbackName = 'Grok'
-      fallbackModel = 'grok-4.6'
-      fallbackProvider = 'grok'
-    } else if (/glm/i.test(title)) {
-      fallbackName = 'GLM'
-      fallbackModel = 'glm-5.3-flash'
-      fallbackProvider = 'opencode-go'
-    } else if (/gemini/i.test(title)) {
-      fallbackName = 'Gemini'
-      fallbackModel = 'gemini-3.8-flash'
-      fallbackProvider = 'antigravity'
-    } else if (/codex|gpt|luna/i.test(title)) {
-      fallbackName = 'Codex'
-      fallbackModel = 'gpt-5.6-luna'
-      fallbackProvider = 'codex'
-    }
+    isDismissed = true
   }
 
-  const name = member?.name ?? fallbackName
-  const provider = member?.provider ?? (fallbackProvider || 'inherited')
-  const model = member?.model ?? (fallbackModel || 'default')
+  const name = member?.name ?? (summary?.displayTitle || 'teammate')
+  const provider = member?.provider ?? 'inherited'
+  const model = member?.model ?? (isDismissed ? 'default (继承)' : 'default')
   const effort = member?.effort
-
-  // If team has active members and this teammate is not in roster, it has been dismissed
-  const isDismissed = isSubagent && teamState.members.length > 0 && !member
 
   const label = isDismissed ? `已解散 · ${model}` : `${model}${effort ? ` · ${effort}` : ''}`
 

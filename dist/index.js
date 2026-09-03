@@ -288,10 +288,14 @@ function applyFact(view, fact, time, bound) {
 				})
 			};
 		}
-		case "member-removed": return {
-			...view,
-			members: view.members.filter((candidate) => candidate.memberId !== fact.memberId)
-		};
+		case "member-removed": {
+			const removed = view.members.find((candidate) => candidate.memberId === fact.memberId);
+			return {
+				...view,
+				members: view.members.filter((candidate) => candidate.memberId !== fact.memberId),
+				...removed !== void 0 ? { dismissedMembers: [...(view.dismissedMembers ?? []).filter((c) => c.memberId !== fact.memberId), removed] } : {}
+			};
+		}
 		case "ended": return {
 			active: false,
 			members: [],

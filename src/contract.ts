@@ -107,6 +107,7 @@ export interface TeamView {
   /** True once a spawn settled and the team was not ended afterwards. */
   readonly active: boolean
   readonly members: readonly TeamMemberView[]
+  readonly dismissedMembers?: readonly TeamMemberView[]
   readonly tasks: readonly TeamTaskView[]
   /** Bounded newest-last mailbox feed of leader-visible traffic. */
   readonly messages: readonly TeamMessageView[]
