@@ -299,6 +299,7 @@ function applyFact(view, fact, time, bound) {
 		case "ended": return {
 			active: false,
 			members: [],
+			dismissedMembers: [...view.dismissedMembers ?? [], ...view.members],
 			tasks: [],
 			messages: view.messages,
 			board: []
@@ -408,18 +409,20 @@ function foldTeam(events, bound) {
 * schema covers the fold state, the read side, and the persisted-cache round
 * trip.
 */
+const memberSchema = z$1.object({
+	memberId: z$1.string(),
+	name: z$1.string(),
+	role: z$1.string().optional(),
+	relation: z$1.union([z$1.literal("managed"), z$1.literal("peer")]),
+	provider: z$1.string().optional(),
+	model: z$1.string().optional(),
+	effort: z$1.string().optional(),
+	joinedAt: z$1.number()
+});
 const teamViewSchema = z$1.object({
 	active: z$1.boolean(),
-	members: z$1.array(z$1.object({
-		memberId: z$1.string(),
-		name: z$1.string(),
-		role: z$1.string().optional(),
-		relation: z$1.union([z$1.literal("managed"), z$1.literal("peer")]),
-		provider: z$1.string().optional(),
-		model: z$1.string().optional(),
-		effort: z$1.string().optional(),
-		joinedAt: z$1.number()
-	})),
+	members: z$1.array(memberSchema),
+	dismissedMembers: z$1.array(memberSchema).optional(),
 	tasks: z$1.array(z$1.object({
 		taskId: z$1.string(),
 		title: z$1.string(),
@@ -468,7 +471,7 @@ function teamProjection(maxRecentMessages) {
 			viewSchema: teamViewSchema,
 			view: (state) => state
 		},
-		stateVersion: 3
+		stateVersion: 4
 	};
 }
 //#endregion

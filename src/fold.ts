@@ -277,7 +277,14 @@ function applyFact(view: TeamView, fact: TeamFact, time: number, bound: number):
       }
     }
     case 'ended':
-      return { active: false, members: [], tasks: [], messages: view.messages, board: [] }
+      return {
+        active: false,
+        members: [],
+        dismissedMembers: [...(view.dismissedMembers ?? []), ...view.members],
+        tasks: [],
+        messages: view.messages,
+        board: [],
+      }
     case 'message':
       return {
         ...view,

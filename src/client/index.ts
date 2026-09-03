@@ -330,7 +330,7 @@ function ensureDismissedStyles(): void {
       order: 9999 !important;
       opacity: 0.55 !important;
     }
-    [data-dsh-dismissed="true"] [data-state="done"] {
+    [data-dsh-dismissed="true"] [data-state] {
       filter: grayscale(1) !important;
       opacity: 0.35 !important;
       background-color: var(--dsw-alias-label-quaternary, #888) !important;
@@ -360,54 +360,53 @@ function observeSubagentsMenu(store: SnapshotStore<TeamPanelState>, sessions: IS
 
   const processMenu = (): void => {
     const menus = Array.from(document.querySelectorAll<HTMLElement>('[role="tree"]'))
-    const subagentMenu = menus.find(m => {
-      const cls = m.className || ''
-      return (cls.includes('menu') || cls.includes('Menu') || m.querySelector('[data-state]') !== null) &&
-        m.innerText.includes('continuable')
-    })
+    // Find the subagents dropdown menu: must contain state dots ([data-state])
+    const subagentMenu = menus.find(m => m.querySelector('[data-state]') !== null)
     if (!subagentMenu) return
+
+    // Ensure flex layout for CSS order-based sinking
+    subagentMenu.style.display = 'flex'
+    subagentMenu.style.flexDirection = 'column'
 
     const rows = Array.from(subagentMenu.querySelectorAll<HTMLElement>(':scope > div, :scope > [role="treeitem"]'))
       .filter(el => el.getAttribute('role') === 'treeitem' || el.querySelector('[role="treeitem"]') !== null)
     if (rows.length === 0) return
 
-    // Resolve active member IDs
-    let activeMemberIds: Set<string> | null = null
-    const state = store.getSnapshot()
-    if (state.members.length > 0) {
-      activeMemberIds = new Set(state.members.map(m => m.memberId))
-    } else {
-      // If current session is a child, find parent session's team view
-      try {
-        const listState = sessions.list.getSnapshot() as any
-        const currentSession = listState?.current || listState?.currentSessionId
-        const summaries = listState?.byId || {}
-        const parentId = currentSession ? summaries[currentSession]?.parentId : undefined
-        if (parentId) {
-          const parentFace = (sessions as any).binding?.(parentId)?.session?.projections?.faceOf('team')?.getSnapshot() as TeamView | undefined
-          if (parentFace?.members && parentFace.members.length > 0) {
-            activeMemberIds = new Set(parentFace.members.map(m => m.memberId))
-          }
-        }
-      } catch {
-        // ignore
-      }
-    }
+    // Resolve authoritative team state from projectionValues
+    const listState = sessions.list.getSnapshot() as any
+    const summaries = listState?.byId || {}
+    const currentId = listState?.current || listState?.currentSessionId
+    const currentSummary = currentId ? summaries[currentId] : undefined
+    const parentId = currentSummary?.origin === 'subagent' ? currentSummary.parentId : currentId
+
+    const parentSummary = parentId ? summaries[parentId] : undefined
+    const team = (parentSummary?.projectionValues?.team as TeamView | undefined) ||
+                 (store.getSnapshot().members.length > 0 ? (store.getSnapshot() as unknown as TeamView) : undefined)
+
+    const activeMemberIds = new Set(team?.members?.map(m => m.memberId) ?? [])
+    const dismissedMemberIds = new Set(team?.dismissedMembers?.map(m => m.memberId) ?? [])
 
     const activeRows: HTMLElement[] = []
     const dismissedRows: HTMLElement[] = []
 
-    if (activeMemberIds && activeMemberIds.size > 0) {
+    if (activeMemberIds.size > 0 || dismissedMemberIds.size > 0) {
       for (const row of rows) {
         const sessionId = getRowSessionId(row)
         if (!sessionId) continue
-        if (activeMemberIds.has(sessionId)) {
-          activeRows.push(row)
-        } else {
+
+        if (dismissedMemberIds.has(sessionId)) {
           dismissedRows.push(row)
+        } else if (activeMemberIds.has(sessionId)) {
+          activeRows.push(row)
+        } else if (activeMemberIds.size > 0) {
+          // A subagent under this leader that is absent from active roster is dismissed
+          dismissedRows.push(row)
+        } else {
+          activeRows.push(row)
         }
       }
     } else {
+      // Fallback: group by role name, latest created is active, older duplicates are dismissed
       const roleGroups = new Map<string, HTMLElement[]>()
       for (const row of rows) {
         const labelEl = row.querySelector<HTMLElement>('span[class*="label"]')

@@ -17,18 +17,21 @@ import { applyTeamEvent } from './fold.ts'
  * schema covers the fold state, the read side, and the persisted-cache round
  * trip.
  */
+const memberSchema = z.object({
+  memberId: z.string(),
+  name: z.string(),
+  role: z.string().optional(),
+  relation: z.union([z.literal('managed'), z.literal('peer')]),
+  provider: z.string().optional(),
+  model: z.string().optional(),
+  effort: z.string().optional(),
+  joinedAt: z.number(),
+})
+
 const teamViewSchema = z.object({
   active: z.boolean(),
-  members: z.array(z.object({
-    memberId: z.string(),
-    name: z.string(),
-    role: z.string().optional(),
-    relation: z.union([z.literal('managed'), z.literal('peer')]),
-    provider: z.string().optional(),
-    model: z.string().optional(),
-    effort: z.string().optional(),
-    joinedAt: z.number(),
-  })),
+  members: z.array(memberSchema),
+  dismissedMembers: z.array(memberSchema).optional(),
   tasks: z.array(z.object({
     taskId: z.string(),
     title: z.string(),
@@ -81,6 +84,7 @@ export function teamProjection(maxRecentMessages: number): TeamProjectionUnit {
     // 1: initial shape (members/tasks/messages folded from tool result meta).
     // 2: mailbox rows carry the conversation-chain depth they were delivered at.
     // 3: the shared-workspace index the leader last saw rides the value.
-    stateVersion: 3,
+    // 4: dismissedMembers retention in projection wire schema.
+    stateVersion: 4,
   }
 }
