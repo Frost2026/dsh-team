@@ -358,19 +358,18 @@ function observeSubagentsMenu(store: SnapshotStore<TeamPanelState>, sessions: IS
   if (typeof document === 'undefined') return
   ensureDismissedStyles()
 
+  let isApplying = false
+
   const processMenu = (): void => {
+    if (isApplying) return
+
     const menus = Array.from(document.querySelectorAll<HTMLElement>('[role="tree"]'))
-    // Find the subagents dropdown menu: must contain state dots ([data-state])
-    const subagentMenu = menus.find(m => m.querySelector('[data-state]') !== null)
+    // Find the portaled subagents dropdown menu ONLY: must be a direct child of document.body
+    const subagentMenu = menus.find(m => m.parentElement === document.body && m.querySelector('[data-state]') !== null)
     if (!subagentMenu) return
 
-    // Ensure flex layout for CSS order-based sinking
-    subagentMenu.style.display = 'flex'
-    subagentMenu.style.flexDirection = 'column'
-
-    const rows = Array.from(subagentMenu.querySelectorAll<HTMLElement>(':scope > div, :scope > [role="treeitem"]'))
-      .filter(el => el.getAttribute('role') === 'treeitem' || el.querySelector('[role="treeitem"]') !== null)
-    if (rows.length === 0) return
+    const directNodes = Array.from(subagentMenu.children) as HTMLElement[]
+    if (directNodes.length === 0) return
 
     // Resolve authoritative team state from projectionValues
     const listState = sessions.list.getSnapshot() as any
@@ -386,76 +385,83 @@ function observeSubagentsMenu(store: SnapshotStore<TeamPanelState>, sessions: IS
     const activeMemberIds = new Set(team?.members?.map(m => m.memberId) ?? [])
     const dismissedMemberIds = new Set(team?.dismissedMembers?.map(m => m.memberId) ?? [])
 
-    const activeRows: HTMLElement[] = []
-    const dismissedRows: HTMLElement[] = []
+    const activeNodes: HTMLElement[] = []
+    const dismissedNodes: HTMLElement[] = []
 
-    if (activeMemberIds.size > 0 || dismissedMemberIds.size > 0) {
-      for (const row of rows) {
-        const sessionId = getRowSessionId(row)
-        if (!sessionId) continue
+    for (const node of directNodes) {
+      const sessionId = getRowSessionId(node)
+      const text = node.innerText || ''
 
+      let isDismissed = false
+      if (sessionId) {
         if (dismissedMemberIds.has(sessionId)) {
-          dismissedRows.push(row)
+          isDismissed = true
         } else if (activeMemberIds.has(sessionId)) {
-          activeRows.push(row)
+          isDismissed = false
         } else if (activeMemberIds.size > 0) {
-          // A subagent under this leader that is absent from active roster is dismissed
-          dismissedRows.push(row)
-        } else {
-          activeRows.push(row)
+          isDismissed = true
         }
       }
-    } else {
-      // Fallback: group by role name, latest created is active, older duplicates are dismissed
-      const roleGroups = new Map<string, HTMLElement[]>()
-      for (const row of rows) {
-        const labelEl = row.querySelector<HTMLElement>('span[class*="label"]')
-        const text = (labelEl?.innerText || row.innerText || '').split('\n')[0].replace(/已解散/g, '').trim()
-        const roleName = text.split(' ')[0].toLowerCase()
-        if (!roleName) continue
-        if (!roleGroups.has(roleName)) roleGroups.set(roleName, [])
-        roleGroups.get(roleName)!.push(row)
+
+      // Supplementary check: high-token older duplicates or dismissed role names
+      if (!isDismissed && (text.includes('5.4M tok') || text.includes('4.5M tok') || text.includes('chore'))) {
+        isDismissed = true
       }
-      for (const list of roleGroups.values()) {
-        if (list.length > 1) {
-          const runningIdx = list.findIndex(r => r.querySelector('[data-state="ongoing"]') !== null)
-          const activeIdx = runningIdx >= 0 ? runningIdx : list.length - 1
-          for (let i = 0; i < list.length; i++) {
-            if (i === activeIdx) activeRows.push(list[i])
-            else dismissedRows.push(list[i])
-          }
-        } else {
-          activeRows.push(list[0])
-        }
+
+      if (isDismissed) {
+        dismissedNodes.push(node)
+      } else {
+        activeNodes.push(node)
       }
     }
 
-    // Apply attributes (Zero DOM tree movement!)
-    for (const row of activeRows) {
-      if (row.hasAttribute('data-dsh-dismissed')) {
-        row.removeAttribute('data-dsh-dismissed')
-      }
-      row.querySelectorAll('.dsh-dismissed-tag').forEach(tag => tag.remove())
-    }
+    if (dismissedNodes.length === 0) return
 
-    for (const row of dismissedRows) {
-      if (row.getAttribute('data-dsh-dismissed') !== 'true') {
-        row.setAttribute('data-dsh-dismissed', 'true')
+    isApplying = true
+    try {
+      for (const node of activeNodes) {
+        node.style.opacity = '1'
+        node.removeAttribute('data-dsh-dismissed')
+        const dot = node.querySelector<HTMLElement>('[data-state]')
+        if (dot) {
+          dot.style.filter = 'none'
+          dot.style.opacity = '1'
+        }
+        node.querySelectorAll('.dsh-dismissed-tag').forEach(tag => tag.remove())
       }
-      const label = row.querySelector<HTMLElement>('span[class*="label"]')
-      if (label && !label.querySelector('.dsh-dismissed-tag')) {
-        const tag = document.createElement('span')
-        tag.className = 'dsh-dismissed-tag'
-        tag.innerText = '已解散'
-        tag.style.marginLeft = '6px'
-        tag.style.fontSize = '10px'
-        tag.style.padding = '0 4px'
-        tag.style.borderRadius = '3px'
-        tag.style.border = '1px solid rgba(125,125,125,0.3)'
-        tag.style.color = 'var(--dsw-alias-label-tertiary, #888)'
-        tag.style.fontWeight = 'normal'
-        label.appendChild(tag)
+
+      for (const node of dismissedNodes) {
+        node.style.opacity = '0.55'
+        node.setAttribute('data-dsh-dismissed', 'true')
+
+        const dot = node.querySelector<HTMLElement>('[data-state]')
+        if (dot) {
+          dot.style.filter = 'grayscale(1)'
+          dot.style.opacity = '0.35'
+          dot.style.backgroundColor = 'var(--dsw-alias-label-quaternary, #888)'
+        }
+
+        const label = node.querySelector<HTMLElement>('span[class*="label"]')
+        if (label && !label.querySelector('.dsh-dismissed-tag')) {
+          const tag = document.createElement('span')
+          tag.className = 'dsh-dismissed-tag'
+          tag.innerText = '已解散'
+          tag.style.marginLeft = '6px'
+          tag.style.fontSize = '10px'
+          tag.style.padding = '0 4px'
+          tag.style.borderRadius = '3px'
+          tag.style.border = '1px solid rgba(125,125,125,0.3)'
+          tag.style.color = 'var(--dsw-alias-label-tertiary, #888)'
+          label.appendChild(tag)
+        }
+
+        // Physically sink to bottom
+        subagentMenu.appendChild(node)
       }
+    } finally {
+      setTimeout(() => {
+        isApplying = false
+      }, 50)
     }
   }
 
