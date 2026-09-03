@@ -312,8 +312,31 @@ export function apply(ctx: ClientContext): void {
     })
   })
 
-  // Watch and enhance the portaled subagents lineage menu
-  observeSubagentsMenu(store)
+  // Watch and enhance the portaled subagents lineage menu with zero-movement CSS
+  observeSubagentsMenu(store, sessions)
+}
+
+function ensureDismissedStyles(): void {
+  if (typeof document === 'undefined') return
+  if (document.getElementById('dsh-team-dismissed-style')) return
+  const style = document.createElement('style')
+  style.id = 'dsh-team-dismissed-style'
+  style.textContent = `
+    [role="tree"]:has([data-dsh-dismissed="true"]) {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    [data-dsh-dismissed="true"] {
+      order: 9999 !important;
+      opacity: 0.55 !important;
+    }
+    [data-dsh-dismissed="true"] [data-state="done"] {
+      filter: grayscale(1) !important;
+      opacity: 0.35 !important;
+      background-color: var(--dsw-alias-label-quaternary, #888) !important;
+    }
+  `
+  document.head.appendChild(style)
 }
 
 function getRowSessionId(row: HTMLElement): string | null {
@@ -331,14 +354,11 @@ function getRowSessionId(row: HTMLElement): string | null {
   return null
 }
 
-function observeSubagentsMenu(store: SnapshotStore<TeamPanelState>): void {
+function observeSubagentsMenu(store: SnapshotStore<TeamPanelState>, sessions: ISessions): void {
   if (typeof document === 'undefined') return
-
-  let isApplying = false
+  ensureDismissedStyles()
 
   const processMenu = (): void => {
-    if (isApplying) return
-
     const menus = Array.from(document.querySelectorAll<HTMLElement>('[role="tree"]'))
     const subagentMenu = menus.find(m => {
       const cls = m.className || ''
@@ -351,71 +371,92 @@ function observeSubagentsMenu(store: SnapshotStore<TeamPanelState>): void {
       .filter(el => el.getAttribute('role') === 'treeitem' || el.querySelector('[role="treeitem"]') !== null)
     if (rows.length === 0) return
 
+    // Resolve active member IDs
+    let activeMemberIds: Set<string> | null = null
     const state = store.getSnapshot()
-    if (state.members.length === 0) return
-
-    const activeMemberIds = new Set(state.members.map(m => m.memberId))
+    if (state.members.length > 0) {
+      activeMemberIds = new Set(state.members.map(m => m.memberId))
+    } else {
+      // If current session is a child, find parent session's team view
+      try {
+        const listState = sessions.list.getSnapshot() as any
+        const currentSession = listState?.current || listState?.currentSessionId
+        const summaries = listState?.byId || {}
+        const parentId = currentSession ? summaries[currentSession]?.parentId : undefined
+        if (parentId) {
+          const parentFace = (sessions as any).binding?.(parentId)?.session?.projections?.faceOf('team')?.getSnapshot() as TeamView | undefined
+          if (parentFace?.members && parentFace.members.length > 0) {
+            activeMemberIds = new Set(parentFace.members.map(m => m.memberId))
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
 
     const activeRows: HTMLElement[] = []
     const dismissedRows: HTMLElement[] = []
 
-    for (const row of rows) {
-      const sessionId = getRowSessionId(row)
-      if (!sessionId) continue
-
-      if (activeMemberIds.has(sessionId)) {
-        activeRows.push(row)
-      } else {
-        dismissedRows.push(row)
+    if (activeMemberIds && activeMemberIds.size > 0) {
+      for (const row of rows) {
+        const sessionId = getRowSessionId(row)
+        if (!sessionId) continue
+        if (activeMemberIds.has(sessionId)) {
+          activeRows.push(row)
+        } else {
+          dismissedRows.push(row)
+        }
+      }
+    } else {
+      const roleGroups = new Map<string, HTMLElement[]>()
+      for (const row of rows) {
+        const labelEl = row.querySelector<HTMLElement>('span[class*="label"]')
+        const text = (labelEl?.innerText || row.innerText || '').split('\n')[0].replace(/已解散/g, '').trim()
+        const roleName = text.split(' ')[0].toLowerCase()
+        if (!roleName) continue
+        if (!roleGroups.has(roleName)) roleGroups.set(roleName, [])
+        roleGroups.get(roleName)!.push(row)
+      }
+      for (const list of roleGroups.values()) {
+        if (list.length > 1) {
+          const runningIdx = list.findIndex(r => r.querySelector('[data-state="ongoing"]') !== null)
+          const activeIdx = runningIdx >= 0 ? runningIdx : list.length - 1
+          for (let i = 0; i < list.length; i++) {
+            if (i === activeIdx) activeRows.push(list[i])
+            else dismissedRows.push(list[i])
+          }
+        } else {
+          activeRows.push(list[0])
+        }
       }
     }
 
-    if (dismissedRows.length === 0) return
-
-    isApplying = true
-    try {
-      // 1. Ensure active rows are clean and normal
-      for (const row of activeRows) {
-        row.style.opacity = '1'
-        const dot = row.querySelector<HTMLElement>('[data-state]')
-        if (dot) {
-          dot.style.filter = 'none'
-          dot.style.opacity = '1'
-        }
-        row.querySelectorAll('.dsh-dismissed-tag').forEach(tag => tag.remove())
+    // Apply attributes (Zero DOM tree movement!)
+    for (const row of activeRows) {
+      if (row.hasAttribute('data-dsh-dismissed')) {
+        row.removeAttribute('data-dsh-dismissed')
       }
+      row.querySelectorAll('.dsh-dismissed-tag').forEach(tag => tag.remove())
+    }
 
-      // 2. Mark dismissed rows and sink to bottom
-      for (const row of dismissedRows) {
-        row.style.opacity = '0.55'
-
-        const dot = row.querySelector<HTMLElement>('[data-state]')
-        if (dot) {
-          dot.style.filter = 'grayscale(1)'
-          dot.style.opacity = '0.35'
-        }
-
-        const label = row.querySelector<HTMLElement>('span[class*="label"]')
-        if (label && !label.querySelector('.dsh-dismissed-tag')) {
-          const tag = document.createElement('span')
-          tag.className = 'dsh-dismissed-tag'
-          tag.innerText = '已解散'
-          tag.style.marginLeft = '6px'
-          tag.style.fontSize = '10px'
-          tag.style.padding = '0 4px'
-          tag.style.borderRadius = '3px'
-          tag.style.border = '1px solid rgba(125,125,125,0.3)'
-          tag.style.color = 'var(--dsw-alias-label-tertiary, #888)'
-          tag.style.fontWeight = 'normal'
-          label.appendChild(tag)
-        }
-
-        subagentMenu.appendChild(row)
+    for (const row of dismissedRows) {
+      if (row.getAttribute('data-dsh-dismissed') !== 'true') {
+        row.setAttribute('data-dsh-dismissed', 'true')
       }
-    } finally {
-      setTimeout(() => {
-        isApplying = false
-      }, 50)
+      const label = row.querySelector<HTMLElement>('span[class*="label"]')
+      if (label && !label.querySelector('.dsh-dismissed-tag')) {
+        const tag = document.createElement('span')
+        tag.className = 'dsh-dismissed-tag'
+        tag.innerText = '已解散'
+        tag.style.marginLeft = '6px'
+        tag.style.fontSize = '10px'
+        tag.style.padding = '0 4px'
+        tag.style.borderRadius = '3px'
+        tag.style.border = '1px solid rgba(125,125,125,0.3)'
+        tag.style.color = 'var(--dsw-alias-label-tertiary, #888)'
+        tag.style.fontWeight = 'normal'
+        label.appendChild(tag)
+      }
     }
   }
 
