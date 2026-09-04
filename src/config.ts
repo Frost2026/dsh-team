@@ -27,6 +27,8 @@ export interface TeamConfig {
   readonly maxWorkspaceEntries: number
   /** Longest single note body. */
   readonly maxNoteChars: number
+  /** Custom system prompt guidance for the team leader. */
+  readonly leaderPrompt?: string
 }
 
 /**
@@ -42,4 +44,5 @@ export const Config: z<Partial<TeamConfig>, TeamConfig> = z.object({
   maxChainRoundTrips: z.number().step(1).min(1).max(64).default(2),
   maxWorkspaceEntries: z.number().step(1).min(1).max(500).default(32),
   maxNoteChars: z.number().step(1).min(200).max(200_000).default(4000),
+  leaderPrompt: z.string(),
 })

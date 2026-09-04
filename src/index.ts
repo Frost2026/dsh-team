@@ -11,6 +11,9 @@
  * @module dsh-team
  */
 
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
+import { dirname, join } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { SessionId } from '@deepseek-ai/dsh-session'
@@ -24,6 +27,51 @@ import { TeamService } from './service.ts'
 import { installTeammateWorkspace, installTeammateWorld } from './teammate.ts'
 import { boardTool, dismissTool, inspectTool, listTool, noteTool, relationTool, sendTool, spawnTool, taskTool } from './tools.ts'
 import { TeamWorkspace } from './workspace.ts'
+
+export const DEFAULT_LEADER_GUIDE = `
+# Agent Team Collaboration & Model Routing Guidelines
+
+## 0. Natural Language Intent Mapping (Zero-Search Principle)
+- You ALREADY have full agent team collaboration capabilities natively mounted into your session.
+- When the user asks you to "开团队", "组建团队", "协同作战", "多Agent", "调用团队插件", "team plugin", or "collaborate with a team":
+  YOU DO NOT NEED TO SEARCH FOR PLUGINS OR SCRIPTS.
+  You already have the full team toolset: \`team_spawn\`, \`team_task\`, \`team_message\`, \`team_inspect\`, \`team_dismiss\`, and \`team_list\`.
+  Directly call \`team_spawn\` to create teammates and \`team_task\` to assign work! Never reply that you "do not have this plugin" or search the workspace for it.
+
+## 1. Heterogeneous Model Selection
+When forming a team with specific models, use \`team_spawn\` with matching \`provider\` and \`model\`:
+- Gemini / 反重力: provider: "antigravity", model: "gemini-3.8-flash" (reasoning_effort: "high"|"medium"|"low").
+- Grok: provider: "grok", model: "grok-4.6" (reasoning_effort: "xhigh"|"high"|"medium"|"low", default "high").
+- Codex / ChatGPT: provider: "codex", model: "gpt-5.6-luna" or "gpt-5.6-sol" (reasoning_effort: "max"|"xhigh"|"high"|"medium"|"low").
+- OpenCode Go (GLM): provider: "opencode-go", model: "glm-5.3-flash" (reasoning_effort: "max"|"high"|"low", default "max").
+- OpenCode Go (DeepSeek): provider: "opencode-go", model: "deepseek-v4-pro" (reasoning_effort: "high"|"off").
+CRITICAL: When spawning teammates with a different model family, you MUST explicitly provide both \`provider\` and \`model\`.
+
+## 2. Autonomous Background Execution & No-Polling Principle
+- Teammates run autonomously in background sessions; deep thinking models naturally take several minutes.
+- When waiting for teammates to work, you DO NOT need to poll them. When they finish, they will report automatically, and the system will wake you up.
+- Do not call tools in a loop to wait. Unless the user explicitly asks you to inspect or you suspect an issue, only then call \`team_inspect\`.
+- If \`team_inspect\` shows a teammate is RUNNING or thinking, it is actively working: stop calling tools, give the user a brief note, and wait quietly for their report. Never dismiss a member that is actively thinking.
+`.trim()
+
+function getPromptFilePath(): string {
+  const dshHome = process.env.DSH_HOME || join(homedir(), '.dsh')
+  return join(dshHome, 'team-leader-prompt.md')
+}
+
+export function getEffectiveLeaderPrompt(config?: TeamConfig): string {
+  try {
+    const promptPath = getPromptFilePath()
+    if (existsSync(promptPath)) {
+      const content = readFileSync(promptPath, 'utf8').trim()
+      if (content) return content
+    }
+  } catch {}
+  if (config?.leaderPrompt?.trim()) {
+    return config.leaderPrompt.trim()
+  }
+  return DEFAULT_LEADER_GUIDE
+}
 
 export const name = 'team'
 /**
@@ -56,9 +104,10 @@ function leads(agent: Agent): boolean {
  * never sees tools that would fail for it.
  * @param ctx - context carrying the team service.
  * @param agent - the session agent to equip.
+ * @param config - optional validated team config.
  * @returns the disposer for every registration made here.
  */
-function installLeaderTools(ctx: Context, agent: Agent): () => void {
+function installLeaderTools(ctx: Context, agent: Agent, config?: TeamConfig): () => void {
   const disposers: (() => void)[] = [
     agent.ctx.tools.register(spawnTool(ctx)),
     agent.ctx.tools.register(sendTool(ctx, 'leader')),
@@ -73,24 +122,7 @@ function installLeaderTools(ctx: Context, agent: Agent): () => void {
       agent.ctx.systemPrompt.section({
         name: 'team-leader-guide',
         order: 100,
-        text: `
-# Agent Team Collaboration & Model Routing Guidelines
-
-## 1. Heterogeneous Model Selection
-When forming a team with specific models, use \`team_spawn\` with matching \`provider\` and \`model\`:
-- Gemini / 反重力: provider: "antigravity", model: "gemini-3.8-flash" (reasoning_effort: "high"|"medium"|"low").
-- Grok: provider: "grok", model: "grok-4.6" (reasoning_effort: "xhigh"|"high"|"medium"|"low", default "high").
-- Codex / ChatGPT: provider: "codex", model: "gpt-5.6-luna" or "gpt-5.6-sol" (reasoning_effort: "max"|"xhigh"|"high"|"medium"|"low").
-- OpenCode Go (GLM): provider: "opencode-go", model: "glm-5.3-flash" (reasoning_effort: "max"|"high"|"low", default "max").
-- OpenCode Go (DeepSeek): provider: "opencode-go", model: "deepseek-v4-pro" (reasoning_effort: "high"|"off").
-CRITICAL: When spawning teammates with a different model family, you MUST explicitly provide both \`provider\` and \`model\`.
-
-## 2. Autonomous Background Execution & No-Polling Principle
-- Teammates run autonomously in background sessions; deep thinking models naturally take several minutes.
-- When waiting for teammates to work, you DO NOT need to poll them. When they finish, they will report automatically, and the system will wake you up.
-- Do not call tools in a loop to wait. Unless the user explicitly asks you to inspect or you suspect an issue, only then call \`team_inspect\`.
-- If \`team_inspect\` shows a teammate is RUNNING or thinking, it is actively working: stop calling tools, give the user a brief note, and wait quietly for their report. Never dismiss a member that is actively thinking.
-        `.trim(),
+        text: getEffectiveLeaderPrompt(config),
       }),
     )
   }
@@ -181,6 +213,60 @@ export function apply(ctx: Context, config: TeamConfig): void {
   ctx.inject(['commands'], (commandCtx: Context) => {
     commandCtx.effect(() => installCommand(commandCtx), 'team: /agent-teams command')
   })
+  ctx.inject(['webServer'], (webCtx: Context) => {
+    webCtx.effect(() => (webCtx as any).webServer.register({
+      kind: 'exact',
+      path: '/api/team/leader-prompt',
+      handler: async (req: any, res: any) => {
+        const respond = (code: number, data: unknown) => {
+          res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' })
+          res.end(JSON.stringify(data))
+        }
+        const promptPath = getPromptFilePath()
+        if (req.method === 'GET') {
+          let customPrompt: string | null = null
+          try {
+            if (existsSync(promptPath)) {
+              customPrompt = readFileSync(promptPath, 'utf8')
+            }
+          } catch {}
+          return respond(200, {
+            ok: true,
+            prompt: customPrompt || (config?.leaderPrompt?.trim() || DEFAULT_LEADER_GUIDE),
+            defaultPrompt: DEFAULT_LEADER_GUIDE,
+            isCustom: Boolean(customPrompt || config?.leaderPrompt),
+          })
+        }
+        if (req.method === 'POST') {
+          try {
+            const chunks: Buffer[] = []
+            for await (const chunk of req) chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
+            const body = JSON.parse(Buffer.concat(chunks).toString('utf8'))
+            if (body.reset === true || !body.prompt || body.prompt.trim() === DEFAULT_LEADER_GUIDE.trim()) {
+              if (existsSync(promptPath)) rmSync(promptPath, { force: true })
+              return respond(200, {
+                ok: true,
+                prompt: DEFAULT_LEADER_GUIDE,
+                defaultPrompt: DEFAULT_LEADER_GUIDE,
+                isCustom: false,
+              })
+            }
+            mkdirSync(dirname(promptPath), { recursive: true })
+            writeFileSync(promptPath, body.prompt.trim(), 'utf8')
+            return respond(200, {
+              ok: true,
+              prompt: body.prompt.trim(),
+              defaultPrompt: DEFAULT_LEADER_GUIDE,
+              isCustom: true,
+            })
+          } catch (err) {
+            return respond(500, { ok: false, error: String((err as Error)?.message || err) })
+          }
+        }
+        return respond(405, { ok: false, error: 'Method not allowed' })
+      },
+    }), 'team: /api/team/leader-prompt route')
+  })
   ctx.inject(['team'], (teamCtx: Context) => {
     teamCtx.effect(
       () => teamCtx.sessionProjections.register(teamProjection(config.maxRecentMessages)),
@@ -188,7 +274,7 @@ export function apply(ctx: Context, config: TeamConfig): void {
     )
     teamCtx.effect(() => installTeammateWorld(teamCtx), 'team: teammate world')
     teamCtx.effect(
-      () => equipLeaders(teamCtx, agent => installLeaderTools(teamCtx, agent)),
+      () => equipLeaders(teamCtx, agent => installLeaderTools(teamCtx, agent, config)),
       'team: leader tools',
     )
     installWorkspaces(teamCtx, config)

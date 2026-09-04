@@ -25,6 +25,8 @@ interface TeamConfig {
   readonly maxWorkspaceEntries: number;
   /** Longest single note body. */
   readonly maxNoteChars: number;
+  /** Custom system prompt guidance for the team leader. */
+  readonly leaderPrompt?: string;
 }
 /**
  * The row's config schema; the loader validates before the service is built.
@@ -611,6 +613,8 @@ declare class TeamWorkspace {
 }
 //#endregion
 //#region src/index.d.ts
+declare const DEFAULT_LEADER_GUIDE: string;
+declare function getEffectiveLeaderPrompt(config?: TeamConfig): string;
 declare const name = "team";
 /**
  * `tools` and `systemPrompt` are declared although this row registers into
@@ -632,4 +636,4 @@ declare const inject: string[];
  */
 declare function apply(ctx: Context, config: TeamConfig): void;
 //#endregion
-export { Config, EMPTY_TEAM_VIEW, SHARED_AREA, TEAM_PROJECTION_KEY, TeamBoardEntryView, TeamChain, type TeamConfig, TeamError, type TeamErrorCode, type TeamFact, type TeamMemberFact, TeamMemberInspection, TeamMemberView, TeamMessageKind, TeamMessageSource, TeamMessageView, TeamRelation, TeamService, TeamTaskStatus, TeamTaskView, TeamView, TeamWorkspace, WORKSPACE_DOMAIN, type WorkspaceEntry, apply, foldTeam, inject, name, teamProjection };
+export { Config, DEFAULT_LEADER_GUIDE, EMPTY_TEAM_VIEW, SHARED_AREA, TEAM_PROJECTION_KEY, TeamBoardEntryView, TeamChain, type TeamConfig, TeamError, type TeamErrorCode, type TeamFact, type TeamMemberFact, TeamMemberInspection, TeamMemberView, TeamMessageKind, TeamMessageSource, TeamMessageView, TeamRelation, TeamService, TeamTaskStatus, TeamTaskView, TeamView, TeamWorkspace, WORKSPACE_DOMAIN, type WorkspaceEntry, apply, foldTeam, getEffectiveLeaderPrompt, inject, name, teamProjection };

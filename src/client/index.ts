@@ -17,6 +17,7 @@ import type { TeamMemberView, TeamView } from '../contract.ts'
 import { TeamStage, type TeamInjected, type TeamPanelState } from './TeamStage.tsx'
 import { ComposerAway } from './composer.tsx'
 import { TeammateModelBadge } from './model-badge.tsx'
+import { TeamSettingsCard } from './TeamSettings.tsx'
 import { en, NS, zh, type TeamKey } from './locales.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
@@ -310,6 +311,15 @@ export function apply(ctx: ClientContext): void {
         sessions,
       })
     })
+  })
+
+  ctx.slots.inject('settings.section', () => {
+    return ctx.slots.register({
+      name: 'settings.section',
+      id: 'dsh-team-settings',
+      order: 35,
+      label: '团队协作 (Team)',
+    }, TeamSettingsCard)
   })
 
   // Watch and enhance the portaled subagents lineage menu with zero-movement CSS
